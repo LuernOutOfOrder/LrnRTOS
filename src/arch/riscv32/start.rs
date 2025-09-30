@@ -6,10 +6,12 @@ global_asm!("
     kstart:
         j {start}
     ",
-    start = sym start,
+    start = sym _start,
 );
 
-unsafe extern "C" fn start() -> ! {
+#[no_mangle]
+#[link_section = ".text.entry"]
+unsafe extern "C" fn _start() -> ! {
     crate::main();
 }
 
