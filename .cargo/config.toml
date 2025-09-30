@@ -6,4 +6,4 @@ build-std = ["core", "compiler_builtins"]
 ESP_HAL_CONFIG_PLACE_ANON_IN_RAM="true"
 
 [build]
-target = "targets/riscv32imc-unknown-kernel.json"
+target = "arch/riscv32imc-unknown-kernel.json"
