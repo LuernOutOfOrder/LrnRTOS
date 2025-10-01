@@ -1,8 +1,11 @@
 #![no_std]
 #![no_main]
 
+// Arch specific module
 pub mod arch;
 pub mod print;
+// Devices module
+pub mod devices;
 
 use core::panic::PanicInfo;
 
