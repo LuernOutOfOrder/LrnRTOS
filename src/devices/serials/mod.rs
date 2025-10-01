@@ -1,7 +1,7 @@
 mod ns16550;
 
 /// Generic trait to impl in each driver
-pub trait UartDriver {
+pub trait UartDriver: Send + Sync {
     fn init(&self);
     fn putchar(&self, c: u8);
     fn getchar(&self) -> u8;
@@ -11,14 +11,13 @@ pub trait UartDriver {
 /// id: the device id for faster access or identification
 /// default_console: if it's the default console to use or not
 /// driver: ptr to any struct impl the UartDriver trait
+#[derive(Clone, Copy)]
 pub struct UartDevice {
     id: usize,
     default_console: bool,
-    driver: &'static dyn UartDriver,
+    pub driver: &'static dyn UartDriver,
 }
 
-/// 
-pub struct UartDevices {
-    devices: [UartDevice; 10],
-}
+/// Static array containing all UART devices
+pub static mut UART_DEVICES: [Option<UartDevice>; 4] = [None; 4];
 
