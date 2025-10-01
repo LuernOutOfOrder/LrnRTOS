@@ -9,8 +9,11 @@ pub mod devices;
 
 use core::panic::PanicInfo;
 
-fn main() -> ! {
-    print::print("Hello world!");
+use devices::serials::{ns16550::Ns16550, UartDriver};
+
+pub fn main(dtb: u32) -> ! {
+    devices::serials::ns16550::Ns16550::init();
+    print::print("Hello");
     loop {
         unsafe {
             arch::interrupt::enable_and_halt();

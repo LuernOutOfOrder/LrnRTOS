@@ -1,5 +1,11 @@
+use crate::devices::serials::UART_DEVICES;
+
 pub fn print(str: &str) {
-    for char in str.bytes() {
-        crate::arch::misc::write_uart(char);
+    for byte in str.bytes() {
+        unsafe {
+            if let Some(uart) = UART_DEVICES[0] {
+                uart.driver.putchar(byte);
+            }
+        }
     }
 }

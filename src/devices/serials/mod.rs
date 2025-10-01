@@ -1,8 +1,7 @@
-mod ns16550;
+pub mod ns16550;
 
 /// Generic trait to impl in each driver
 pub trait UartDriver: Send + Sync {
-    fn init(&self);
     fn putchar(&self, c: u8);
     fn getchar(&self) -> u8;
 }
