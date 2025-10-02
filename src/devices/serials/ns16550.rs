@@ -25,9 +25,11 @@ impl Ns16550 {
         };
         unsafe {
             // Basic loop and no iter.position ??
-            if let Some(i) = UART_DEVICES.iter().position(|x| x.is_none()) {
-                UART_DEVICES[0] = Some(device);
-            }
+            (0..UART_DEVICES.len()).for_each(|i| {
+                if UART_DEVICES[i].is_none() {
+                    UART_DEVICES[i] = Some(device)
+                }
+            });
         }
     }
 }
