@@ -1,5 +1,6 @@
 #![no_std]
 #![no_main]
+#![warn(static_mut_refs)]
 
 // Arch specific module
 pub mod arch;
@@ -8,8 +9,6 @@ pub mod print;
 pub mod devices;
 
 use core::panic::PanicInfo;
-
-use devices::serials::{ns16550::Ns16550, UartDriver};
 
 pub fn main(dtb: u32) -> ! {
     devices::serials::ns16550::Ns16550::init();
@@ -23,5 +22,10 @@ pub fn main(dtb: u32) -> ! {
 
 #[panic_handler]
 fn panic_handler(panic: &PanicInfo) -> ! {
-    loop {}
+    print::print(panic.message().as_str().unwrap());
+    loop {
+        unsafe {
+            arch::interrupt::enable_and_halt();
+        }
+    }
 }
