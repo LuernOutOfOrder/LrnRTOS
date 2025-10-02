@@ -1,3 +1,5 @@
+use core::cell::UnsafeCell;
+
 pub mod ns16550;
 
 /// Generic trait to impl in each driver
@@ -18,5 +20,5 @@ pub struct UartDevice {
 }
 
 /// Static array containing all UART devices
-pub static mut UART_DEVICES: [Option<UartDevice>; 4] = [None; 4];
+pub static mut UART_DEVICES: UnsafeCell<[Option<UartDevice>; 4]> = UnsafeCell::new([None; 4]);
 

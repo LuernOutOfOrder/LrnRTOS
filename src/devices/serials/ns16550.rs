@@ -23,13 +23,12 @@ impl Ns16550 {
             default_console: false,
             driver: &NS16550,
         };
-        unsafe {
-            // Basic loop and no iter.position ??
-            (0..UART_DEVICES.len()).for_each(|i| {
-                if UART_DEVICES[i].is_none() {
-                    UART_DEVICES[i] = Some(device)
-                }
-            });
-        }
+        let devices = unsafe { &mut *UART_DEVICES.get() };
+        // Basic loop and no iter.position ??
+        (0..devices.len()).for_each(|i| {
+            if devices[i].is_none() {
+                devices[i] = Some(device)
+            }
+        });
     }
 }
