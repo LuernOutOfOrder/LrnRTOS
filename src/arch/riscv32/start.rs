@@ -9,9 +9,9 @@ global_asm!("
     start = sym _start,
 );
 
-#[no_mangle]
-#[link_section = ".text.entry"]
+#[unsafe(no_mangle)]
+#[unsafe(link_section = ".text.entry")]
 unsafe extern "C" fn _start() -> ! {
-    crate::main();
+    // let dtb: u32 = unsafe { core::ptr::read_volatile(0x11 as *const u32) };
+    crate::main(0);
 }
-
