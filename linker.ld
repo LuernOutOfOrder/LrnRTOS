@@ -2,11 +2,11 @@ ENTRY(_start)
 
 SECTIONS
 {
-  . = 0x80000000;       /* Adresse de boot de QEMU virt */
+  . = 0x80200000;
 
   .text : {
-    *(.text.entry)      /* ton _start */
-    *(.text*)           /* le reste du code */
+    *(.text.entry)      /* entry point */
+    *(.text*)
   }
 
   .rodata : {
