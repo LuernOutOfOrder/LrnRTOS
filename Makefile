@@ -7,4 +7,4 @@ clean:
 	cargo clean
 
 build:
-	cargo build
+	cargo build --release

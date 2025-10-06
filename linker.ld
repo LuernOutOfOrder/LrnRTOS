@@ -21,4 +21,9 @@ SECTIONS
     *(.bss*)
     *(COMMON)
   }
+
+  . = ALIGN(16);
+  _stack_start = .;
+  . += 64K;
+  _stack_top = .;
 }
