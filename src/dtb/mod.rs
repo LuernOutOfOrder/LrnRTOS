@@ -1,8 +1,6 @@
 use core::ptr;
 
-use itoa::Buffer;
-
-use crate::print;
+use crate::print::print_hex_u32;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -21,7 +19,5 @@ struct DtbHeader {
 
 pub fn parse_dtb_file(dtb: usize) {
     let header: DtbHeader = unsafe { ptr::read(dtb as *const DtbHeader) };
-    // let mut buffer = Buffer::new();
-    // let s: &str = buffer.format(header.magic);
-    // print!(s);
+    print_hex_u32(0x10000000, header.magic.swap_bytes());
 }
