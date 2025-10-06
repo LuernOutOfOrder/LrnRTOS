@@ -11,7 +11,7 @@ mod dtb;
 
 use core::panic::PanicInfo;
 
-pub fn main(dtb_addr: *const u8) -> ! {
+pub fn main(dtb_addr: usize) -> ! {
     dtb::parse_dtb_file(dtb_addr);
     devices::serials::ns16550::Ns16550::init();
     print!("Hello from LrnRTOS!");
