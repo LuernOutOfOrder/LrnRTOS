@@ -1,6 +1,6 @@
 use core::ptr;
 
-use crate::print::print_hex_u32;
+use crate::print::{debug_print, print_hex_u32};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -17,7 +17,44 @@ struct DtbHeader {
     size_dt_struct: u32,
 }
 
+impl DtbHeader {
+    fn valid_magic(&self) -> bool {
+        self.magic.swap_bytes() == 0xd00dfeed
+    }
+
+    fn struct_range(&self) -> core::ops::Range<usize> {
+        let start = self.off_dt_struct as usize;
+        let end = start + self.size_dt_struct as usize;
+
+        start..end
+    }
+}
+
+#[repr(C)]
+struct fdt_prop {
+    len: u32,
+    nameoff: u32,
+}
+
 pub fn parse_dtb_file(dtb: usize) {
     let header: DtbHeader = unsafe { ptr::read(dtb as *const DtbHeader) };
-    print_hex_u32(0x10000000, header.magic.swap_bytes());
+    // debug_print(0x10000000, "0x");
+    if !header.valid_magic() {
+        panic!("Magic from dtb is wrong");
+    }
+    let struct_block = dtb + header.off_dt_struct.swap_bytes() as usize;
+    parse_dt_struct(struct_block);
+}
+
+fn parse_dt_struct(dt_struct_addr: usize) {
+    let mut cursor = dt_struct_addr;
+    loop {
+        let token = u32::to_be(unsafe { ptr::read(cursor as *const u32) });
+        print_hex_u32(0x10000000, token);
+        if token == 0x00000009 {
+            break;
+        }
+        cursor +=4;
+    }
+    debug_print(0x10000000, "loop ended");
 }
