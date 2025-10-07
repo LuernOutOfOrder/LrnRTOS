@@ -8,3 +8,6 @@ clean:
 
 build:
 	cargo build --release
+
+cbuild:
+	cargo clean && cargo build --release
