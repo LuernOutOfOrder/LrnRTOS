@@ -22,7 +22,7 @@ impl DtbHeader {
         self.magic.swap_bytes() == 0xd00dfeed
     }
 
-    fn struct_range(&self) -> core::ops::Range<usize> {
+    fn _struct_range(&self) -> core::ops::Range<usize> {
         let start = self.off_dt_struct as usize;
         let end = start + self.size_dt_struct as usize;
 
@@ -31,7 +31,7 @@ impl DtbHeader {
 }
 
 #[repr(C)]
-struct fdt_prop {
+struct _FdtProp {
     len: u32,
     nameoff: u32,
 }
@@ -48,13 +48,32 @@ pub fn parse_dtb_file(dtb: usize) {
 
 fn parse_dt_struct(dt_struct_addr: usize) {
     let mut cursor = dt_struct_addr;
+    let fdt_begin_node = 0x00000001;
+    let fdt_end_node = 0x00000002;
+    let fdt_prop = 0x00000003;
+    let fdt_nop = 0x00000004;
+    let fdt_end = 0x00000009;
     loop {
         let token = u32::to_be(unsafe { ptr::read(cursor as *const u32) });
         print_hex_u32(0x10000000, token);
-        if token == 0x00000009 {
+        if token == fdt_nop {
+            cursor += 4;
+            continue;
+        }
+        if token == fdt_end {
+            debug_print(0x10000000, "Loop ended");
             break;
         }
-        cursor +=4;
+        // match token {
+        //     fdt_nop => {
+        //         cursor += 4;
+        //     }
+        //     fdt_end => {
+        //         debug_print(0x10000000, "loop ended");
+        //         break;
+        //     }
+        //     _ => cursor += 4,
+        // }
+        cursor += 4;
     }
-    debug_print(0x10000000, "loop ended");
 }
