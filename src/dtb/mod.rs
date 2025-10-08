@@ -1,6 +1,9 @@
 use core::ptr;
 
-use crate::print::{debug_print, print_hex_u32};
+use crate::{
+    print::{debug_print, print_hex_u32},
+    shared::u32_to_hex,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -43,10 +46,11 @@ pub fn parse_dtb_file(dtb: usize) {
         panic!("Magic from dtb is wrong");
     }
     let struct_block = dtb + header.off_dt_struct.swap_bytes() as usize;
-    parse_dt_struct(struct_block);
+    let string_block = dtb + header.off_dt_strings.swap_bytes() as usize;
+    parse_dt_struct(struct_block, dtb);
 }
 
-fn parse_dt_struct(dt_struct_addr: usize) {
+fn parse_dt_struct(dt_struct_addr: usize, base_addr: usize) {
     let mut cursor = dt_struct_addr;
     let fdt_begin_node = 0x00000001;
     let fdt_end_node = 0x00000002;
@@ -55,7 +59,6 @@ fn parse_dt_struct(dt_struct_addr: usize) {
     let fdt_end = 0x00000009;
     loop {
         let token = u32::to_be(unsafe { ptr::read(cursor as *const u32) });
-        print_hex_u32(0x10000000, token);
         if token == fdt_nop {
             cursor += 4;
             continue;
@@ -63,6 +66,18 @@ fn parse_dt_struct(dt_struct_addr: usize) {
         if token == fdt_end {
             debug_print(0x10000000, "Loop ended");
             break;
+        }
+        if token == fdt_prop {
+            cursor += 4;
+            let property: _FdtProp = unsafe { ptr::read(cursor as *const _FdtProp) };
+            debug_print(0x10000000, "property len: 0x");
+            print_hex_u32(0x10000000, property.len);
+            debug_print(0x10000000, "\n");
+            debug_print(0x10000000, "property nameoff: 0x");
+            print_hex_u32(0x10000000, property.nameoff);
+            debug_print(0x10000000, "\n");
+
+            continue;
         }
         // match token {
         //     fdt_nop => {
