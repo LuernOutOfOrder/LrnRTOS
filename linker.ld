@@ -1,29 +1,38 @@
 ENTRY(_start)
 
-SECTIONS
-{
-  . = 0x80200000;
+MEMORY {
+  RAM (rwx) : ORIGIN = 0x80200000, LENGTH = 128K
+}
 
-  .text : {
-    *(.text.entry)      /* entry point */
+SECTIONS {
+    .text : {
+    *(.text.entry)
     *(.text*)
-  }
+  } > RAM
 
   .rodata : {
     *(.rodata*)
-  }
+  } > RAM
 
   .data : {
     *(.data*)
-  }
+  } > RAM
 
-  .bss : {
+  .bss (NOLOAD) : {
     *(.bss*)
     *(COMMON)
-  }
+  } > RAM
 
-  . = ALIGN(16);
-  _stack_start = .;
-  . += 64K;
-  _stack_top = .;
+  /* Stack */
+    .stack (NOLOAD) : { stack_start = .; . += 0x2000; stack_top = .; } > RAM
+
+  /* Debug info */
+  .debug_info     0 : { *(.debug_info) }
+  .debug_abbrev   0 : { *(.debug_abbrev) }
+  .debug_aranges  0 : { *(.debug_aranges) }
+  .debug_line     0 : { *(.debug_line) }
+  .debug_str      0 : { *(.debug_str) }
+  .debug_loc      0 : { *(.debug_loc) }
+  .debug_ranges   0 : { *(.debug_ranges) }
+  .debug_macinfo  0 : { *(.debug_macinfo) }
 }
