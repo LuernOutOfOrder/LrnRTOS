@@ -1,6 +1,8 @@
-use core::{mem::MaybeUninit, ptr};
+use core::ptr;
 
-use crate::print::{debug_print, debug_print_usize, print_hex_u32};
+use arrayvec::ArrayVec;
+
+use crate::print::{debug_print, print_hex_u32};
 
 static FDT_MAX_STACK: usize = 32;
 static FDT_MAX_PROPS: usize = 1024;
@@ -64,6 +66,7 @@ pub fn parse_dtb_file(dtb: usize) {
     parse_dt_struct(struct_block, dtb);
 }
 
+#[unsafe(no_mangle)]
 fn parse_dt_struct(dt_struct_addr: usize, base_addr: usize) {
     // Cursor to point the correct token inside the structure block
     let mut cursor = dt_struct_addr;
@@ -76,30 +79,17 @@ fn parse_dt_struct(dt_struct_addr: usize, base_addr: usize) {
 
     // Nodes stack
     // Stack to save nodes in hierarchical order
-    static mut NODE_STACK: [FdtNode; FDT_MAX_STACK] = [FdtNode {
-        name: 0,
-        _parent_node_index: 0,
-        first_prop_off: 0,
-        first_prop_index: 0,
-        prop_count: 0,
-    }; FDT_MAX_STACK];
-    let mut stack_index: usize = 0;
+    let mut node_stack: ArrayVec<FdtNode, FDT_MAX_STACK> = ArrayVec::new();
+
     // Props buffer
     // Saves all props header
-    #[unsafe(link_section = ".bss")]
-    static mut PROPS_BUFF: [FdtPropHeader; FDT_MAX_PROPS] =
-        [FdtPropHeader { len: 0, nameoff: 0 }; FDT_MAX_PROPS];
+    let mut props_buff: ArrayVec<FdtPropHeader, FDT_MAX_PROPS> = ArrayVec::new();
     loop {
         let token = u32::to_be(unsafe { ptr::read(cursor as *const u32) });
-        print_hex_u32(0x10000000, token);
-        debug_print(0x10000000, "\n");
-        if stack_index > FDT_MAX_STACK {
-            debug_print(0x10000000, "ERR");
-        }
+        print_hex_u32(token);
+        debug_print("\n");
         if token == fdt_begin_node {
-            debug_print(0x10000000, "debug begin_node\n");
-            // Increment stack index
-            stack_index += 1;
+            debug_print("debug begin_node\n");
             cursor += 4;
             let node = FdtNode {
                 name: cursor,
@@ -108,8 +98,8 @@ fn parse_dt_struct(dt_struct_addr: usize, base_addr: usize) {
                 first_prop_index: 0,
                 prop_count: 0,
             };
-            unsafe { NODE_STACK[stack_index] = node }
-            debug_print(0x10000000, "debug UNSAFE\n");
+            // Push new node to top of the stack
+            node_stack.push(node);
             continue;
         }
         if token == fdt_nop {
@@ -117,7 +107,7 @@ fn parse_dt_struct(dt_struct_addr: usize, base_addr: usize) {
             continue;
         }
         if token == fdt_end {
-            debug_print(0x10000000, "Loop ended");
+            debug_print("Loop ended");
             break;
         }
         if token == fdt_prop {
@@ -127,15 +117,14 @@ fn parse_dt_struct(dt_struct_addr: usize, base_addr: usize) {
             // print_hex_u32(0x10000000, cursor as u32);
             // debug_print(0x10000000, "\n");
             // print_hex_u32(0x10000000, node.name as u32);
-            let property: FdtPropHeader = unsafe { ptr::read(cursor as *const FdtPropHeader) };
+            // let property: FdtPropHeader = unsafe { ptr::read(cursor as *const FdtPropHeader) };
 
             continue;
         }
         if token == fdt_end_node {
-            // Decrement stack index to override the top of the stack
-            debug_print(0x10000000, "debug end_node\t");
-            debug_print_usize(0x10000000, stack_index);
-            stack_index -= 1;
+            debug_print("debug end_node\t");
+            // Pop top of the node stack
+            node_stack.pop();
             cursor += 4;
             continue;
         }

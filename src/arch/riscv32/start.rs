@@ -5,7 +5,7 @@ global_asm!(
     "
     .globl kstart
     kstart:
-        la sp, _stack_top
+        la sp, stack_top
         j _start
     ",
 );
