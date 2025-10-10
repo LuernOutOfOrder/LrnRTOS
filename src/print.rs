@@ -1,5 +1,7 @@
 use crate::devices::serials::UART_DEVICES;
 
+static DEBUG_PRINT_ADDR: usize = 0x10000000;
+
 pub fn print(str: &str) {
     let devices = unsafe { &mut *UART_DEVICES.get() };
     for byte in str.bytes() {
@@ -18,13 +20,13 @@ macro_rules! print {
 
 /// Only purpose to this function is to use it before the devices are init and before parsing the
 /// dtb
-pub fn debug_print(addr: usize, str: &str) {
+pub fn debug_print(str: &str) {
     for byte in str.bytes() {
-        unsafe { core::ptr::write_volatile(addr as *mut u8, byte) }
+        unsafe { core::ptr::write_volatile(DEBUG_PRINT_ADDR as *mut u8, byte) }
     }
 }
 
-pub fn print_hex_u32(addr: usize, mut val: u32) {
+pub fn print_hex_u32(mut val: u32) {
     // Buff for 8 digits, u32 have 8 hex digits
     let mut buf = [0u8; 8];
     for i in (0..8).rev() {
@@ -38,6 +40,6 @@ pub fn print_hex_u32(addr: usize, mut val: u32) {
     }
 
     for &c in &buf {
-        unsafe { core::ptr::write_volatile(addr as *mut u8, c) }
+        unsafe { core::ptr::write_volatile(DEBUG_PRINT_ADDR as *mut u8, c) }
     }
 }
