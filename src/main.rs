@@ -4,10 +4,13 @@
 
 // Arch specific module
 pub mod arch;
-pub mod print;
 // Devices module
 pub mod devices;
+// Dtb module
 mod dtb;
+// Logging modules
+pub mod print;
+pub mod log;
 
 use core::panic::PanicInfo;
 
@@ -24,7 +27,7 @@ pub fn main(dtb_addr: usize) -> ! {
 
 #[panic_handler]
 fn panic_handler(panic: &PanicInfo) -> ! {
-    print::print(panic.message().as_str().unwrap());
+    print!("{:?}", panic);
     loop {
         unsafe {
             arch::interrupt::enable_and_halt();

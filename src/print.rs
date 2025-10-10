@@ -1,45 +1,30 @@
-use crate::devices::serials::UART_DEVICES;
+use crate::devices::serials::{KCONSOLE, UART_DEVICES};
 
-static DEBUG_PRINT_ADDR: usize = 0x10000000;
-
-pub fn print(str: &str) {
+pub fn print(arg: core::fmt::Arguments) {
     let devices = unsafe { &mut *UART_DEVICES.get() };
-    for byte in str.bytes() {
-        if let Some(uart) = devices[0] {
-            uart.driver.putchar(byte);
-        }
+    if let Some(uart) = &mut devices[0] {
+        uart.driver.write_fmt(arg).unwrap();
     }
 }
 
 #[macro_export]
 macro_rules! print {
-    ($s:expr) => {
-        $crate::print::print($s);
+  ($($arg:tt)*) => {
+        $crate::print::print(format_args!($($arg)*));
     };
 }
 
-/// Only purpose to this function is to use it before the devices are init and before parsing the
-/// dtb
-pub fn debug_print(str: &str) {
-    for byte in str.bytes() {
-        unsafe { core::ptr::write_volatile(DEBUG_PRINT_ADDR as *mut u8, byte) }
+#[macro_export]
+macro_rules! kprint {
+    ($($arg:tt)*) => ({
+        $crate::print::write_fmt(core::format_args!($($arg)*));
+    });
+}
+
+pub fn write_fmt(args: core::fmt::Arguments) {
+    let kconsole = unsafe { &mut *KCONSOLE.get() };
+    if let Some(w) = kconsole {
+        let _ = w.write_fmt(args);
     }
 }
 
-pub fn print_hex_u32(mut val: u32) {
-    // Buff for 8 digits, u32 have 8 hex digits
-    let mut buf = [0u8; 8];
-    for i in (0..8).rev() {
-        let nibble = (val & 0xF) as u8;
-        buf[i] = if nibble < 10 {
-            b'0' + nibble
-        } else {
-            b'A' + (nibble - 10)
-        };
-        val >>= 4;
-    }
-
-    for &c in &buf {
-        unsafe { core::ptr::write_volatile(DEBUG_PRINT_ADDR as *mut u8, c) }
-    }
-}
