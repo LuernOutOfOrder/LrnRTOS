@@ -10,6 +10,7 @@ drun:
 
 clean:
 	cargo clean
+	rm out.log log.txt
 
 dbuild:
 	cargo build --profile=dev
@@ -22,3 +23,6 @@ cbuild:
 
 debug:
 	riscv64-elf-gdb $(DBUILD_DIR)
+
+objdump:
+	objdump -Sr $(DBUILD_DIR) > log.txt

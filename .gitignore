@@ -1,1 +1,5 @@
 /target
+# debug log from qemu
+out.log
+# log from objdump
+log.txt
