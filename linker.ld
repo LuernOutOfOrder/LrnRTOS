@@ -25,12 +25,12 @@ SECTIONS {
 
   /* Stack */
   .stack (NOLOAD) : ALIGN(4)
-  {
-    stack_start = .;
-    . += 0x4000;        /* 16 KiB stack */
-    stack_top = .;
-  } > RAM
-
+{
+  stack_top = ORIGIN(RAM) + LENGTH(RAM);  /* stack starts at RAM top */
+  . = stack_top - 0x4000;                 /* 0x4000 = 16 KiB */
+  stack_start = .;
+} > RAM
+  
   /* make sure the symbols are provided to the symbol table */
   PROVIDE(__stack_start = stack_start);
   PROVIDE(__stack_top = stack_top);

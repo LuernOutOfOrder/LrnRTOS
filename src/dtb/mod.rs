@@ -2,7 +2,7 @@ use core::ptr;
 
 use arrayvec::ArrayVec;
 
-use crate::print::{debug_print, print_hex_u32};
+use crate::kprint;
 
 static FDT_MAX_STACK: usize = 32;
 static FDT_MAX_PROPS: usize = 1024;
@@ -38,7 +38,8 @@ impl FdtHeader {
 #[repr(C)]
 #[derive(Copy, Clone)]
 struct FdtNode {
-    name: usize,
+    // Name is max 31 bytes + 0x00 to mark the end of the string
+    name: [u8; 32],
     _parent_node_index: u32,
     // First prop offset used to find the first prop inside the structure block
     first_prop_off: u32,
@@ -48,7 +49,7 @@ struct FdtNode {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 /// Define a property header, len + nameoff of the prop follow by [u8;len] as the value of the prop
 struct FdtPropHeader {
     len: u32,
@@ -63,11 +64,11 @@ pub fn parse_dtb_file(dtb: usize) {
     }
     let struct_block = dtb + header.off_dt_struct.swap_bytes() as usize;
     let string_block = dtb + header.off_dt_strings.swap_bytes() as usize;
-    parse_dt_struct(struct_block, dtb);
+    parse_dt_struct(struct_block, string_block);
 }
 
 #[unsafe(no_mangle)]
-fn parse_dt_struct(dt_struct_addr: usize, base_addr: usize) {
+fn parse_dt_struct(dt_struct_addr: usize, _string_block_off: usize) {
     // Cursor to point the correct token inside the structure block
     let mut cursor = dt_struct_addr;
     // fdt token
@@ -80,19 +81,30 @@ fn parse_dt_struct(dt_struct_addr: usize, base_addr: usize) {
     // Nodes stack
     // Stack to save nodes in hierarchical order
     let mut node_stack: ArrayVec<FdtNode, FDT_MAX_STACK> = ArrayVec::new();
-
+    // Buff to save node name
+    let mut node_name: [u8; 32] = [0u8; 32];
+    let mut i: usize = 0;
     // Props buffer
     // Saves all props header
     let mut props_buff: ArrayVec<FdtPropHeader, FDT_MAX_PROPS> = ArrayVec::new();
     loop {
-        let token = u32::to_be(unsafe { ptr::read(cursor as *const u32) });
-        print_hex_u32(token);
-        debug_print("\n");
+        let token = u32::from_be(unsafe { ptr::read(cursor as *const u32) });
         if token == fdt_begin_node {
-            debug_print("debug begin_node\n");
             cursor += 4;
+            loop {
+                if cursor == 0x00 {
+                    node_name[i] = 0x00_u8;
+                    break;
+                }
+                node_name[i] = cursor as u8;
+
+                // Increment the ptr to continue in the node name
+                cursor += 1;
+                // Increment the index to correctly save the node name in buff
+                i += 1;
+            }
             let node = FdtNode {
-                name: cursor,
+                name: node_name,
                 _parent_node_index: 0,
                 first_prop_off: 0,
                 first_prop_index: 0,
@@ -100,6 +112,7 @@ fn parse_dt_struct(dt_struct_addr: usize, base_addr: usize) {
             };
             // Push new node to top of the stack
             node_stack.push(node);
+            node_name = [0u8; 32];
             continue;
         }
         if token == fdt_nop {
@@ -107,37 +120,35 @@ fn parse_dt_struct(dt_struct_addr: usize, base_addr: usize) {
             continue;
         }
         if token == fdt_end {
-            debug_print("Loop ended");
+            kprint!("Loop ended\n");
             break;
         }
         if token == fdt_prop {
             cursor += 4;
-            // let node: FdtNode = unsafe { NODE_STACK[stack_index] };
-            // debug_print(0x10000000, "debug\n");
-            // print_hex_u32(0x10000000, cursor as u32);
-            // debug_print(0x10000000, "\n");
-            // print_hex_u32(0x10000000, node.name as u32);
-            // let property: FdtPropHeader = unsafe { ptr::read(cursor as *const FdtPropHeader) };
+            if let Some(mut node) = node_stack.pop() {
+                let prop_header: FdtPropHeader =
+                    unsafe { ptr::read_unaligned(cursor as *const FdtPropHeader) };
+                kprint!("{:?}\n", prop_header);
 
+                if node.first_prop_off == 0 {
+                    node.first_prop_off = cursor as u32;
+                    node.first_prop_index = props_buff.len() as u16;
+                    node.prop_count += 1;
+                }
+                props_buff.push(prop_header);
+                node_stack.push(node);
+            }
             continue;
         }
         if token == fdt_end_node {
-            debug_print("debug end_node\t");
             // Pop top of the node stack
-            node_stack.pop();
+            // Init driver for the node at the top of the stack
+            let node = node_stack.pop().unwrap();
+            let node_name = str::from_utf8(&node.name).unwrap();
+            kprint!("node: {:?}", node_name);
             cursor += 4;
             continue;
         }
-        // match token {
-        //     fdt_nop => {
-        //         cursor += 4;
-        //     }
-        //     fdt_end => {
-        //         debug_print(0x10000000, "loop ended");
-        //         break;
-        //     }
-        //     _ => cursor += 4,
-        // }
         cursor += 4;
     }
 }
