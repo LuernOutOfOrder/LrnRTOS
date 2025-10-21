@@ -17,7 +17,7 @@ macro_rules! print {
 #[macro_export]
 macro_rules! kprint {
     ($($arg:tt)*) => ({
-        $crate::print::write_fmt(core::format_args!($($arg)*));
+        $crate::print::write_fmt(format_args!($($arg)*));
     });
 }
 
