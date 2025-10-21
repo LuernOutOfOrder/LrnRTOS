@@ -1,6 +1,6 @@
-use core::{arch::global_asm, fmt::Write};
+use core::arch::global_asm;
 
-use crate::{devices::serials::set_kconsole, log::BootWriter, print::write_fmt};
+use crate::{devices::serials::set_kconsole, log::BootWriter};
 
 // Call entry point from asm
 global_asm!(
@@ -9,8 +9,8 @@ global_asm!(
     .global kstart
     .type kstart, @function
     kstart:
-        la sp, __stack_top    # load address of __stack_top
-        j _start              # jump to your Rust _start
+        la sp, stack_top    # load address of stack_top
+        j _start
     ",
 );
 
