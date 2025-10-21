@@ -9,8 +9,8 @@ pub mod devices;
 // Dtb module
 mod dtb;
 // Logging modules
-pub mod print;
 pub mod log;
+pub mod print;
 
 use core::panic::PanicInfo;
 
