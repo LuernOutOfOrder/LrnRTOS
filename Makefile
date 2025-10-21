@@ -1,18 +1,19 @@
 RBUILD_DIR = target/riscv32imc-unknown-none-elf/release/lrnrtos
 DBUILD_DIR = target/riscv32imc-unknown-none-elf/debug/lrnrtos
 DEBUG_GDB_FLAGS = -S -gdb tcp::1234
+DEBUG_FLAGS = -d int -D out.log
 
 run:
-	qemu-system-riscv32 -M virt -nographic -bios default -kernel $(RBUILD_DIR)
+	qemu-system-riscv32 -M virt -nographic -bios default -kernel $(DBUILD_DIR)
 
-drun:
-	qemu-system-riscv32 -M virt -nographic -bios default -kernel $(DBUILD_DIR) -d int -D out.log
+rrun:
+	qemu-system-riscv32 -M virt -nographic -bios default -kernel $(RBUILD_DIR)
 
 clean:
 	cargo clean
 	rm out.log log.txt
 
-dbuild:
+build:
 	cargo build --profile=dev
 
 rbuild:
