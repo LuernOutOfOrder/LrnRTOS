@@ -1,4 +1,4 @@
-ENTRY(_start)
+ENTRY(kstart)
 
 MEMORY {
   RAM (rwx) : ORIGIN = 0x80200000, LENGTH = 128K
@@ -24,7 +24,16 @@ SECTIONS {
   } > RAM
 
   /* Stack */
-    .stack (NOLOAD) : { stack_start = .; . += 0x2000; stack_top = .; } > RAM
+.stack (NOLOAD) : ALIGN(4)
+{
+  __stack_start = .;
+  . += 0x4000;        /* 16 KiB stack */
+  __stack_top = .;
+} > RAM
+
+/* make sure the symbols are provided to the symbol table */
+PROVIDE(__stack_start = __stack_start);
+PROVIDE(__stack_top = __stack_top);
 
   /* Debug info */
   .debug_info     0 : { *(.debug_info) }
