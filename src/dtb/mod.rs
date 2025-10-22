@@ -83,25 +83,26 @@ fn parse_dt_struct(dt_struct_addr: usize, _string_block_off: usize) {
     let mut node_stack: ArrayVec<FdtNode, FDT_MAX_STACK> = ArrayVec::new();
     // Buff to save node name
     let mut node_name: [u8; 32] = [0u8; 32];
-    let mut i: usize = 0;
     // Props buffer
     // Saves all props header
     let mut props_buff: ArrayVec<FdtPropHeader, FDT_MAX_PROPS> = ArrayVec::new();
     loop {
         let token = u32::from_be(unsafe { ptr::read(cursor as *const u32) });
+        // Token to read each byte of the node name
+        let mut node_name_token: u8;
         if token == fdt_begin_node {
             cursor += 4;
-            loop {
-                if cursor == 0x00 {
+            for i in 0..31 {
+                node_name_token = unsafe { ptr::read(cursor as *const u8) };
+                // Break when reaching end of string
+                if node_name_token == 0x00 {
                     node_name[i] = 0x00_u8;
                     break;
                 }
-                node_name[i] = cursor as u8;
+                node_name[i] = node_name_token;
 
                 // Increment the ptr to continue in the node name
                 cursor += 1;
-                // Increment the index to correctly save the node name in buff
-                i += 1;
             }
             let node = FdtNode {
                 name: node_name,
@@ -112,7 +113,10 @@ fn parse_dt_struct(dt_struct_addr: usize, _string_block_off: usize) {
             };
             // Push new node to top of the stack
             node_stack.push(node);
+            // Reset node_name buff
             node_name = [0u8; 32];
+            // bitwise to re align cursor on 4 bytes
+            cursor = (cursor + 3) & !3;
             continue;
         }
         if token == fdt_nop {
@@ -128,7 +132,7 @@ fn parse_dt_struct(dt_struct_addr: usize, _string_block_off: usize) {
             if let Some(mut node) = node_stack.pop() {
                 let prop_header: FdtPropHeader =
                     unsafe { ptr::read_unaligned(cursor as *const FdtPropHeader) };
-                kprint!("{:?}\n", prop_header);
+                // kprint!("{:?}\n", prop_header);
 
                 if node.first_prop_off == 0 {
                     node.first_prop_off = cursor as u32;
@@ -143,9 +147,10 @@ fn parse_dt_struct(dt_struct_addr: usize, _string_block_off: usize) {
         if token == fdt_end_node {
             // Pop top of the node stack
             // Init driver for the node at the top of the stack
-            let node = node_stack.pop().unwrap();
+            // let node = node_stack.pop().unwrap();
+            let node = node_stack.last().unwrap();
             let node_name = str::from_utf8(&node.name).unwrap();
-            kprint!("node: {:?}", node_name);
+            kprint!("node: {:?}\n", node_name);
             cursor += 4;
             continue;
         }
