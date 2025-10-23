@@ -3,3 +3,6 @@
 out.log
 # log from objdump
 log.txt
+
+# dtb files (when dumping from qemu)
+qemu_dtb.*
