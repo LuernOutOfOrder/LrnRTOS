@@ -1,4 +1,4 @@
-use core::ptr;
+use core::{ops::AddAssign, ptr};
 
 use arrayvec::ArrayVec;
 
@@ -44,7 +44,7 @@ struct FdtNode {
     // First prop offset used to find the first prop inside the structure block
     first_prop_off: u32,
     // Index of the first prop inside the props buffer
-    first_prop_index: u16,
+    first_prop_index: usize,
     prop_count: u16,
 }
 
@@ -59,17 +59,16 @@ struct FdtPropHeader {
 // Parse the dtb header and call other parsing functions
 pub fn parse_dtb_file(dtb: usize) {
     let header: FdtHeader = unsafe { ptr::read(dtb as *const FdtHeader) };
-    // debug_print(0x10000000, "0x");
     if !header.valid_magic() {
         panic!("Magic from dtb is wrong");
     }
     let struct_block = dtb + header.off_dt_struct.swap_bytes() as usize;
     let string_block = dtb + header.off_dt_strings.swap_bytes() as usize;
-    parse_dt_struct(struct_block, string_block);
+    parse_fdt_struct(struct_block, string_block);
 }
 
 // Parse the structure block and save all node and prop header in buff
-fn parse_dt_struct(dt_struct_addr: usize, _string_block_off: usize) {
+fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
     // Cursor to point the correct token inside the structure block
     let mut cursor = dt_struct_addr;
     // fdt token
@@ -134,7 +133,7 @@ fn parse_dt_struct(dt_struct_addr: usize, _string_block_off: usize) {
             if let Some(mut node) = node_stack.pop() {
                 if node.first_prop_off == 0 && node.first_prop_index == 0 {
                     node.first_prop_off = cursor as u32;
-                    node.first_prop_index = props_buff.len() as u16;
+                    node.first_prop_index = props_buff.len();
                     node.prop_count += 1;
                 } else {
                     node.prop_count += 1;
@@ -158,15 +157,39 @@ fn parse_dt_struct(dt_struct_addr: usize, _string_block_off: usize) {
                     continue;
                 }
             };
-            if node.name == [0u8;32] {
+            if node.name == [0u8; 32] {
                 continue;
             }
-            let node_name = str::from_utf8(&node.name).unwrap();
+            // let node_name = str::from_utf8(&node.name).unwrap();
+            // Get all properties from current node
+            let mut prop_value_token: u8;
+            let mut i = node.first_prop_index;
+            // Loop for prop_count to get the prop name and value from string table and struct
+            // table
+            for _c in 0..node.prop_count {
+                let current_prop: FdtPropHeader = props_buff[i];
+                kprint!("debug: {:?}\n", current_prop);
+                let mut str_table_prop_name_off =
+                    string_block_off + current_prop.nameoff.swap_bytes() as usize;
+                let mut prop_name_buff: ArrayVec<u8, 128> = ArrayVec::new();
+                loop {
+                    let str_token =
+                        u8::from_be(unsafe { ptr::read(str_table_prop_name_off as *const u8) });
+                    if str_token == 0u8 {
+                        break;
+                    } else {
+                        prop_name_buff.push(str_token);
+                        str_table_prop_name_off += 1;
+                    }
+                }
+                kprint!("prop name: {:?}\n", str::from_utf8(&prop_name_buff));
+                // #[allow(clippy::while_immutable_condition)]
+                // while str_token != b'\0' {
+                //     prop_name_buff.push(str_token);
+                //     str_table_prop_name_off += 1;
+                // }
+            }
             // Init driver for the node at the top of the stack
-            // let mut prop_value_token: u8;
-            //             for i in 0..prop_header.len {
-            //                 prop_value_token = unsafe { ptr::read(cursor as *const u8)};
-            //             }
             kprint!("node: {:?}\n", node);
             continue;
         }
