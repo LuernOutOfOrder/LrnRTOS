@@ -113,7 +113,6 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
             };
             // Push new node to top of the stack
             node_stack.push(node);
-
             // Reset node_name buff
             node_name = [0u8; 32];
             // bitwise to re align cursor on 4 bytes
@@ -142,10 +141,9 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
                 node_stack.push(node);
             }
             // Increment the cursor by the len of the prop
-            cursor += size_of::<FdtPropHeader>();
-            // cursor += prop_header.len as usize;
+            cursor += size_of::<FdtPropHeader>() + prop_header.len.swap_bytes() as usize;
             // Align cursor on 4 bytes
-            // cursor = (cursor + 3) & !3;
+            cursor = (cursor + 3) & !3;
             continue;
         }
         if token == fdt_end_node {
@@ -160,37 +158,49 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
             if node.name == [0u8; 32] {
                 continue;
             }
-            // let node_name = str::from_utf8(&node.name).unwrap();
             // Get all properties from current node
-            let mut prop_value_token: u8;
             let mut i = node.first_prop_index;
+            let off_first_prop_struct = node.first_prop_off;
             // Loop for prop_count to get the prop name and value from string table and struct
             // table
+            kprint!("\nnode: {}\n\n", str::from_utf8(&node.name).unwrap());
+            kprint!("props:\n\n");
             for _c in 0..node.prop_count {
                 let current_prop: FdtPropHeader = props_buff[i];
-                kprint!("debug: {:?}\n", current_prop);
                 let mut str_table_prop_name_off =
                     string_block_off + current_prop.nameoff.swap_bytes() as usize;
-                let mut prop_name_buff: ArrayVec<u8, 128> = ArrayVec::new();
+                // Buff to store each char of the name
+                let mut prop_name_buff: ArrayVec<u8, 32> = ArrayVec::new();
+                // Loop and break when reaching end of the name str
                 loop {
-                    let str_token =
+                    let char =
                         u8::from_be(unsafe { ptr::read(str_table_prop_name_off as *const u8) });
-                    if str_token == 0u8 {
+                    if char == 0u8 {
                         break;
                     } else {
-                        prop_name_buff.push(str_token);
+                        prop_name_buff.push(char);
                         str_table_prop_name_off += 1;
                     }
                 }
-                kprint!("prop name: {:?}\n", str::from_utf8(&prop_name_buff));
-                // #[allow(clippy::while_immutable_condition)]
-                // while str_token != b'\0' {
-                //     prop_name_buff.push(str_token);
-                //     str_table_prop_name_off += 1;
-                // }
+                // Get the value of the props from node.first_prop_off and assign it to the name
+                let mut prop_value_buff: ArrayVec<u8, 96> = ArrayVec::new();
+                let mut cursor = off_first_prop_struct + size_of::<FdtPropHeader>() as u32;
+                for _ in 0..current_prop.len.swap_bytes() {
+                    let char = u8::from_be(unsafe { ptr::read(cursor as *const u8) });
+                    prop_value_buff.push(char);
+                    cursor += 1;
+                }
+                // Increment prop_index to go to the next prop in the node
+                kprint!(
+                    "{}: {:?}\n",
+                    str::from_utf8(&prop_name_buff).unwrap(),
+                    prop_value_buff
+                );
+                i += 1;
+                // Align cursor on 4 bytes
+                // cursor = (cursor + 3) & !3;
             }
             // Init driver for the node at the top of the stack
-            kprint!("node: {:?}\n", node);
             continue;
         }
     }
