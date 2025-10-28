@@ -23,6 +23,7 @@ rustflags = [
   "debuginfo=2",
   "-C",
   "panic=abort",
+  "-Clink-arg=--print-memory-usage",
 ]
 
 [profile.dev]
