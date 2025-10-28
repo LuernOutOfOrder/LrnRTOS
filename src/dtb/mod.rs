@@ -1,4 +1,4 @@
-use core::{ops::AddAssign, ptr};
+use core::ptr;
 
 use arrayvec::ArrayVec;
 
@@ -115,7 +115,7 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
             node_stack.push(node);
             // Reset node_name buff
             node_name = [0u8; 32];
-            // bitwise to re align cursor on 4 bytes
+            // Bitwise to re align cursor on 4 bytes
             cursor = (cursor + 3) & !3;
             continue;
         }
@@ -183,7 +183,7 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
                     }
                 }
                 // Get the value of the props from node.first_prop_off and assign it to the name
-                let mut prop_value_buff: ArrayVec<u8, 96> = ArrayVec::new();
+                let mut prop_value_buff: ArrayVec<u8, 556> = ArrayVec::new();
                 let mut cursor = off_first_prop_struct + size_of::<FdtPropHeader>() as u32;
                 for _ in 0..current_prop.len.swap_bytes() {
                     let char = u8::from_be(unsafe { ptr::read(cursor as *const u8) });
