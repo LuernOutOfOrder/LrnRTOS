@@ -38,8 +38,8 @@ impl FdtHeader {
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 struct FdtNode {
-    // Name is max 31 bytes + 0x00 to mark the end of the string
-    name: [u8; 32],
+    // Name is max 31 bytes
+    name: [u8; 31],
     _parent_node_index: u32,
     // First prop offset used to find the first prop inside the structure block
     first_prop_off: u32,
@@ -55,6 +55,47 @@ struct FdtPropHeader {
     len: u32,
     nameoff: u32,
 }
+
+// Structure to define a property parsed from fdt
+#[derive(Clone, Copy)]
+pub struct Property {
+    name: [u8; 31],
+    off_value: usize,
+    value_len: usize,
+}
+
+// Structure to define a node parsed from fdt and use it outside the parsing, like for init drivers
+#[derive(Clone, Copy)]
+pub struct Node {
+    name: [u8; 31],
+    first_prop: usize,
+    prop_count: usize,
+}
+
+// Static to save all parsed node
+static mut NODE_POOL: [Node; FDT_MAX_STACK] = [Node {
+    name: [0u8; 31],
+    first_prop: 0,
+    prop_count: 0,
+}; FDT_MAX_STACK];
+
+// Static to save all parsed properties, use the node.first_prop..node.first_prop + node.prop_count
+// to get all props for a specific node.
+static mut PROPERTIES_POOL: [Property; FDT_MAX_PROPS] = [Property {
+    name: [0u8; 31],
+    off_value: 0,
+    value_len: 0,
+}; FDT_MAX_PROPS];
+
+// Static to save all properties value to avoid saving them in a referenced slice in property
+// struct
+static mut PROPS_VALUE_POOL: [u8; 4096] = [0u8; 4096];
+
+// Node and props count to iterate over the static pools
+static mut NODE_COUNT: usize = 0;
+static mut PROPS_COUNT: usize = 0;
+// Current 'size' of the PROPS_VALUE_POOL to keep track and avoid overlapping props value
+static mut PROPS_VALUE_MAX: usize = 0;
 
 // Parse the dtb header and call other parsing functions
 pub fn parse_dtb_file(dtb: usize) {
@@ -82,7 +123,7 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
     // Stack to save nodes in hierarchical order
     let mut node_stack: ArrayVec<FdtNode, FDT_MAX_STACK> = ArrayVec::new();
     // Buff to save node name
-    let mut node_name: [u8; 32] = [0u8; 32];
+    let mut node_name: [u8; 31] = [0u8; 31];
     // Props buffer
     // Saves all props header
     let mut props_buff: ArrayVec<FdtPropHeader, FDT_MAX_PROPS> = ArrayVec::new();
@@ -114,7 +155,7 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
             // Push new node to top of the stack
             node_stack.push(node);
             // Reset node_name buff
-            node_name = [0u8; 32];
+            node_name = [0u8; 31];
             // Bitwise to re align cursor on 4 bytes
             cursor = (cursor + 3) & !3;
             continue;
@@ -155,7 +196,7 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
                     continue;
                 }
             };
-            if node.name == [0u8; 32] {
+            if node.name == [0u8; 31] {
                 continue;
             }
             // Get all properties from current node
@@ -165,12 +206,23 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
             // table
             kprint!("\nnode: {}\n\n", str::from_utf8(&node.name).unwrap());
             kprint!("props:\n\n");
+            let static_node: Node = Node {
+                name: node.name,
+                first_prop: unsafe { PROPS_COUNT },
+                prop_count: node.prop_count as usize,
+            };
+            // Update node pool to add static node
+            unsafe {
+                NODE_POOL[NODE_COUNT] = static_node;
+                // Increment node_count
+                NODE_COUNT += 1;
+            };
             for _c in 0..node.prop_count {
                 let current_prop: FdtPropHeader = props_buff[i];
                 let mut str_table_prop_name_off =
                     string_block_off + current_prop.nameoff.swap_bytes() as usize;
                 // Buff to store each char of the name
-                let mut prop_name_buff: ArrayVec<u8, 32> = ArrayVec::new();
+                let mut prop_name_buff: ArrayVec<u8, 31> = ArrayVec::new();
                 // Loop and break when reaching end of the name str
                 loop {
                     let char =
@@ -190,15 +242,33 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
                     prop_value_buff.push(char);
                     cursor += 1;
                 }
-                // Increment prop_index to go to the next prop in the node
+                // Create static array and memcpy from ArrayVec buff
+                let mut prop_name: [u8; 31] = [0u8; 31];
+                prop_name.copy_from_slice(&prop_name_buff);
+                let static_prop: Property = Property {
+                    name: prop_name,
+                    off_value: unsafe { PROPS_VALUE_MAX },
+                    value_len: prop_value_buff.len(),
+                };
+                unsafe {
+                    PROPERTIES_POOL[PROPS_COUNT] = static_prop;
+                    PROPS_COUNT += 1;
+                }
+                // Copy all content from prop_value_buff into the PROPS_VALUE_POOL
+                unsafe {
+                    PROPS_VALUE_POOL[PROPS_VALUE_MAX..PROPS_VALUE_MAX + prop_value_buff.len()]
+                        .copy_from_slice(prop_value_buff.as_slice());
+                    // Increment the PROPS_VALUE_MAX to the size of the prop_value_buff to keep track
+                    // of the size of the pool and have correct offset
+                    PROPS_VALUE_MAX += prop_value_buff.len();
+                };
                 kprint!(
                     "{}: {:?}\n",
                     str::from_utf8(&prop_name_buff).unwrap(),
                     prop_value_buff
                 );
+                // Increment prop_index to go to the next prop in the node
                 i += 1;
-                // Align cursor on 4 bytes
-                // cursor = (cursor + 3) & !3;
             }
             // Init driver for the node at the top of the stack
             continue;
