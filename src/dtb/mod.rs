@@ -37,12 +37,12 @@ impl FdtHeader {
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
-struct FdtNode {
+pub struct FdtNode {
     // Name is max 31 bytes
-    nameoff: u32,
-    // First prop offset used to find the first prop inside the structure block
-    first_prop_off: u32,
-    prop_count: u16,
+    pub nameoff: u32,
+    // First prop offset used to find the first prop inside prop pool
+    pub first_prop_off: u32,
+    pub prop_count: u16,
 }
 
 #[repr(C)]
@@ -130,14 +130,14 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
             let prop_header: FdtPropHeader = unsafe { ptr::read(cursor as *const FdtPropHeader) };
             if let Some(mut node) = node_stack.pop() {
                 if node.first_prop_off == 0 {
-                    node.first_prop_off = cursor as u32;
+                    node.first_prop_off = unsafe { PROPS_COUNT } as u32;
                     node.prop_count += 1;
                 } else {
                     node.prop_count += 1;
                 }
                 let prop: Property = Property {
                     nameoff: prop_header.nameoff,
-                    off_value: cursor,
+                    off_value: cursor + size_of::<FdtPropHeader>(),
                     value_len: prop_header.len,
                 };
                 unsafe {
@@ -226,20 +226,12 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
     }
 }
 
-pub fn get_all_fdt_nodes_name() {
-    let node_pool_len = unsafe { NODE_COUNT };
-    for i in 0..node_pool_len {
-        let node = unsafe { &mut NODE_POOL[i] };
-        let mut node_name_buff: ArrayVec<u8, 31> = ArrayVec::new();
-        let mut cursor = node.nameoff;
-        loop {
-            let char = unsafe { ptr::read(cursor as *const u8) };
-            if char == 0u8 {
-                break;
-            }
-            node_name_buff.push(char);
-            cursor += 1;
-        }
-        kprint!("node: {:?}\n", str::from_utf8(&node_name_buff));
-    }
+pub fn get_all_fdt_nodes<'a>() -> &'a [FdtNode] {
+    unsafe { &NODE_POOL[0..NODE_COUNT] }
+}
+
+pub fn get_fdt_node_prop<'a>(node: &FdtNode) -> &'a [Property] {
+    let start = node.first_prop_off as usize;
+    let end = node.first_prop_off + node.prop_count as u32;
+    unsafe { &PROPERTIES_POOL[start..end as usize]}
 }
