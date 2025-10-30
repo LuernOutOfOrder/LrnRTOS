@@ -1,6 +1,8 @@
 use core::fmt::{self, Write};
 
-use crate::devices::serials::UART_DEVICES;
+use arrayvec::ArrayVec;
+
+use crate::{devices::serials::UART_DEVICES, kprint};
 
 use super::{UartDevice, UartDriver};
 
@@ -27,17 +29,22 @@ impl Write for Ns16550 {
 }
 
 impl Ns16550 {
-    pub fn init() {
+    pub fn init(
+        node_name: &ArrayVec<u8,31>,
+        node_props: &ArrayVec<(ArrayVec<u8, 31>, ArrayVec<u8, 512>), 16>,
+    ) {
+        kprint!("node_name: {}\n", str::from_utf8(node_name).unwrap());
+
         static mut NS16550: Ns16550 = Ns16550 { addr: 0x10000000 };
         let devices = unsafe { &mut *UART_DEVICES.get() };
         // Basic loop and no iter.position ??
         (0..devices.len()).for_each(|i| {
             if devices[i].is_none() {
                 devices[i] = Some(UartDevice {
-            id: 0,
-            default_console: false,
-            driver: unsafe { &mut NS16550 },
-        })
+                    id: 0,
+                    default_console: false,
+                    driver: unsafe { &mut NS16550 },
+                })
             }
         });
     }
