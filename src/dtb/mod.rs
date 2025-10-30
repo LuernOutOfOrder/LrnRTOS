@@ -56,9 +56,9 @@ struct FdtPropHeader {
 // Structure to define a property parsed from fdt
 #[derive(Clone, Copy)]
 pub struct Property {
-    nameoff: u32,
-    off_value: usize,
-    value_len: u32,
+    pub nameoff: usize,
+    pub off_value: usize,
+    pub value_len: u32,
 }
 
 // Static to save all parsed node
@@ -136,9 +136,9 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
                     node.prop_count += 1;
                 }
                 let prop: Property = Property {
-                    nameoff: prop_header.nameoff,
+                    nameoff: string_block_off + prop_header.nameoff.swap_bytes() as usize,
                     off_value: cursor + size_of::<FdtPropHeader>(),
-                    value_len: prop_header.len,
+                    value_len: prop_header.len.swap_bytes(),
                 };
                 unsafe {
                     PROPERTIES_POOL[PROPS_COUNT] = prop;
@@ -169,8 +169,8 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
             };
             // for _c in 0..node.prop_count {
             //     let current_prop: FdtPropHeader = props_buff[i];
-            //     let mut str_table_prop_name_off =
-            //         string_block_off + current_prop.nameoff.swap_bytes() as usize;
+                // let mut str_table_prop_name_off =
+                //     string_block_off + current_prop.nameoff.swap_bytes() as usize;
             //     // Buff to store each char of the name
             //     let mut prop_name_buff: ArrayVec<u8, 31> = ArrayVec::new();
             //     // Loop and break when reaching end of the name str
