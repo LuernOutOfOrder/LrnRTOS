@@ -43,6 +43,8 @@ pub struct FdtNode {
     // First prop offset used to find the first prop inside prop pool
     pub first_prop_off: u32,
     pub prop_count: u16,
+    // Parent node representing by the index in the stack or the static array in mem
+    pub parent_node_index: Option<usize>,
 }
 
 #[repr(C)]
@@ -66,6 +68,7 @@ static mut NODE_POOL: [FdtNode; FDT_MAX_STACK] = [FdtNode {
     nameoff: 0,
     first_prop_off: 0,
     prop_count: 0,
+    parent_node_index: None,
 }; FDT_MAX_STACK];
 
 // Static to save all parsed properties, use the node.first_prop..node.first_prop + node.prop_count
@@ -111,6 +114,13 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
                 nameoff: cursor as u32,
                 first_prop_off: 0,
                 prop_count: 0,
+                parent_node_index: {
+                    if node_stack.is_empty() {
+                        None
+                    } else {
+                        Some(node_stack.len())
+                    }
+                },
             };
             // Push new node to top of the stack
             node_stack.push(node);
@@ -167,60 +177,6 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
                 // Increment node_count
                 NODE_COUNT += 1;
             };
-            // for _c in 0..node.prop_count {
-            //     let current_prop: FdtPropHeader = props_buff[i];
-                // let mut str_table_prop_name_off =
-                //     string_block_off + current_prop.nameoff.swap_bytes() as usize;
-            //     // Buff to store each char of the name
-            //     let mut prop_name_buff: ArrayVec<u8, 31> = ArrayVec::new();
-            //     // Loop and break when reaching end of the name str
-            //     loop {
-            //         let char =
-            //             u8::from_be(unsafe { ptr::read(str_table_prop_name_off as *const u8) });
-            //         if char == 0u8 {
-            //             break;
-            //         } else {
-            //             prop_name_buff.push(char);
-            //             str_table_prop_name_off += 1;
-            //         }
-            //     }
-            //     // Get the value of the props from node.first_prop_off and assign it to the name
-            //     let mut prop_value_buff: ArrayVec<u8, 556> = ArrayVec::new();
-            //     let mut cursor = off_first_prop_struct + size_of::<FdtPropHeader>() as u32;
-            //     for _ in 0..current_prop.len.swap_bytes() {
-            //         let char = u8::from_be(unsafe { ptr::read(cursor as *const u8) });
-            //         prop_value_buff.push(char);
-            //         cursor += 1;
-            //     }
-            //     // Create static array and memcpy from ArrayVec buff
-            //     let mut prop_name: [u8; 31] = [0u8; 31];
-            //     prop_name.copy_from_slice(&prop_name_buff);
-            //     let static_prop: Property = Property {
-            //         name: prop_name,
-            //         off_value: unsafe { PROPS_VALUE_MAX },
-            //         value_len: prop_value_buff.len(),
-            //     };
-            //     unsafe {
-            //         PROPERTIES_POOL[PROPS_COUNT] = static_prop;
-            //         PROPS_COUNT += 1;
-            //     }
-            //     // Copy all content from prop_value_buff into the PROPS_VALUE_POOL
-            //     unsafe {
-            //         PROPS_VALUE_POOL[PROPS_VALUE_MAX..PROPS_VALUE_MAX + prop_value_buff.len()]
-            //             .copy_from_slice(prop_value_buff.as_slice());
-            //         // Increment the PROPS_VALUE_MAX to the size of the prop_value_buff to keep track
-            //         // of the size of the pool and have correct offset
-            //         PROPS_VALUE_MAX += prop_value_buff.len();
-            //     };
-            //     kprint!(
-            //         "{}: {:?}\n",
-            //         str::from_utf8(&prop_name_buff).unwrap(),
-            //         prop_value_buff
-            //     );
-            //     // Increment prop_index to go to the next prop in the node
-            //     i += 1;
-            // }
-            // Init driver for the node at the top of the stack
             continue;
         }
     }
@@ -230,8 +186,14 @@ pub fn get_all_fdt_nodes<'a>() -> &'a [FdtNode] {
     unsafe { &NODE_POOL[0..NODE_COUNT] }
 }
 
+pub fn get_fdt_node(index: usize) -> FdtNode {
+    unsafe {
+        NODE_POOL[index]
+    }
+}
+
 pub fn get_fdt_node_prop<'a>(node: &FdtNode) -> &'a [Property] {
     let start = node.first_prop_off as usize;
     let end = node.first_prop_off + node.prop_count as u32;
-    unsafe { &PROPERTIES_POOL[start..end as usize]}
+    unsafe { &PROPERTIES_POOL[start..end as usize] }
 }
