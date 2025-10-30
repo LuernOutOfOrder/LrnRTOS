@@ -14,11 +14,11 @@ pub mod print;
 
 use core::panic::PanicInfo;
 
-use dtb::get_all_fdt_nodes_name;
+use devices::init_devices;
 
 pub fn main(dtb_addr: usize) -> ! {
     dtb::parse_dtb_file(dtb_addr);
-    get_all_fdt_nodes_name();
+    init_devices();
     devices::serials::ns16550::Ns16550::init();
     print!("Hello from LrnRTOS!");
     loop {
