@@ -1,8 +1,10 @@
 use core::fmt::{self, Write};
 
-use arrayvec::ArrayVec;
-
-use crate::{devices::serials::UART_DEVICES, dtb::FdtNode, kprint};
+use crate::{
+    devices::serials::UART_DEVICES,
+    dtb::{FdtNode, helpers::get_node_prop_in_hierarchy},
+    kprint,
+};
 
 use super::{UartDevice, UartDriver};
 
@@ -30,6 +32,8 @@ impl Write for Ns16550 {
 
 impl Ns16550 {
     pub fn init(node: &FdtNode) {
+        let address_cells = get_node_prop_in_hierarchy(node, "#address-cells");
+        let size_cells = get_node_prop_in_hierarchy(node, "#size-cells");
         static mut NS16550: Ns16550 = Ns16550 { addr: 0x10000000 };
         let devices = unsafe { &mut *UART_DEVICES.get() };
         // Basic loop and no iter.position ??
