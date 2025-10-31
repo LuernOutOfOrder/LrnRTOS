@@ -2,7 +2,7 @@ use core::fmt::{self, Write};
 
 use arrayvec::ArrayVec;
 
-use crate::{devices::serials::UART_DEVICES, kprint};
+use crate::{devices::serials::UART_DEVICES, dtb::FdtNode, kprint};
 
 use super::{UartDevice, UartDriver};
 
@@ -29,11 +29,7 @@ impl Write for Ns16550 {
 }
 
 impl Ns16550 {
-    pub fn init(
-        node_name: &ArrayVec<u8,31>,
-        node_props: &ArrayVec<(ArrayVec<u8, 31>, ArrayVec<u8, 512>), 16>,
-    ) {
-        kprint!("node_name: {}\n", str::from_utf8(node_name).unwrap());
+    pub fn init(node: &FdtNode) {
         static mut NS16550: Ns16550 = Ns16550 { addr: 0x10000000 };
         let devices = unsafe { &mut *UART_DEVICES.get() };
         // Basic loop and no iter.position ??

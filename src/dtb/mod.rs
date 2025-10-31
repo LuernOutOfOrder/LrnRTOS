@@ -4,6 +4,9 @@ use arrayvec::ArrayVec;
 
 use crate::kprint;
 
+// Helpers module for node's props recovery
+pub mod helpers;
+
 static FDT_MAX_STACK: usize = 64;
 static FDT_MAX_PROPS: usize = 128;
 
@@ -56,7 +59,7 @@ struct FdtPropHeader {
 }
 
 // Structure to define a property parsed from fdt
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Property {
     pub nameoff: usize,
     pub off_value: usize,
@@ -182,18 +185,3 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
     }
 }
 
-pub fn get_all_fdt_nodes<'a>() -> &'a [FdtNode] {
-    unsafe { &NODE_POOL[0..NODE_COUNT] }
-}
-
-pub fn get_fdt_node(index: usize) -> FdtNode {
-    unsafe {
-        NODE_POOL[index]
-    }
-}
-
-pub fn get_fdt_node_prop<'a>(node: &FdtNode) -> &'a [Property] {
-    let start = node.first_prop_off as usize;
-    let end = node.first_prop_off + node.prop_count as u32;
-    unsafe { &PROPERTIES_POOL[start..end as usize] }
-}
