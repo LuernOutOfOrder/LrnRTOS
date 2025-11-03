@@ -16,6 +16,13 @@ struct Driver<'a> {
     init_fn: fn(&FdtNode),
 }
 
+/// Public structure to use to define device region
+#[derive(Debug)]
+pub struct DriverRegion {
+    pub addr: usize,
+    pub size: usize,
+}
+
 static DRIVERS: &[Driver] = &[Driver {
     compatible: "ns16550a",
     init_fn: Ns16550::init,
