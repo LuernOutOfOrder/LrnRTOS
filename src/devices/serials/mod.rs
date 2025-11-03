@@ -1,4 +1,4 @@
-use core::{cell::UnsafeCell, fmt::Write};
+use core::{cell::UnsafeCell, fmt::Write, mem::MaybeUninit};
 
 pub mod ns16550;
 
@@ -30,3 +30,6 @@ pub fn set_kconsole(writer: &'static mut dyn Write) {
 /// Global static array containing all UART devices
 pub static mut UART_DEVICES: UnsafeCell<[Option<UartDevice>; 4]> =
     UnsafeCell::new([const { None }; 4]);
+//
+// static mut UART_DEVICES: [MaybeUninit<UartDevice>; 4] = 
+//     [MaybeUninit::uninit(); 4];

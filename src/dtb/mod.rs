@@ -135,7 +135,6 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
             continue;
         }
         if token == fdt_end {
-            kprint!("Loop ended\n");
             break;
         }
         if token == fdt_prop {

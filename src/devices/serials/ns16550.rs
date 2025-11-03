@@ -38,6 +38,10 @@ impl Write for Ns16550 {
     }
 }
 
+static mut NS16550_INSTANCE: Ns16550 = Ns16550 {
+    region: DriverRegion { addr: 0, size: 0 },
+};
+
 impl Ns16550 {
     pub fn init(node: &FdtNode) {
         // Get address and size cells
@@ -77,18 +81,22 @@ impl Ns16550 {
                 size: device_size as usize,
             }
         }
-        kprint!("debug: {:#x}\n", device_addr.size);
-        // let mut NS16550: Ns16550 = Ns16550 { region: device_addr };
-        // let devices = unsafe { &mut *UART_DEVICES.get() };
-        // // Basic loop and no iter.position ??
-        // (0..devices.len()).for_each(|i| {
-        //     if devices[i].is_none() {
-        //         devices[i] = Some(UartDevice {
-        //             id: 0,
-        //             default_console: false,
-        //             driver: unsafe { &mut NS16550 },
-        //         })
-        //     }
-        // });
+        let ns16550: Ns16550 = Ns16550 {
+            region: device_addr,
+        };
+        unsafe { NS16550_INSTANCE = ns16550 };
+        let devices = unsafe { &mut *UART_DEVICES.get() };
+
+        // Basic loop and no iter.position ??
+        let len = devices.len();
+        for i in 0..len {
+            if devices[i].is_none() {
+                devices[i] = Some(UartDevice {
+                    id: 0,
+                    default_console: false,
+                    driver: unsafe { &mut NS16550_INSTANCE },
+                })
+            }
+        }
     }
 }
