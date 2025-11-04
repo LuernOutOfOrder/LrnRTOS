@@ -9,12 +9,12 @@ pub fn get_all_fdt_nodes<'a>() -> &'a [FdtNode] {
     unsafe { &NODE_POOL[0..NODE_COUNT] }
 }
 
-/// Return node from given index
+/// Return the node from given index in the NODE_POOL
 pub fn get_fdt_node(index: usize) -> FdtNode {
     unsafe { NODE_POOL[index] }
 }
 
-/// Return the index of the given node in the node pool
+/// Return the index of the given node in the NODE_POOL
 pub fn get_index_fdt_node(node: &FdtNode) -> usize {
     for i in 0..unsafe { NODE_COUNT } {
         let current = unsafe { NODE_POOL[i] };
@@ -25,7 +25,7 @@ pub fn get_index_fdt_node(node: &FdtNode) -> usize {
     0
 }
 
-/// Return a slice of props from given node
+/// Return all properties from given node as a slice of Property
 pub fn get_fdt_node_prop<'a>(node: &FdtNode) -> &'a [Property] {
     let start = node.first_prop_off as usize;
     let end = node.first_prop_off + node.prop_count as u32;
@@ -34,7 +34,9 @@ pub fn get_fdt_node_prop<'a>(node: &FdtNode) -> &'a [Property] {
 
 /// Get wanted prop from given node
 /// Return an Option<Property>, caller have to make the parsing from fdt with Property field
-/// Return None if no prop was found in given node
+/// Return None if no prop was found in given node.
+/// node: the node to search the wanted property in.
+/// prop_name: the wanted property to find.
 pub fn get_node_prop(node: &FdtNode, prop_name: &str) -> Option<Property> {
     let props = get_fdt_node_prop(node);
     for prop in props {
@@ -62,7 +64,11 @@ pub fn get_node_prop(node: &FdtNode, prop_name: &str) -> Option<Property> {
     None
 }
 
-/// Get wanted prop from given node, if no one is found, check prop in parent node
+/// Get wanted prop from given node, if no one is found, check prop in parent node. Same logic as
+/// get_node_prop function but with hierarchy logic.
+/// Return None if no prop was found in given node.
+/// node: the node to search the wanted property in.
+/// prop_name: the wanted property to find.
 pub fn get_node_prop_in_hierarchy(node: &FdtNode, prop_name: &str) -> Option<Property> {
     // Use index from node instead of node to avoid lifetime issue
     let mut current_search_node = get_index_fdt_node(node);

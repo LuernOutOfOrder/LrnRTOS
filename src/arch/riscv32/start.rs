@@ -1,8 +1,6 @@
 use core::arch::global_asm;
 
-use crate::{devices::serials::set_kconsole, log::BootWriter};
-
-// Call entry point from asm
+// Global asm for setting the sp, and jump to kernel entry point _start
 global_asm!(
     "
     .section .text.entry
@@ -16,9 +14,5 @@ global_asm!(
 
 #[unsafe(no_mangle)]
 unsafe extern "C" fn _start(_hartid: usize, dtb: usize) -> ! {
-    static mut EARLY_WRITER: BootWriter = BootWriter {
-        base_addr: 0x1000_0000 as *mut u8,
-    };
-    set_kconsole(unsafe { &mut EARLY_WRITER });
     crate::main(dtb);
 }
