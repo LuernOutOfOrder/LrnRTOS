@@ -1,7 +1,7 @@
 # LrnRTOS
 A hybrid RTOS
 
-## Project's goal 
+## Project goal 
 
 The goal of this project is to explore a new way to create a kernel using a hybrid architecture based on a monolithic and a microkernel, to see if it's possible to develop a kernel for an RTOS with some features of a GPOS, with real-time constraints and security from user-space and kernel-space.
 As this is my first real kernel, I want to make everything from scratch to really learn how a kernel works and take every chance to create something new. This includes parsing the FDT, IPC, and implementing a filesystem.
