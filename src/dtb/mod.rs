@@ -192,7 +192,9 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
             // Pop top of the node stack or continue if stack empty
             let node = {
                 if !node_stack.is_empty() {
-                    node_stack.pop().unwrap()
+                    node_stack
+                        .pop()
+                        .expect("Failed to pop the top of FDT node stack")
                 } else {
                     continue;
                 }

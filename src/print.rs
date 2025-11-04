@@ -4,7 +4,7 @@ use crate::devices::serials::{KCONSOLE, UART_DEVICES};
 pub fn print(arg: core::fmt::Arguments) {
     let devices = unsafe { &mut *UART_DEVICES.get() };
     if let Some(uart) = &mut devices[0] {
-        uart.driver.write_fmt(arg).unwrap();
+        let _ = uart.driver.write_fmt(arg);
     }
 }
 
