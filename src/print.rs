@@ -27,4 +27,3 @@ pub fn write_fmt(args: core::fmt::Arguments) {
         let _ = w.write_fmt(args);
     }
 }
-

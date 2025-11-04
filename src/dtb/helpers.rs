@@ -17,10 +17,10 @@ pub fn get_fdt_node(index: usize) -> FdtNode {
 /// Return the index of the given node in the node pool
 pub fn get_index_fdt_node(node: &FdtNode) -> usize {
     for i in 0..unsafe { NODE_COUNT } {
-        let current = unsafe { NODE_POOL[i]};
+        let current = unsafe { NODE_POOL[i] };
         if current.first_prop_off == node.first_prop_off {
-            return i
-        } 
+            return i;
+        }
     }
     0
 }
