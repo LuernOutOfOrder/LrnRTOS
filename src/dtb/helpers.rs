@@ -16,6 +16,7 @@ pub fn get_fdt_node(index: usize) -> FdtNode {
 
 /// Return the index of the given node in the NODE_POOL
 pub fn get_index_fdt_node(node: &FdtNode) -> usize {
+    #[allow(clippy::needless_range_loop)]
     for i in 0..unsafe { NODE_COUNT } {
         let current = unsafe { NODE_POOL[i] };
         if current.first_prop_off == node.first_prop_off {
@@ -54,7 +55,7 @@ pub fn get_node_prop(node: &FdtNode, prop_name: &str) -> Option<Property> {
             }
         }
         let prop_name_str = str::from_utf8(&prop_name_buff)
-            .unwrap()
+            .expect("Failed to cast &[u8] to &str. Invalid UTF-8 char in FDT property")
             .trim_end_matches('\0');
         // Check prop name with wanted prop_name
         if prop_name_str == prop_name {
@@ -93,7 +94,7 @@ pub fn get_node_prop_in_hierarchy(node: &FdtNode, prop_name: &str) -> Option<Pro
                 }
             }
             let prop_name_str = str::from_utf8(&prop_name_buff)
-                .unwrap()
+                .expect("Failed to cast &[u8] to &str. Invalid UTF-8 char in FDT property")
                 .trim_end_matches('\0');
             // Check prop name with wanted prop_name
             if prop_name_str == prop_name {
@@ -102,7 +103,9 @@ pub fn get_node_prop_in_hierarchy(node: &FdtNode, prop_name: &str) -> Option<Pro
         }
         // If reaching this point, it means that the wanted prop was not found in current node, so
         // update the search_node to be the parent one
-        current_search_node = search_node.parent_node_index.unwrap();
+        current_search_node = search_node
+            .parent_node_index
+            .expect("Failed to get the FDT parent node");
     }
     None
 }

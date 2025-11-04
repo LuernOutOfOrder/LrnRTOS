@@ -45,31 +45,30 @@ pub fn init_devices() {
     // corresponding driver
     for node in fdt_nodes {
         // Get compatible prop from node
-        let compatible = get_node_prop(node, "compatible");
-        if compatible.is_none() {
+        if let Some(prop) = get_node_prop(node, "compatible") {
+            // Get the value of compatible property.
+            let mut prop_value_buff: ArrayVec<u8, 32> = ArrayVec::new();
+            let mut prop_value_cursor = prop.off_value;
+            for _ in 0..prop.value_len {
+                let char = u8::from_be(unsafe { ptr::read(prop_value_cursor as *const u8) });
+                if char == 0u8 {
+                    break;
+                } else {
+                    prop_value_buff.push(char);
+                    prop_value_cursor += 1;
+                }
+            }
+            // Check props and match a compatible drivers, then call the init fn with nodes
+            let str = str::from_utf8(&prop_value_buff)
+                .expect("Failed to cast &[u8] to &str. Invalid UTF-8 char in FDT property")
+                .trim_end_matches('\0');
+            for driver in DRIVERS {
+                if str == driver.compatible {
+                    (driver.init_fn)(node)
+                }
+            }
+        } else {
             continue;
-        }
-        let prop = compatible.unwrap();
-        // Get the value of compatible property.
-        let mut prop_value_buff: ArrayVec<u8, 32> = ArrayVec::new();
-        let mut prop_value_cursor = prop.off_value;
-        for _ in 0..prop.value_len {
-            let char = u8::from_be(unsafe { ptr::read(prop_value_cursor as *const u8) });
-            if char == 0u8 {
-                break;
-            } else {
-                prop_value_buff.push(char);
-                prop_value_cursor += 1;
-            }
-        }
-        // Check props and match a compatible drivers, then call the init fn with nodes
-        let str = str::from_utf8(&prop_value_buff)
-            .unwrap()
-            .trim_end_matches('\0');
-        for driver in DRIVERS {
-            if str == driver.compatible {
-                (driver.init_fn)(node)
-            }
         }
     }
 }

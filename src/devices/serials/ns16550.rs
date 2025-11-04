@@ -62,7 +62,8 @@ impl Ns16550 {
         let size_cells_val: u32 =
             u32::from_be(unsafe { ptr::read(size_cells.off_value as *const u32) });
         // Get device memory region
-        let reg = get_node_prop(node, "reg").expect("ERROR: ns16550 node is missing '#address-cells' property");
+        let reg =
+            get_node_prop(node, "reg").expect("ERROR: ns16550 node is missing 'reg' property");
         let mut reg_buff: ArrayVec<u32, 120> = ArrayVec::new();
         let mut reg_cursor = reg.off_value;
         // Divide reg.value_len by 4 because we read u32 and not u8
@@ -99,6 +100,7 @@ impl Ns16550 {
         let devices = unsafe { &mut *UART_DEVICES.get() };
 
         let len = devices.len();
+        #[allow(clippy::needless_range_loop)]
         for i in 0..len {
             if devices[i].is_none() {
                 devices[i] = Some(UartDevice {
