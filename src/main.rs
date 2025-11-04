@@ -6,7 +6,7 @@
 pub mod arch;
 // Devices module
 pub mod devices;
-// Dtb module
+// Device tree module
 mod dtb;
 // Logging modules
 pub mod log;
@@ -29,7 +29,7 @@ pub fn main(dtb_addr: usize) -> ! {
 
 #[panic_handler]
 fn panic_handler(panic: &PanicInfo) -> ! {
-    print!("{:?}", panic);
+    print!("PANIC {:?}", panic);
     loop {
         unsafe {
             arch::interrupt::enable_and_halt();

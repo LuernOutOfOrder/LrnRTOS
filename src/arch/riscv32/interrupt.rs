@@ -3,7 +3,7 @@ use core::arch::asm;
 /// .
 ///
 /// # Safety
-/// 
+///
 /// .
 pub unsafe fn halt() {
     unsafe { asm!("wfi", options(nomem, nostack)) }
@@ -16,4 +16,3 @@ pub unsafe fn halt() {
 pub unsafe fn enable_and_halt() {
     unsafe { asm!("wfi", "csrsi sstatus, 1 << 1", "nop") }
 }
-

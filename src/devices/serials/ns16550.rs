@@ -11,15 +11,17 @@ use crate::{
         FdtNode,
         helpers::{get_node_prop, get_node_prop_in_hierarchy},
     },
-    kprint,
 };
 
 use super::{UartDevice, UartDriver};
 
+/// Structure for Ns16550 driver
+/// region: DriverRegion struct to define address memory region to use with the driver and the address size
 pub struct Ns16550 {
     pub region: DriverRegion,
 }
 
+/// Implementing the UartDriver trait for Ns16550 driver
 impl UartDriver for Ns16550 {
     fn putchar(&self, c: u8) {
         unsafe { core::ptr::write_volatile(self.region.addr as *mut u8, c) }
@@ -29,6 +31,8 @@ impl UartDriver for Ns16550 {
     }
 }
 
+/// Implementing Write trait for Ns16550 to be able to format with core::fmt in print
+/// Use the UartDriver function implemented in Ns16550
 impl Write for Ns16550 {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         for b in s.bytes() {
@@ -38,22 +42,28 @@ impl Write for Ns16550 {
     }
 }
 
+/// Static Ns16550 instance used when creating a new driver.
 static mut NS16550_INSTANCE: Ns16550 = Ns16550 {
     region: DriverRegion { addr: 0, size: 0 },
 };
 
+/// Implementation of the Ns16550
 impl Ns16550 {
+    /// Init a new Ns16550 from the given fdt node
     pub fn init(node: &FdtNode) {
         // Get address and size cells
-        let address_cells = get_node_prop_in_hierarchy(node, "#address-cells").unwrap();
-        let size_cells = get_node_prop_in_hierarchy(node, "#size-cells").unwrap();
+        let address_cells = get_node_prop_in_hierarchy(node, "#address-cells")
+            .expect("ERROR: ns16550 node is missing '#address-cells' property from parent bus\n");
+        let size_cells = get_node_prop_in_hierarchy(node, "#size-cells")
+            .expect("ERROR: ns16550 node is missing '#size-cells' property from parent bus\n");
         // Ptr read address and size cells value from off and cast it to u32 target's endianness
         let address_cells_val: u32 =
             u32::from_be(unsafe { ptr::read(address_cells.off_value as *const u32) });
         let size_cells_val: u32 =
             u32::from_be(unsafe { ptr::read(size_cells.off_value as *const u32) });
         // Get device memory region
-        let reg = get_node_prop(node, "reg").unwrap();
+        let reg =
+            get_node_prop(node, "reg").expect("ERROR: ns16550 node is missing 'reg' property");
         let mut reg_buff: ArrayVec<u32, 120> = ArrayVec::new();
         let mut reg_cursor = reg.off_value;
         // Divide reg.value_len by 4 because we read u32 and not u8
@@ -62,7 +72,9 @@ impl Ns16550 {
             reg_buff.push(value);
             reg_cursor += 4;
         }
+        // Region size from #address-cells and #size-cells properties value
         let reg_size = address_cells_val + size_cells_val;
+        // Init a new DriverRegion
         let mut device_addr: DriverRegion = DriverRegion { addr: 0, size: 0 };
         for addr in reg_buff.chunks(reg_size as usize) {
             // Build addr from chunk
@@ -87,13 +99,13 @@ impl Ns16550 {
         unsafe { NS16550_INSTANCE = ns16550 };
         let devices = unsafe { &mut *UART_DEVICES.get() };
 
-        // Basic loop and no iter.position ??
         let len = devices.len();
+        #[allow(clippy::needless_range_loop)]
         for i in 0..len {
             if devices[i].is_none() {
                 devices[i] = Some(UartDevice {
-                    id: 0,
-                    default_console: false,
+                    _id: 0,
+                    _default_console: false,
                     driver: unsafe { &mut NS16550_INSTANCE },
                 })
             }
