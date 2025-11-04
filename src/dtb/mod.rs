@@ -2,14 +2,15 @@ use core::ptr;
 
 use arrayvec::ArrayVec;
 
-use crate::kprint;
-
 // Helpers module for node's props recovery
 pub mod helpers;
 
+// Static to define fdt max pool size for nodes and properties storage
 static FDT_MAX_STACK: usize = 64;
 static FDT_MAX_PROPS: usize = 128;
 
+/// Structure for the fdt header, used for parsing fdt. Based on the given structure in official
+/// device tree specifications. See: https://devicetree-specification.readthedocs.io/en/stable/
 #[repr(C)]
 #[derive(Copy, Clone)]
 struct FdtHeader {
@@ -25,6 +26,7 @@ struct FdtHeader {
     size_dt_struct: u32,
 }
 
+/// Implementation for the FdtHeader to easily check magic number of other thing if needed later
 impl FdtHeader {
     fn valid_magic(&self) -> bool {
         self.magic.swap_bytes() == 0xd00dfeed
@@ -38,27 +40,41 @@ impl FdtHeader {
     }
 }
 
+/// Definition of a node, used to save node information in static pool for node recovery outside
+/// the fdt parsing.
+/// nameoff: offset to the node name in structure block.
+/// first_prop_off: offset to the first node's prop in the PROPERTIES_POOL, save only the
+/// first property because all node's properties are following each other in the structure block. So we
+/// only need the first property and a counter of properties to recover them all.
+/// prop_count: counter to keep track of all property found. Increment each time a new property is
+/// found
+/// parent_node_index: the index of the parent node in the device tree, index in NODE_POOL.
+/// Important for keeping the hierarchy of the device tree.
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 pub struct FdtNode {
     // Name is max 31 bytes
     pub nameoff: u32,
-    // First prop offset used to find the first prop inside prop pool
     pub first_prop_off: u32,
     pub prop_count: u16,
-    // Parent node representing by the index in the stack of the static array in mem
     pub parent_node_index: Option<usize>,
 }
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
-/// Define a property header, len + nameoff of the prop follow by [u8;len] as the value of the prop
+/// Define a property header, len + nameoff of the prop follow by [u8;len] as the value of the
+/// property
 struct FdtPropHeader {
     len: u32,
     nameoff: u32,
 }
 
-// Structure to define a property parsed from fdt
+/// Structure to define a property parsed from fdt, used to save property information in static
+/// pool for property recovery outside the fdt parsing.
+/// nameoff: offset to the property name in the string block.
+/// off_value: offset to the property value in the structure block. 
+/// value_len: size of the value in the structure block. Used for parsing and getting the correct
+/// value size.
 #[derive(Clone, Copy, Debug)]
 pub struct Property {
     pub nameoff: usize,
@@ -66,7 +82,7 @@ pub struct Property {
     pub value_len: u32,
 }
 
-// Static to save all parsed node
+// Static to save all parsed node. Used in helpers functions
 static mut NODE_POOL: [FdtNode; FDT_MAX_STACK] = [FdtNode {
     nameoff: 0,
     first_prop_off: 0,
@@ -75,29 +91,35 @@ static mut NODE_POOL: [FdtNode; FDT_MAX_STACK] = [FdtNode {
 }; FDT_MAX_STACK];
 
 // Static to save all parsed properties, use the node.first_prop..node.first_prop + node.prop_count
-// to get all props for a specific node.
+// to get all properties for a specific node.
 static mut PROPERTIES_POOL: [Property; FDT_MAX_PROPS] = [Property {
     nameoff: 0,
     off_value: 0,
     value_len: 0,
 }; FDT_MAX_PROPS];
 
-// Node and props count to iterate over the static pools
+// Node and props count to iterate over the static pools. Also used to point to the correct max size of the
+// pool, not the len of the pool.
+// Note: use maybeuninit for the pool later?
 static mut NODE_COUNT: usize = 0;
 static mut PROPS_COUNT: usize = 0;
 
-// Parse the dtb header and call other parsing functions
+/// Parse the dtb header from the given address and call structure block parsing function
 pub fn parse_dtb_file(dtb: usize) {
     let header: FdtHeader = unsafe { ptr::read(dtb as *const FdtHeader) };
     if !header.valid_magic() {
         panic!("Magic from dtb is wrong");
     }
+    // Offset to the structure block and string block
     let struct_block = dtb + header.off_dt_struct.swap_bytes() as usize;
     let string_block = dtb + header.off_dt_strings.swap_bytes() as usize;
     parse_fdt_struct(struct_block, string_block);
 }
 
-// Parse the structure block and save all node and prop header in buff
+/// Parse the structure block and save all node and properties most important data in static pool.
+/// dt_struct_addr: offset to the structure block where all nodes and properties data is define.
+/// string_block_off: offset to the string_block_off where all properties name is define. Only used
+/// for saving property name offset in structure
 fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
     // Cursor to point the correct token inside the structure block
     let mut cursor = dt_struct_addr;
@@ -105,8 +127,8 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
     let fdt_begin_node = 0x00000001;
     let fdt_end_node = 0x00000002;
     let fdt_prop = 0x00000003;
-    let fdt_nop = 0x4;
-    let fdt_end = 0x9;
+    let fdt_nop = 0x00000004;
+    let fdt_end = 0x00000009;
 
     let mut node_stack: ArrayVec<FdtNode, FDT_MAX_STACK> = ArrayVec::new();
     loop {
@@ -152,10 +174,12 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
                     off_value: cursor + size_of::<FdtPropHeader>(),
                     value_len: prop_header.len.swap_bytes(),
                 };
+                // Push new property in static pool and increment static pool prop counter
                 unsafe {
                     PROPERTIES_POOL[PROPS_COUNT] = prop;
                     PROPS_COUNT += 1;
                 }
+                // Re push popped node from stack to the top of it
                 node_stack.push(node);
             }
             // Increment the cursor by the len of the prop
