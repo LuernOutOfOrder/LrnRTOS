@@ -11,15 +11,17 @@ use crate::{
         FdtNode,
         helpers::{get_node_prop, get_node_prop_in_hierarchy},
     },
-    kprint,
 };
 
 use super::{UartDevice, UartDriver};
 
+/// Structure for Ns16550 driver
+/// region: DriverRegion struct to define address memory region to use with the driver and the address size
 pub struct Ns16550 {
     pub region: DriverRegion,
 }
 
+/// Implementing the UartDriver trait for Ns16550 driver
 impl UartDriver for Ns16550 {
     fn putchar(&self, c: u8) {
         unsafe { core::ptr::write_volatile(self.region.addr as *mut u8, c) }
@@ -29,6 +31,8 @@ impl UartDriver for Ns16550 {
     }
 }
 
+/// Implementing Write trait for Ns16550 to be able to format with core::fmt in print
+/// Use the UartDriver function implemented in Ns16550
 impl Write for Ns16550 {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         for b in s.bytes() {
@@ -38,11 +42,14 @@ impl Write for Ns16550 {
     }
 }
 
+/// Static Ns16550 instance used when creating a new driver.
 static mut NS16550_INSTANCE: Ns16550 = Ns16550 {
     region: DriverRegion { addr: 0, size: 0 },
 };
 
+/// Implementation of the Ns16550
 impl Ns16550 {
+    /// Init a new Ns16550 from the given fdt node
     pub fn init(node: &FdtNode) {
         // Get address and size cells
         let address_cells = get_node_prop_in_hierarchy(node, "#address-cells").unwrap();
@@ -62,7 +69,9 @@ impl Ns16550 {
             reg_buff.push(value);
             reg_cursor += 4;
         }
+        // Region size from #address-cells and #size-cells properties value
         let reg_size = address_cells_val + size_cells_val;
+        // Init a new DriverRegion
         let mut device_addr: DriverRegion = DriverRegion { addr: 0, size: 0 };
         for addr in reg_buff.chunks(reg_size as usize) {
             // Build addr from chunk
@@ -87,13 +96,12 @@ impl Ns16550 {
         unsafe { NS16550_INSTANCE = ns16550 };
         let devices = unsafe { &mut *UART_DEVICES.get() };
 
-        // Basic loop and no iter.position ??
         let len = devices.len();
         for i in 0..len {
             if devices[i].is_none() {
                 devices[i] = Some(UartDevice {
-                    id: 0,
-                    default_console: false,
+                    _id: 0,
+                    _default_console: false,
                     driver: unsafe { &mut NS16550_INSTANCE },
                 })
             }
