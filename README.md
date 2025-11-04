@@ -1,6 +1,25 @@
 # LrnRTOS
 A hybrid RTOS
 
+## Project goal 
+
+The goal of this project is to explore a new way to create a kernel using a hybrid architecture based on a monolithic and a microkernel, to see if it's possible to develop a kernel for an RTOS with some features of a GPOS, with real-time constraints and security from user-space and kernel-space.
+As this is my first real kernel, I want to make everything from scratch to really learn how a kernel works and take every chance to create something new. This includes parsing the FDT, IPC, and implementing a filesystem.
+
+### Actual features:
+
+Features that are currently working:
+
+- Parsing FDT.
+- Init drivers from parsed node in FDT.
+- Printing with format from core::fmt::Write using an initialized driver.
+
+### Current target:
+
+Target where the kernel can build, boot, and run:
+
+- riscv32imc-unknown-none-elf
+
 ## Run
 
 To build the kernel, use the following command:
@@ -38,3 +57,7 @@ make debug
 # Run objdump and redirect output to a log.txt from debug binary
 make objdump
 ```
+
+## Resources
+
+- Device tree specification: https://devicetree-specification.readthedocs.io/en/stable/
