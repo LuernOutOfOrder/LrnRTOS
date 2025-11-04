@@ -37,6 +37,8 @@ jobs:
           ${{ runner.os }}-${{ matrix.toolchain }}-cargo-
     - name: Add target
       run: rustup target add ${{ matrix.target }}
+    - name: Add rust-src
+      run: rustup component add rust-src --toolchain ${{ matrix.toolchain }}
     - name: Build for target
       run: cargo build --release --target ${{ matrix.target }}
     - name: Check formatting
