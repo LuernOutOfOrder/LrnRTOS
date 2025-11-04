@@ -57,3 +57,7 @@ make debug
 # Run objdump and redirect output to a log.txt from debug binary
 make objdump
 ```
+
+## Resources
+
+- Device tree specification: https://devicetree-specification.readthedocs.io/en/stable/
