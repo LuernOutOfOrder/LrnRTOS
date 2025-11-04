@@ -46,7 +46,7 @@ pub struct FdtNode {
     // First prop offset used to find the first prop inside prop pool
     pub first_prop_off: u32,
     pub prop_count: u16,
-    // Parent node representing by the index in the stack or the static array in mem
+    // Parent node representing by the index in the stack of the static array in mem
     pub parent_node_index: Option<usize>,
 }
 
@@ -183,4 +183,3 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
         }
     }
 }
-
