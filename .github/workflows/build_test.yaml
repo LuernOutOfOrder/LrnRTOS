@@ -39,6 +39,8 @@ jobs:
       run: rustup target add ${{ matrix.target }}
     - name: Add rust-src
       run: rustup component add rust-src --toolchain ${{ matrix.toolchain }}
+    - name: Add rustfmt
+      run: rustup component add rustfmt --toolchain ${{ matrix.toolchain }}
     - name: Build for target
       run: cargo build --release --target ${{ matrix.target }}
     - name: Check formatting
