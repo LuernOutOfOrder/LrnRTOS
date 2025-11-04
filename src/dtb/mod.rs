@@ -72,7 +72,7 @@ struct FdtPropHeader {
 /// Structure to define a property parsed from fdt, used to save property information in static
 /// pool for property recovery outside the fdt parsing.
 /// nameoff: offset to the property name in the string block.
-/// off_value: offset to the property value in the structure block. 
+/// off_value: offset to the property value in the structure block.
 /// value_len: size of the value in the structure block. Used for parsing and getting the correct
 /// value size.
 #[derive(Clone, Copy, Debug)]

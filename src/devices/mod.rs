@@ -11,7 +11,7 @@ use crate::dtb::{
 /// Module for serials devices
 pub mod serials;
 
-/// Structure used to define a Driver for compatible matching. 
+/// Structure used to define a Driver for compatible matching.
 /// Only used in static DRIVERS
 /// compatible: name of the compatible driver for this device.
 /// init_fn: function to init the driver with given node from fdt parsing.
