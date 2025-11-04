@@ -17,7 +17,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         toolchain: [nightly]
-        target: [arch/riscv32imc-unknown-none-elf]
+        target: [riscv32imc-unknown-none-elf]
 
     steps:
     - uses: actions/checkout@v4
