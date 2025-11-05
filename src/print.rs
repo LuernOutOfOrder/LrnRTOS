@@ -1,10 +1,11 @@
-use crate::devices::serials::{KCONSOLE, UART_DEVICES};
+use crate::devices::serials::{KCONSOLE, SERIAL_DEVICES};
 
 /// Get uart set with default console and pass arg to write_fmt function of the driver
 pub fn print(arg: core::fmt::Arguments) {
-    let devices = unsafe { &mut *UART_DEVICES.get() };
-    if let Some(uart) = &mut devices[0] {
-        let _ = uart.driver.write_fmt(arg);
+    if let Some(device) = SERIAL_DEVICES.get_default_console() {
+        let _ = device.driver.write_fmt(arg);
+    } else {
+        panic!("Default console not found");
     }
 }
 
