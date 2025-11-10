@@ -6,7 +6,7 @@ use core::{
 use arrayvec::ArrayVec;
 
 use crate::{
-    devices::{DriverRegion, serials::UART_DEVICES},
+    devices::{DriverRegion, serials::SERIAL_DEVICES},
     dtb::{
         FdtNode,
         helpers::{get_node_prop, get_node_prop_in_hierarchy},
@@ -17,6 +17,7 @@ use super::{UartDevice, UartDriver};
 
 /// Structure for Ns16550 driver
 /// region: DriverRegion struct to define address memory region to use with the driver and the address size
+#[derive(Copy, Clone)]
 pub struct Ns16550 {
     pub region: DriverRegion,
 }
@@ -97,18 +98,14 @@ impl Ns16550 {
             region: device_addr,
         };
         unsafe { NS16550_INSTANCE = ns16550 };
-        let devices = unsafe { &mut *UART_DEVICES.get() };
-
-        let len = devices.len();
-        #[allow(clippy::needless_range_loop)]
-        for i in 0..len {
-            if devices[i].is_none() {
-                devices[i] = Some(UartDevice {
-                    _id: 0,
-                    _default_console: false,
-                    driver: unsafe { &mut NS16550_INSTANCE },
-                })
-            }
-        }
+        let device = UartDevice {
+            _id: 0,
+            default_console: false,
+            // Allow static mut refs because it's only use on early boot and there's no concurrent
+            // access
+            #[allow(static_mut_refs)]
+            driver: unsafe { &mut NS16550_INSTANCE },
+        };
+        SERIAL_DEVICES.add_serial(device);
     }
 }
