@@ -27,7 +27,7 @@ macro_rules! kprint {
 
 /// Get kconsole and use write_fmt of Write trait
 pub fn write_fmt(args: core::fmt::Arguments) {
-    let kconsole = unsafe { &mut *KCONSOLE.get() };
+    let kconsole = KCONSOLE.get();
     if let Some(w) = kconsole {
         let _ = w.write_fmt(args);
     }

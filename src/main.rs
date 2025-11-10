@@ -1,6 +1,5 @@
 #![no_std]
 #![no_main]
-#![warn(static_mut_refs)]
 
 // Arch specific module
 pub mod arch;

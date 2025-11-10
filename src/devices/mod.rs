@@ -23,7 +23,7 @@ struct Driver<'a> {
 /// Public structure used to define device region in memory.
 /// addr: the address to use in drivers.
 /// size: the size of the address.
-#[derive(Debug)]
+#[derive(Copy, Clone)]
 pub struct DriverRegion {
     pub addr: usize,
     pub size: usize,

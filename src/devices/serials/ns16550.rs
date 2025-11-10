@@ -17,6 +17,7 @@ use super::{UartDevice, UartDriver};
 
 /// Structure for Ns16550 driver
 /// region: DriverRegion struct to define address memory region to use with the driver and the address size
+#[derive(Copy, Clone)]
 pub struct Ns16550 {
     pub region: DriverRegion,
 }
@@ -100,6 +101,9 @@ impl Ns16550 {
         let device = UartDevice {
             _id: 0,
             default_console: false,
+            // Allow static mut refs because it's only use on early boot and there's no concurrent
+            // access
+            #[allow(static_mut_refs)]
             driver: unsafe { &mut NS16550_INSTANCE },
         };
         SERIAL_DEVICES.add_serial(device);
