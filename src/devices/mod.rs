@@ -11,6 +11,9 @@ use crate::dtb::{
 /// Module for serials devices
 pub mod serials;
 
+// Module for timer devices
+pub mod timer;
+
 /// Structure used to define a Driver for compatible matching.
 /// Only used in static DRIVERS
 /// compatible: name of the compatible driver for this device.
@@ -29,12 +32,18 @@ pub struct DriverRegion {
     pub size: usize,
 }
 
-/// Static array to save all handled drivers in the kernel. Point to the init function used to init
+/// Static driver match table to save all handled drivers in the kernel. Point to the init function used to init
 /// the driver.
-static DRIVERS: &[Driver] = &[Driver {
-    compatible: "ns16550a",
-    init_fn: Ns16550::init,
-}];
+static DRIVERS: &[Driver] = &[
+    Driver {
+        compatible: "ns16550a",
+        init_fn: Ns16550::init,
+    },
+    Driver {
+        compatible: "sifive,clint0",
+        init_fn: timer::clint0::Clint0::init,
+    },
+];
 
 /// Init all drivers, get all nodes parsed from fdt, and check compatible field. Pass the node to
 /// the corresponding driver init_fn.
