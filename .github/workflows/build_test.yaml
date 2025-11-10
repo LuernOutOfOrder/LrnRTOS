@@ -45,7 +45,7 @@ jobs:
       run: cargo build --release --target ${{ matrix.target }}
     - name: Check formatting
       run: cargo fmt --all -- --check
+    - name: Lint
+      run: cargo clippy -- -D warnings
     # - name: Run tests
     #   run: cargo test --verbose
-    # - name: Lint
-    #   run: cargo clippy -- -D warnings
