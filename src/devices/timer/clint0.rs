@@ -6,13 +6,22 @@ use crate::{
     devices::DriverRegion,
     dtb::{
         FdtNode,
-        helpers::{get_node_prop, get_node_prop_in_hierarchy},
+        helpers::{get_node_by_phandle, get_node_prop, get_node_prop_in_hierarchy},
     },
+    kprint,
 };
 
+/// Structure for sifive clint device driver
 pub struct Clint0 {
     region: DriverRegion,
-    interrupt_extended: [u32; 8],
+    // Array of tuple: phandle, irq_id
+    interrupt_extended: [Interrupt; 4],
+}
+
+#[derive(Copy, Clone, Debug)]
+struct Interrupt {
+    phandle: u32,
+    irq_ids: [u32; 4],
 }
 
 impl Clint0 {
@@ -58,12 +67,63 @@ impl Clint0 {
                 size: device_size as usize,
             }
         }
-        let interrupt_extended_array: [u32; 8] = [0u32; 8];
-        let interrupt_extended = get_node_prop(node, "interrupt-extended")
-            .expect("ERROR: clint0 node is missing 'interrupt-extended' property\n");
+        let interrupt: Interrupt = Interrupt {
+            phandle: 0,
+            irq_ids: [0u32; 4],
+        };
+        let mut interrupt_extended_array: [Interrupt; 4] = [interrupt; 4];
+        let interrupt_extended = get_node_prop(node, "interrupts-extended")
+            .expect("ERROR: clint0 node is missing 'interrupts-extended' property\n");
+        // First parsing through interrupts-extended to build complete array with values
+        let mut interrupt_extended_cursor: usize;
+        let mut interrupts_extended_vec: ArrayVec<u32, 16> = ArrayVec::new();
+        {
+            interrupt_extended_cursor = interrupt_extended.off_value;
+            for _ in 0..interrupt_extended.value_len / 4 {
+                let value =
+                    u32::from_be(unsafe { ptr::read(interrupt_extended_cursor as *const u32) });
+                interrupts_extended_vec.push(value);
+                interrupt_extended_cursor += 4;
+            }
+        }
+        interrupt_extended_cursor = interrupt_extended.off_value;
+        let mut iter_safety: usize = 0;
+        // Parse interrupts-extended props
+        for i in 0..interrupts_extended_vec.len() {
+            let value = u32::from_be(unsafe { ptr::read(interrupt_extended_cursor as *const u32) });
+            // Get node from interrupt-extended value
+            if iter_safety == interrupts_extended_vec.len() {
+                break;
+            }
+            let node = get_node_by_phandle(value).expect(
+                "ERROR: cannot find associate phandle node from clint0 interrupts-extended property",
+            );
+            let node_interrupt_cells = get_node_prop(&node, "#interrupt-cells")
+                .expect("ERROR: clint0 phandle node is missing the property '#interrupt-cells'");
+            // Read node interrupt-cells value to know how many clint interrupt-extended value to
+            // read and assign to phandle
+            let node_interrupt_cells_value =
+                u32::from_be(unsafe { ptr::read(node_interrupt_cells.off_value as *const u32) });
+            let mut parsed_interrupt: Interrupt = Interrupt {
+                phandle: value,
+                irq_ids: [0u32; 4],
+            };
+            for irq in 0..node_interrupt_cells_value {
+                interrupt_extended_cursor += 4;
+                iter_safety += 1;
+                let irq_value =
+                    u32::from_be(unsafe { ptr::read(interrupt_extended_cursor as *const u32) });
+                parsed_interrupt.irq_ids[irq as usize] = irq_value;
+            }
+            interrupt_extended_cursor += 4;
+            iter_safety += 1;
+            kprint!("debug: {:?}\n", parsed_interrupt);
+            interrupt_extended_array[i] = parsed_interrupt;
+        }
         let clint0: Clint0 = Clint0 {
             region: device_addr,
             interrupt_extended: interrupt_extended_array,
         };
+        kprint!("debug: {:?}\n", clint0.interrupt_extended);
     }
 }

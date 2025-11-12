@@ -109,3 +109,20 @@ pub fn get_node_prop_in_hierarchy(node: &FdtNode, prop_name: &str) -> Option<Pro
     }
     None
 }
+
+/// Iterate over all nodes and return the node containing the wanted phandle
+pub fn get_node_by_phandle(phandle: u32) -> Option<FdtNode> {
+    let nodes = get_all_fdt_nodes();
+    for node in nodes {
+        if let Some(node_phandle) = get_node_prop(node, "phandle") {
+            let phandle_value =
+                u32::from_be(unsafe { ptr::read(node_phandle.off_value as *const u32) });
+            if phandle_value == phandle {
+                return Some(*node)
+            }
+        } else {
+            continue;
+        }
+    }
+    None
+}
