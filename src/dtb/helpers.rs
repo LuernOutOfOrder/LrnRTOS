@@ -126,3 +126,18 @@ pub fn get_node_by_phandle(phandle: u32) -> Option<FdtNode> {
     }
     None
 }
+
+pub fn get_node_name(node: &FdtNode) -> ArrayVec<u8, 31> {
+    let mut node_name: ArrayVec<u8, 31> = ArrayVec::new();
+    let mut off = node.nameoff;
+    for _ in 0..31 {
+        let char = u8::from_be(unsafe { ptr::read(off as *const u8) });
+        if char == 0u8 {
+            break;
+        } else {
+            node_name.push(char);
+            off += 1;
+        }
+    }
+    node_name
+}
