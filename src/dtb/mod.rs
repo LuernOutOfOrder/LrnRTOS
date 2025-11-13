@@ -2,6 +2,8 @@ use core::ptr;
 
 use arrayvec::ArrayVec;
 
+use crate::kprint;
+
 // Helpers module for node's props recovery
 pub mod helpers;
 
@@ -130,7 +132,8 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
     let fdt_nop = 0x00000004;
     let fdt_end = 0x00000009;
 
-    let mut node_stack: ArrayVec<FdtNode, FDT_MAX_STACK> = ArrayVec::new();
+    // Stack used to save NODE_POOL size and keep hierarchie during the parsing
+    let mut node_stack: ArrayVec<usize, FDT_MAX_STACK> = ArrayVec::new();
     loop {
         let token = u32::from_be(unsafe { ptr::read(cursor as *const u32) });
         cursor += 4;
@@ -143,12 +146,19 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
                     if node_stack.is_empty() {
                         None
                     } else {
-                        Some(node_stack.len())
+                        // Parent index is the last element of the stack (index inside the
+                        // NODE_POOL)
+                        Some(*node_stack.last().unwrap())
                     }
                 },
             };
-            // Push new node to top of the stack
-            node_stack.push(node);
+            // Push new node index to top of the stack
+            node_stack.push(unsafe { NODE_COUNT });
+            unsafe {
+                NODE_POOL[NODE_COUNT] = node;
+                // Increment node_count
+                NODE_COUNT += 1;
+            };
             // Bitwise to re align cursor on 4 bytes
             cursor = (cursor + 3) & !3;
             continue;
@@ -162,26 +172,26 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
         if token == fdt_prop {
             // Cast current cursor ptr as prop header
             let prop_header: FdtPropHeader = unsafe { ptr::read(cursor as *const FdtPropHeader) };
-            if let Some(mut node) = node_stack.pop() {
-                if node.first_prop_off == 0 {
-                    node.first_prop_off = unsafe { PROPS_COUNT } as u32;
-                    node.prop_count += 1;
-                } else {
-                    node.prop_count += 1;
-                }
-                let prop: Property = Property {
-                    nameoff: string_block_off + prop_header.nameoff.swap_bytes() as usize,
-                    off_value: cursor + size_of::<FdtPropHeader>(),
-                    value_len: prop_header.len.swap_bytes(),
-                };
-                // Push new property in static pool and increment static pool prop counter
-                unsafe {
-                    PROPERTIES_POOL[PROPS_COUNT] = prop;
-                    PROPS_COUNT += 1;
-                }
-                // Re push popped node from stack to the top of it
-                node_stack.push(node);
+            let idx = node_stack.last().unwrap();
+            let mut node = unsafe { NODE_POOL[*idx] };
+            if node.first_prop_off == 0 {
+                node.first_prop_off = unsafe { PROPS_COUNT } as u32;
+                node.prop_count += 1;
+            } else {
+                node.prop_count += 1;
             }
+            let prop: Property = Property {
+                nameoff: string_block_off + prop_header.nameoff.swap_bytes() as usize,
+                off_value: cursor + size_of::<FdtPropHeader>(),
+                value_len: prop_header.len.swap_bytes(),
+            };
+            // Push new property in static pool and increment static pool prop counter
+            unsafe {
+                PROPERTIES_POOL[PROPS_COUNT] = prop;
+                PROPS_COUNT += 1;
+            }
+            // Update node from NODE_POOL
+            unsafe { NODE_POOL[*idx] = node };
             // Increment the cursor by the len of the prop
             cursor += size_of::<FdtPropHeader>() + prop_header.len.swap_bytes() as usize;
             // Align cursor on 4 bytes
@@ -190,21 +200,13 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
         }
         if token == fdt_end_node {
             // Pop top of the node stack or continue if stack empty
-            let node = {
-                if !node_stack.is_empty() {
-                    node_stack
-                        .pop()
-                        .expect("Failed to pop the top of FDT node stack")
-                } else {
-                    continue;
-                }
-            };
-            // Update node pool to add static node
-            unsafe {
-                NODE_POOL[NODE_COUNT] = node;
-                // Increment node_count
-                NODE_COUNT += 1;
-            };
+            if !node_stack.is_empty() {
+                node_stack
+                    .pop()
+                    .expect("Failed to pop the top of FDT node stack");
+            } else {
+                continue;
+            }
             continue;
         }
     }
