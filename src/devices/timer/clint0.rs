@@ -151,9 +151,10 @@ impl Clint0 {
         // TODO: create second interrupt_extended_array but for after early boot
         // Copy content of interrupt_extended_array to final interrupt array and create struct with
         // ptr to cpu_intc driver
-        let clint0: Clint0 = Clint0 {
-            region: device_addr,
-            interrupt_extended: interrupt_extended_array,
-        };
+
+        // let clint0: Clint0 = Clint0 {
+        //     region: device_addr,
+        //     interrupt_extended: interrupt_extended_array,
+        // };
     }
 }
