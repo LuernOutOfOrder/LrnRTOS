@@ -21,6 +21,8 @@ pub struct Clint0 {
 #[derive(Copy, Clone, Debug)]
 struct Interrupt {
     phandle: u32,
+    // Field to follow the len of the irq_ids array to avoid crushing valid data
+    irq_len: usize,
     irq_ids: [u32; 4],
 }
 
@@ -69,6 +71,7 @@ impl Clint0 {
         }
         let interrupt: Interrupt = Interrupt {
             phandle: 0,
+            irq_len: 0,
             irq_ids: [0u32; 4],
         };
         let mut interrupt_extended_array: [Interrupt; 4] = [interrupt; 4];
@@ -89,7 +92,7 @@ impl Clint0 {
         interrupt_extended_cursor = interrupt_extended.off_value;
         let mut iter_safety: usize = 0;
         // Parse interrupts-extended props
-        for i in 0..interrupts_extended_vec.len() {
+        for mut i in 0..interrupts_extended_vec.len() {
             let value = u32::from_be(unsafe { ptr::read(interrupt_extended_cursor as *const u32) });
             // Get node from interrupt-extended value
             if iter_safety == interrupts_extended_vec.len() {
@@ -106,18 +109,35 @@ impl Clint0 {
                 u32::from_be(unsafe { ptr::read(node_interrupt_cells.off_value as *const u32) });
             let mut parsed_interrupt: Interrupt = Interrupt {
                 phandle: value,
+                irq_len: 0,
                 irq_ids: [0u32; 4],
             };
-            for irq in 0..node_interrupt_cells_value {
+            // Check if an interrupt for this phandle already exist
+            for e in 0..interrupt_extended_array.len() {
+                if interrupt_extended_array[e].phandle != value {
+                    continue;
+                } else {
+                    // Update current parsed interrupt with existing one
+                    parsed_interrupt = interrupt_extended_array[e];
+                    // Update i iterator to be the same index as e to retrieve it in
+                    // 'interrupt_extended_array'
+                    i = e;
+                }
+            }
+            // Push irqs inside 'irq_ids' array of current 'parsed_interrupt'
+            for _ in 0..node_interrupt_cells_value {
                 interrupt_extended_cursor += 4;
                 iter_safety += 1;
                 let irq_value =
                     u32::from_be(unsafe { ptr::read(interrupt_extended_cursor as *const u32) });
-                parsed_interrupt.irq_ids[irq as usize] = irq_value;
+                parsed_interrupt.irq_ids[parsed_interrupt.irq_len] = irq_value;
+                parsed_interrupt.irq_len += 1;
             }
+            // Increment offset
             interrupt_extended_cursor += 4;
+            // Increment iterator
             iter_safety += 1;
-            kprint!("debug: {:?}\n", parsed_interrupt);
+            // Update array with current interrupt
             interrupt_extended_array[i] = parsed_interrupt;
         }
         let clint0: Clint0 = Clint0 {
