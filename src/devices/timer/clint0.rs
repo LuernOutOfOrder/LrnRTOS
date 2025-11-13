@@ -3,26 +3,33 @@ use core::ptr;
 use arrayvec::ArrayVec;
 
 use crate::{
-    devices::DriverRegion,
+    devices::{DriverRegion, cpu_intc::riscv_cpu_intc::CpuIntc},
     dtb::{
         FdtNode,
         helpers::{get_node_by_phandle, get_node_prop, get_node_prop_in_hierarchy},
     },
-    kprint,
 };
 
 /// Structure for sifive clint device driver
 pub struct Clint0 {
     region: DriverRegion,
-    // Array of tuple: phandle, irq_id
     interrupt_extended: [Interrupt; 4],
 }
 
 #[derive(Copy, Clone, Debug)]
-struct Interrupt {
+struct EarlyBootInterrupt {
     phandle: u32,
     // Field to follow the len of the irq_ids array to avoid crushing valid data
     irq_len: usize,
+    // Array of all irq
+    irq_ids: [u32; 4],
+}
+
+pub struct Interrupt {
+    cpu_intc: *mut CpuIntc,
+    // Field to follow the len of the irq_ids array to avoid crushing valid data
+    irq_len: usize,
+    // Array of all irq
     irq_ids: [u32; 4],
 }
 
@@ -69,12 +76,12 @@ impl Clint0 {
                 size: device_size as usize,
             }
         }
-        let interrupt: Interrupt = Interrupt {
+        let interrupt: EarlyBootInterrupt = EarlyBootInterrupt {
             phandle: 0,
             irq_len: 0,
             irq_ids: [0u32; 4],
         };
-        let mut interrupt_extended_array: [Interrupt; 4] = [interrupt; 4];
+        let mut interrupt_extended_array: [EarlyBootInterrupt; 4] = [interrupt; 4];
         let interrupt_extended = get_node_prop(node, "interrupts-extended")
             .expect("ERROR: clint0 node is missing 'interrupts-extended' property\n");
         // First parsing through interrupts-extended to build complete array with values
@@ -107,12 +114,13 @@ impl Clint0 {
             // read and assign to phandle
             let node_interrupt_cells_value =
                 u32::from_be(unsafe { ptr::read(node_interrupt_cells.off_value as *const u32) });
-            let mut parsed_interrupt: Interrupt = Interrupt {
+            let mut parsed_interrupt: EarlyBootInterrupt = EarlyBootInterrupt {
                 phandle: value,
                 irq_len: 0,
                 irq_ids: [0u32; 4],
             };
             // Check if an interrupt for this phandle already exist
+            #[allow(clippy::needless_range_loop)]
             for e in 0..interrupt_extended_array.len() {
                 if interrupt_extended_array[e].phandle != value {
                     continue;
@@ -140,10 +148,12 @@ impl Clint0 {
             // Update array with current interrupt
             interrupt_extended_array[i] = parsed_interrupt;
         }
+        // TODO: create second interrupt_extended_array but for after early boot
+        // Copy content of interrupt_extended_array to final interrupt array and create struct with
+        // ptr to cpu_intc driver
         let clint0: Clint0 = Clint0 {
             region: device_addr,
             interrupt_extended: interrupt_extended_array,
         };
-        kprint!("debug: {:?}\n", clint0.interrupt_extended);
     }
 }

@@ -14,6 +14,9 @@ pub mod serials;
 // Module for timer devices
 pub mod timer;
 
+// Module for cpu core interrupt-controller
+pub mod cpu_intc;
+
 /// Structure used to define a Driver for compatible matching.
 /// Only used in static DRIVERS
 /// compatible: name of the compatible driver for this device.
@@ -43,6 +46,10 @@ static DRIVERS: &[Driver] = &[
         compatible: "sifive,clint0",
         init_fn: timer::clint0::Clint0::init,
     },
+    Driver {
+        compatible: "riscv,cpu-intc",
+        init_fn: cpu_intc::riscv_cpu_intc::CpuIntc::init,
+    }
 ];
 
 /// Init all drivers, get all nodes parsed from fdt, and check compatible field. Pass the node to
