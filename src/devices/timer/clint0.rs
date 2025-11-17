@@ -9,7 +9,10 @@ use crate::{
     },
     dtb::{
         FdtNode,
-        helpers::{fdt_get_node, fdt_get_node_by_phandle, fdt_get_node_prop, fdt_get_node_prop_in_hierarchy},
+        helpers::{
+            fdt_get_node, fdt_get_node_by_phandle, fdt_get_node_prop,
+            fdt_get_node_prop_in_hierarchy,
+        },
     },
 };
 
@@ -53,7 +56,8 @@ impl Clint0 {
         let size_cells_val: u32 =
             u32::from_be(unsafe { ptr::read(size_cells.off_value as *const u32) });
         // Get device memory region
-        let reg = fdt_get_node_prop(node, "reg").expect("ERROR: clint0 node is missing 'reg' property");
+        let reg =
+            fdt_get_node_prop(node, "reg").expect("ERROR: clint0 node is missing 'reg' property");
         let mut reg_buff: ArrayVec<u32, 120> = ArrayVec::new();
         let mut reg_cursor = reg.off_value;
         // Divide reg.value_len by 4 because we read u32 and not u8
