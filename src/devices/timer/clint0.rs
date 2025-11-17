@@ -9,7 +9,10 @@ use crate::{
     },
     dtb::{
         FdtNode,
-        helpers::{get_fdt_node, get_node_by_phandle, get_node_prop, get_node_prop_in_hierarchy},
+        helpers::{
+            fdt_get_node, fdt_get_node_by_phandle, fdt_get_node_prop,
+            fdt_get_node_prop_in_hierarchy,
+        },
     },
 };
 
@@ -43,9 +46,9 @@ pub static mut CLINT_DEVICE: Clint0 = Clint0 {
 impl Clint0 {
     pub fn init(node: &FdtNode) {
         // Get address and size cells
-        let address_cells = get_node_prop_in_hierarchy(node, "#address-cells")
+        let address_cells = fdt_get_node_prop_in_hierarchy(node, "#address-cells")
             .expect("ERROR: clint0 node is missing '#address-cells' property from parent bus\n");
-        let size_cells = get_node_prop_in_hierarchy(node, "#size-cells")
+        let size_cells = fdt_get_node_prop_in_hierarchy(node, "#size-cells")
             .expect("ERROR: clint0 node is missing '#size-cells' property from parent bus\n");
         // Ptr read address and size cells value from off and cast it to u32 target's endianness
         let address_cells_val: u32 =
@@ -53,7 +56,8 @@ impl Clint0 {
         let size_cells_val: u32 =
             u32::from_be(unsafe { ptr::read(size_cells.off_value as *const u32) });
         // Get device memory region
-        let reg = get_node_prop(node, "reg").expect("ERROR: clint0 node is missing 'reg' property");
+        let reg =
+            fdt_get_node_prop(node, "reg").expect("ERROR: clint0 node is missing 'reg' property");
         let mut reg_buff: ArrayVec<u32, 120> = ArrayVec::new();
         let mut reg_cursor = reg.off_value;
         // Divide reg.value_len by 4 because we read u32 and not u8
@@ -89,7 +93,7 @@ impl Clint0 {
             irq_ids: [0u32; 4],
         };
         let mut intc_extended_array: [Interrupt; 4] = [interrupt; 4];
-        let interrupt_extended = get_node_prop(node, "interrupts-extended")
+        let interrupt_extended = fdt_get_node_prop(node, "interrupts-extended")
             .expect("ERROR: clint0 node is missing 'interrupts-extended' property\n");
         // First parsing through interrupts-extended to build complete array with values from
         // interrupts-extended property in fdt
@@ -113,15 +117,15 @@ impl Clint0 {
             if iter_safety == interrupts_extended_vec.len() {
                 break;
             }
-            let node = get_node_by_phandle(value).expect(
+            let node = fdt_get_node_by_phandle(value).expect(
                 "ERROR: cannot find associate phandle node from clint0 interrupts-extended property",
             );
-            let node_interrupt_cells = get_node_prop(&node, "#interrupt-cells")
+            let node_interrupt_cells = fdt_get_node_prop(&node, "#interrupt-cells")
                 .expect("ERROR: clint0 phandle node is missing the property '#interrupt-cells'");
             // Read node interrupt-cells value to know how many clint interrupt-extended value to
             // read and assign to phandle
-            let cpu_node = get_fdt_node(node.parent_node_index.unwrap());
-            let cpu_reg = get_node_prop(&cpu_node, "reg")
+            let cpu_node = fdt_get_node(node.parent_node_index.unwrap());
+            let cpu_reg = fdt_get_node_prop(&cpu_node, "reg")
                 .expect("ERROR: failed to get core id from associated core from intc");
             let cpu_reg_value = u32::from_be(unsafe { ptr::read(cpu_reg.off_value as *const u32) });
             let node_interrupt_cells_value =

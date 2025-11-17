@@ -5,17 +5,17 @@ use arrayvec::ArrayVec;
 use super::{FdtNode, NODE_COUNT, NODE_POOL, PROPERTIES_POOL, Property};
 
 /// Return slice from NODE_POOL with correct len
-pub fn get_all_fdt_nodes<'a>() -> &'a [FdtNode] {
+pub fn fdt_get_all_nodes<'a>() -> &'a [FdtNode] {
     unsafe { &NODE_POOL[0..NODE_COUNT] }
 }
 
 /// Return the node from given index in the NODE_POOL
-pub fn get_fdt_node(index: usize) -> FdtNode {
+pub fn fdt_get_node(index: usize) -> FdtNode {
     unsafe { NODE_POOL[index] }
 }
 
 /// Return the index of the given node in the NODE_POOL
-pub fn get_index_fdt_node(node: &FdtNode) -> usize {
+pub fn fdt_get_index_from_node(node: &FdtNode) -> usize {
     #[allow(clippy::needless_range_loop)]
     for i in 0..unsafe { NODE_COUNT } {
         let current = unsafe { NODE_POOL[i] };
@@ -27,7 +27,7 @@ pub fn get_index_fdt_node(node: &FdtNode) -> usize {
 }
 
 /// Return all properties from given node as a slice of Property
-pub fn get_fdt_node_prop<'a>(node: &FdtNode) -> &'a [Property] {
+pub fn fdt_get_all_node_props<'a>(node: &FdtNode) -> &'a [Property] {
     let start = node.first_prop_off as usize;
     let end = node.first_prop_off + node.prop_count as u32;
     unsafe { &PROPERTIES_POOL[start..end as usize] }
@@ -38,8 +38,8 @@ pub fn get_fdt_node_prop<'a>(node: &FdtNode) -> &'a [Property] {
 /// Return None if no prop was found in given node.
 /// node: the node to search the wanted property in.
 /// prop_name: the wanted property to find.
-pub fn get_node_prop(node: &FdtNode, prop_name: &str) -> Option<Property> {
-    let props = get_fdt_node_prop(node);
+pub fn fdt_get_node_prop(node: &FdtNode, prop_name: &str) -> Option<Property> {
+    let props = fdt_get_all_node_props(node);
     for prop in props {
         // Prop name
         let mut prop_name_buff: ArrayVec<u8, 31> = ArrayVec::new();
@@ -70,14 +70,14 @@ pub fn get_node_prop(node: &FdtNode, prop_name: &str) -> Option<Property> {
 /// Return None if no prop was found in given node.
 /// node: the node to search the wanted property in.
 /// prop_name: the wanted property to find.
-pub fn get_node_prop_in_hierarchy(node: &FdtNode, prop_name: &str) -> Option<Property> {
+pub fn fdt_get_node_prop_in_hierarchy(node: &FdtNode, prop_name: &str) -> Option<Property> {
     // Use index from node instead of node to avoid lifetime issue
-    let mut current_search_node = get_index_fdt_node(node);
+    let mut current_search_node = fdt_get_index_from_node(node);
     // Loop to check props in given node, if asked prop is not found, check in parent node, etc.
     // Number of node to iterate over
     for _ in 0..2 {
-        let search_node = get_fdt_node(current_search_node);
-        let props = get_fdt_node_prop(&search_node);
+        let search_node = fdt_get_node(current_search_node);
+        let props = fdt_get_all_node_props(&search_node);
         // Iter over props to find the wanted props
         for prop in props {
             // Prop name
@@ -111,10 +111,10 @@ pub fn get_node_prop_in_hierarchy(node: &FdtNode, prop_name: &str) -> Option<Pro
 }
 
 /// Iterate over all nodes and return the node containing the wanted phandle
-pub fn get_node_by_phandle(phandle: u32) -> Option<FdtNode> {
-    let nodes = get_all_fdt_nodes();
+pub fn fdt_get_node_by_phandle(phandle: u32) -> Option<FdtNode> {
+    let nodes = fdt_get_all_nodes();
     for node in nodes {
-        if let Some(node_phandle) = get_node_prop(node, "phandle") {
+        if let Some(node_phandle) = fdt_get_node_prop(node, "phandle") {
             let phandle_value =
                 u32::from_be(unsafe { ptr::read(node_phandle.off_value as *const u32) });
             if phandle_value == phandle {
@@ -127,7 +127,7 @@ pub fn get_node_by_phandle(phandle: u32) -> Option<FdtNode> {
     None
 }
 
-pub fn get_node_name(node: &FdtNode) -> ArrayVec<u8, 31> {
+pub fn fdt_get_node_name(node: &FdtNode) -> ArrayVec<u8, 31> {
     let mut node_name: ArrayVec<u8, 31> = ArrayVec::new();
     let mut off = node.nameoff;
     for _ in 0..31 {
@@ -144,9 +144,9 @@ pub fn get_node_name(node: &FdtNode) -> ArrayVec<u8, 31> {
 
 /// Return node from name
 pub fn fdt_get_node_by_name(name: &str) -> Option<&FdtNode> {
-    let nodes = get_all_fdt_nodes();
+    let nodes = fdt_get_all_nodes();
     for node in nodes {
-        let node_name = get_node_name(node);
+        let node_name = fdt_get_node_name(node);
         let node_name_str: &str =
             str::from_utf8(&node_name).expect("Failed to cast node name to &str");
         if node_name_str == name {
@@ -159,7 +159,7 @@ pub fn fdt_get_node_by_name(name: &str) -> Option<&FdtNode> {
 /// Return prop from given node name and prop name
 pub fn fdt_get_prop_by_node_name(node_name: &str, prop_name: &str) -> Option<Property> {
     let node = fdt_get_node_by_name(node_name).expect("Failed to get node from node name");
-    get_node_prop(node, prop_name)
+    fdt_get_node_prop(node, prop_name)
 }
 
 /// Return an u32 value from given fdt property
