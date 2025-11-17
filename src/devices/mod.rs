@@ -5,7 +5,7 @@ use serials::ns16550::Ns16550;
 
 use crate::dtb::{
     FdtNode,
-    helpers::{get_all_fdt_nodes, get_node_prop},
+    helpers::{fdt_get_all_nodes, fdt_get_node_prop},
 };
 
 /// Module for serials devices
@@ -59,12 +59,12 @@ static DRIVERS: &[Driver] = &[
 /// the corresponding driver init_fn.
 pub fn init_devices() {
     // Get all nodes
-    let fdt_nodes = get_all_fdt_nodes();
+    let fdt_nodes = fdt_get_all_nodes();
     // Loop used to check compatible prop on each node, check compatible value and call
     // corresponding driver
     for node in fdt_nodes {
         // Get compatible prop from node
-        if let Some(prop) = get_node_prop(node, "compatible") {
+        if let Some(prop) = fdt_get_node_prop(node, "compatible") {
             // Get the value of compatible property.
             let mut prop_value_buff: ArrayVec<u8, 32> = ArrayVec::new();
             let mut prop_value_cursor = prop.off_value;

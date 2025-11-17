@@ -9,7 +9,7 @@ use crate::{
     devices::{DriverRegion, serials::SERIAL_DEVICES},
     dtb::{
         FdtNode,
-        helpers::{get_node_prop, get_node_prop_in_hierarchy},
+        helpers::{fdt_get_node_prop, fdt_get_node_prop_in_hierarchy},
     },
 };
 
@@ -53,9 +53,9 @@ impl Ns16550 {
     /// Init a new Ns16550 from the given fdt node
     pub fn init(node: &FdtNode) {
         // Get address and size cells
-        let address_cells = get_node_prop_in_hierarchy(node, "#address-cells")
+        let address_cells = fdt_get_node_prop_in_hierarchy(node, "#address-cells")
             .expect("ERROR: ns16550 node is missing '#address-cells' property from parent bus\n");
-        let size_cells = get_node_prop_in_hierarchy(node, "#size-cells")
+        let size_cells = fdt_get_node_prop_in_hierarchy(node, "#size-cells")
             .expect("ERROR: ns16550 node is missing '#size-cells' property from parent bus\n");
         // Ptr read address and size cells value from off and cast it to u32 target's endianness
         let address_cells_val: u32 =
@@ -64,7 +64,7 @@ impl Ns16550 {
             u32::from_be(unsafe { ptr::read(size_cells.off_value as *const u32) });
         // Get device memory region
         let reg =
-            get_node_prop(node, "reg").expect("ERROR: ns16550 node is missing 'reg' property");
+            fdt_get_node_prop(node, "reg").expect("ERROR: ns16550 node is missing 'reg' property");
         let mut reg_buff: ArrayVec<u32, 120> = ArrayVec::new();
         let mut reg_cursor = reg.off_value;
         // Divide reg.value_len by 4 because we read u32 and not u8
