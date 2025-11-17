@@ -11,6 +11,15 @@ use crate::dtb::{
 /// Module for serials devices
 pub mod serials;
 
+// Module for timer devices
+pub mod timer;
+
+// Module for cpu core interrupt-controller
+pub mod cpu_intc;
+
+// Module for cpu frequency
+pub mod cpufreq;
+
 /// Structure used to define a Driver for compatible matching.
 /// Only used in static DRIVERS
 /// compatible: name of the compatible driver for this device.
@@ -23,18 +32,28 @@ struct Driver<'a> {
 /// Public structure used to define device region in memory.
 /// addr: the address to use in drivers.
 /// size: the size of the address.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct DriverRegion {
     pub addr: usize,
     pub size: usize,
 }
 
-/// Static array to save all handled drivers in the kernel. Point to the init function used to init
+/// Static driver match table to save all handled drivers in the kernel. Point to the init function used to init
 /// the driver.
-static DRIVERS: &[Driver] = &[Driver {
-    compatible: "ns16550a",
-    init_fn: Ns16550::init,
-}];
+static DRIVERS: &[Driver] = &[
+    Driver {
+        compatible: "ns16550a",
+        init_fn: Ns16550::init,
+    },
+    Driver {
+        compatible: "sifive,clint0",
+        init_fn: timer::clint0::Clint0::init,
+    },
+    Driver {
+        compatible: "riscv,cpu-intc",
+        init_fn: cpu_intc::riscv_cpu_intc::CpuIntc::init,
+    },
+];
 
 /// Init all drivers, get all nodes parsed from fdt, and check compatible field. Pass the node to
 /// the corresponding driver init_fn.

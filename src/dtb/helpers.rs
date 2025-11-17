@@ -109,3 +109,60 @@ pub fn get_node_prop_in_hierarchy(node: &FdtNode, prop_name: &str) -> Option<Pro
     }
     None
 }
+
+/// Iterate over all nodes and return the node containing the wanted phandle
+pub fn get_node_by_phandle(phandle: u32) -> Option<FdtNode> {
+    let nodes = get_all_fdt_nodes();
+    for node in nodes {
+        if let Some(node_phandle) = get_node_prop(node, "phandle") {
+            let phandle_value =
+                u32::from_be(unsafe { ptr::read(node_phandle.off_value as *const u32) });
+            if phandle_value == phandle {
+                return Some(*node);
+            }
+        } else {
+            continue;
+        }
+    }
+    None
+}
+
+pub fn get_node_name(node: &FdtNode) -> ArrayVec<u8, 31> {
+    let mut node_name: ArrayVec<u8, 31> = ArrayVec::new();
+    let mut off = node.nameoff;
+    for _ in 0..31 {
+        let char = u8::from_be(unsafe { ptr::read(off as *const u8) });
+        if char == 0u8 {
+            break;
+        } else {
+            node_name.push(char);
+            off += 1;
+        }
+    }
+    node_name
+}
+
+/// Return node from name
+pub fn fdt_get_node_by_name(name: &str) -> Option<&FdtNode> {
+    let nodes = get_all_fdt_nodes();
+    for node in nodes {
+        let node_name = get_node_name(node);
+        let node_name_str: &str =
+            str::from_utf8(&node_name).expect("Failed to cast node name to &str");
+        if node_name_str == name {
+            return Some(node);
+        }
+    }
+    None
+}
+
+/// Return prop from given node name and prop name
+pub fn fdt_get_prop_by_node_name(node_name: &str, prop_name: &str) -> Option<Property> {
+    let node = fdt_get_node_by_name(node_name).expect("Failed to get node from node name");
+    get_node_prop(node, prop_name)
+}
+
+/// Return an u32 value from given fdt property
+pub fn fdt_get_prop_u32_value(prop: Property) -> u32 {
+    u32::from_be(unsafe { ptr::read(prop.off_value as *const u32) })
+}
