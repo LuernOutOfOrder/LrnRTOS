@@ -11,17 +11,17 @@ use crate::{
         FdtNode,
         helpers::{get_fdt_node, get_node_by_phandle, get_node_prop, get_node_prop_in_hierarchy},
     },
-    kprint,
 };
 
 /// Structure for sifive clint device driver
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub struct Clint0 {
     region: DriverRegion,
+    #[allow(unused)]
     interrupt_extended: [Interrupt; 4],
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub struct Interrupt {
     // Ptr to CpuIntc struct
     cpu_intc: *mut CpuIntc,

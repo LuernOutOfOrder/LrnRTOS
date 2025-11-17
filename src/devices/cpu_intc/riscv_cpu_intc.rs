@@ -1,15 +1,13 @@
 use core::ptr;
 
-use crate::{
-    dtb::{
-        FdtNode,
-        helpers::{get_fdt_node, get_node_prop},
-    },
-    kprint,
+use crate::dtb::{
+    FdtNode,
+    helpers::{get_fdt_node, get_node_prop},
 };
 
 #[derive(Clone, Copy, Debug)]
 pub struct CpuIntc {
+    #[allow(unused)]
     hart_id: u32,
 }
 

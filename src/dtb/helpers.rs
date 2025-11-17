@@ -146,17 +146,7 @@ pub fn get_node_name(node: &FdtNode) -> ArrayVec<u8, 31> {
 pub fn fdt_get_node_by_name(name: &str) -> Option<&FdtNode> {
     let nodes = get_all_fdt_nodes();
     for node in nodes {
-        let mut node_name: ArrayVec<u8, 31> = ArrayVec::new();
-        let mut name_off = node.nameoff;
-        for _ in 0..31 {
-            let char = u8::from_be(unsafe { ptr::read(name_off as *const u8) });
-            if char == 0u8 {
-                break;
-            } else {
-                node_name.push(char);
-                name_off += 1;
-            }
-        }
+        let node_name = get_node_name(node);
         let node_name_str: &str =
             str::from_utf8(&node_name).expect("Failed to cast node name to &str");
         if node_name_str == name {
@@ -169,14 +159,10 @@ pub fn fdt_get_node_by_name(name: &str) -> Option<&FdtNode> {
 /// Return prop from given node name and prop name
 pub fn fdt_get_prop_by_node_name(node_name: &str, prop_name: &str) -> Option<Property> {
     let node = fdt_get_node_by_name(node_name).expect("Failed to get node from node name");
-    if let Some(prop) = get_node_prop(node, prop_name) {
-        return Some(prop);
-    } else {
-        None
-    }
+    get_node_prop(node, prop_name)
 }
 
 /// Return an u32 value from given fdt property
 pub fn fdt_get_prop_u32_value(prop: Property) -> u32 {
-    return u32::from_be(unsafe { ptr::read(prop.off_value as *const u32) });
+    u32::from_be(unsafe { ptr::read(prop.off_value as *const u32) })
 }

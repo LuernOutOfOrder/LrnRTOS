@@ -2,8 +2,6 @@ use core::ptr;
 
 use arrayvec::ArrayVec;
 
-use crate::kprint;
-
 // Helpers module for node's props recovery
 pub mod helpers;
 
