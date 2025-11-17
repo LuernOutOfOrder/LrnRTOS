@@ -1,6 +1,6 @@
 use crate::devices::{cpufreq::CPUFREQ, timer::clint0::CLINT_DEVICE};
 
-pub fn ktime_secondes() -> u64 {
+pub fn ktime_seconds() -> u64 {
     #[allow(static_mut_refs)]
     let cpu_freq = unsafe { CPUFREQ.frequency };
     #[allow(static_mut_refs)]
