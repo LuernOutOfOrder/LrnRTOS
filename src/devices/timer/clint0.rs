@@ -23,6 +23,7 @@ pub struct Clint0 {
 
 #[derive(Copy, Clone, Debug)]
 pub struct Interrupt {
+    // Ptr to CpuIntc struct
     cpu_intc: *mut CpuIntc,
     // Field to follow the len of the irq_ids array to avoid crushing valid data
     irq_len: usize,
@@ -30,14 +31,14 @@ pub struct Interrupt {
     irq_ids: [u32; 4],
 }
 
-pub static mut CLINT_POOL: [Clint0; 4] = [Clint0 {
+pub static mut CLINT_DEVICE: Clint0 = Clint0 {
     region: DriverRegion { addr: 0, size: 0 },
     interrupt_extended: [Interrupt {
         cpu_intc: null_mut(),
         irq_len: 0,
         irq_ids: [0u32; 4],
     }; 4],
-}; 4];
+};
 
 impl Clint0 {
     pub fn init(node: &FdtNode) {
@@ -160,10 +161,38 @@ impl Clint0 {
             // Update array with current interrupt
             intc_extended_array[i] = parsed_interrupt;
         }
+        // Init Clint0 driver and update static for global access.
         let clint0: Clint0 = Clint0 {
             region: device_addr,
             interrupt_extended: intc_extended_array,
         };
-        kprint!("debug: {:?}\n", intc_extended_array);
+        unsafe { CLINT_DEVICE = clint0 };
+    }
+
+    /// Read mtime from clint0 addr + offset from `https://chromitem-soc.readthedocs.io/en/latest/clint.html`
+    /// Check 2 time value from high addr to avoid miscompute mtime and giving wrong tick, and led
+    /// to UB.
+    pub fn read_mtime(&self) -> u64 {
+        // Offset from doc
+        // TODO: check if I can make this better than just hardcoded offset ????
+        let off = 0xBFF8;
+        // Define mtime value
+        let mut mtime_low: u32 = 0;
+        let mut mtime_high: u32 = 0;
+        // Define mtime_high checking value to make the while loop work
+        let mut mtime_high_check: u32 = 1;
+        let mut output: u64 = 0;
+        // While the two mtime is different continue to read to avoid miss compute mtime and lead
+        // to UB.
+        while mtime_high != mtime_high_check {
+            let mtime_low_addr = self.region.addr + off;
+            let mtime_high_addr = self.region.addr + off + 4;
+            mtime_high = unsafe { ptr::read(mtime_high_addr as *const u32) };
+            mtime_low = unsafe { ptr::read(mtime_low_addr as *const u32) };
+            mtime_high_check = unsafe { ptr::read(mtime_high_addr as *const u32) };
+        }
+        // Bitwise to compute mtime from value. Cannot read u64 directly on riscv 32 bits.
+        output = ((mtime_high as u64) << 32) | (mtime_low as u64);
+        output
     }
 }
