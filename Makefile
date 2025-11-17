@@ -3,7 +3,7 @@ DBUILD_DIR = target/riscv32imc-unknown-none-elf/debug/lrnrtos
 DEBUG_GDB_FLAGS = -S -gdb tcp::1234
 DEBUG_FLAGS = -d int -D out.log
 QEMU_MACHINE = virt
-QEMU_BIOS = default
+QEMU_BIOS = none
 QEMU_DUMP_DTB = ,dumpdtb=qemu_dtb.dtb
 MEMORY_MAP_FLAGS = RUSTFLAGS="-Clink-arg=-Map=memory.map"
 

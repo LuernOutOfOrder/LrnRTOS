@@ -1,7 +1,7 @@
 ENTRY(kstart)
 
 MEMORY {
-  RAM (rwx) : ORIGIN = 0x80200000, LENGTH = 128K
+  RAM (rwx) : ORIGIN = 0x80000000, LENGTH = 128K
 }
 
 SECTIONS {
