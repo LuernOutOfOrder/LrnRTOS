@@ -17,6 +17,9 @@ pub mod timer;
 // Module for cpu core interrupt-controller
 pub mod cpu_intc;
 
+// Module for cpu frequency
+pub mod cpufreq;
+
 /// Structure used to define a Driver for compatible matching.
 /// Only used in static DRIVERS
 /// compatible: name of the compatible driver for this device.
@@ -29,7 +32,7 @@ struct Driver<'a> {
 /// Public structure used to define device region in memory.
 /// addr: the address to use in drivers.
 /// size: the size of the address.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct DriverRegion {
     pub addr: usize,
     pub size: usize,
