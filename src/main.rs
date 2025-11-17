@@ -10,14 +10,18 @@ mod dtb;
 // Logging modules
 pub mod log;
 pub mod print;
+// Module for kernel time
+pub mod ktime;
 
 use core::panic::PanicInfo;
 
-use devices::init_devices;
+use devices::{cpufreq::CpuFreq, init_devices};
 
 pub fn main(dtb_addr: usize) -> ! {
     dtb::parse_dtb_file(dtb_addr);
     init_devices();
+    print!("LrnRTOS booting...\n");
+    CpuFreq::init();
     print!("Hello from LrnRTOS!");
     loop {
         unsafe {
