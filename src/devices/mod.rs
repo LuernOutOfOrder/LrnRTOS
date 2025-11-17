@@ -52,7 +52,7 @@ static DRIVERS: &[Driver] = &[
     Driver {
         compatible: "riscv,cpu-intc",
         init_fn: cpu_intc::riscv_cpu_intc::CpuIntc::init,
-    }
+    },
 ];
 
 /// Init all drivers, get all nodes parsed from fdt, and check compatible field. Pass the node to

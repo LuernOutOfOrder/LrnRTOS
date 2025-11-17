@@ -178,5 +178,5 @@ pub fn fdt_get_prop_by_node_name(node_name: &str, prop_name: &str) -> Option<Pro
 
 /// Return an u32 value from given fdt property
 pub fn fdt_get_prop_u32_value(prop: Property) -> u32 {
-    return u32::from_be(unsafe { ptr::read(prop.off_value as *const u32) })
+    return u32::from_be(unsafe { ptr::read(prop.off_value as *const u32) });
 }
