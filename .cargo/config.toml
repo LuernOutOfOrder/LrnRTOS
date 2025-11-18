@@ -2,9 +2,6 @@
 build-std-features = ["compiler-builtins-mem"]
 build-std = ["core", "compiler_builtins"]
 
-[env]
-ESP_HAL_CONFIG_PLACE_ANON_IN_RAM = "true"
-
 [build]
 target = "arch/riscv32imc-unknown-none-elf.json"
 
@@ -32,6 +29,18 @@ opt-level = 0
 debug = true
 lto = false
 codegen-units = 1
+panic = "abort"
+
+[profile.release]
+lto = "fat"
+strip = true
+codegen-units = 1
+panic = "abort"
 
 [alias]
+b = "build --profile=dev"
+rb = "build --profile=release"
+c = "clean"
 ft = "fmt --all -- --check"
+w = "clippy -- -D warnings"
+t = "test"

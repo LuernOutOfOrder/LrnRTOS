@@ -5,13 +5,3 @@ edition = "2024"
 
 [dependencies]
 arrayvec = {version = "0.7.6", default-features = false}
-
-[profile.dev]
-debug = true
-panic = "abort"
-
-[profile.release]
-lto = "fat"
-strip = true
-codegen-units = 1
-panic = "abort"
