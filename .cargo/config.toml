@@ -16,26 +16,32 @@ rustflags = [
   "-C",
   "relocation-model=static",
   # Keep debug sym
-  "-C",
-  "debuginfo=2",
-  "-C",
-  "panic=abort",
+  # "-C",
+  # "debuginfo=2",
+  # "-C",
+  # "panic=abort",
+  # Print memory usage 
   "-C",
   "link-arg=--print-memory-usage",
 ]
 
 [profile.dev]
 opt-level = 0
-debug = true
+debug = 2
+debug-assertions = true 
 lto = false
+strip = false
 codegen-units = 1
-panic = "abort"
+panic = "unwind"
 
 [profile.release]
+opt-level = 2
 lto = "fat"
 strip = true
 codegen-units = 1
 panic = "abort"
+debug = false
+debug-assertions = false 
 
 [alias]
 b = "build --profile=dev"
