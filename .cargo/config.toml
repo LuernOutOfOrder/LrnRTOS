@@ -23,6 +23,8 @@ rustflags = [
   # Print memory usage 
   "-C",
   "link-arg=--print-memory-usage",
+  # "-C",
+  # "link-arg=-Map=memory.map",
 ]
 
 [profile.dev]
