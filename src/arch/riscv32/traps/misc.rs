@@ -32,6 +32,7 @@ pub fn read_mtvec() -> u32 {
     }
     value
 }
+
 pub fn mstatus_mie_is_set() -> bool {
     let mstatus = read_mstatus();
     (mstatus & (1 << 3)) != 0

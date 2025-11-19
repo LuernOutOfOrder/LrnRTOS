@@ -15,21 +15,21 @@ pub mod ktime;
 
 use core::panic::PanicInfo;
 
+use arch::traps::enable_interrupts;
 use devices::{cpufreq::CpuFreq, init_devices};
-use ktime::{ktime_ms, set_ktime_ms};
+use ktime::{ktime_seconds, set_ktime_ms};
 
 pub fn main(dtb_addr: usize) -> ! {
     dtb::parse_dtb_file(dtb_addr);
     init_devices();
     print!("LrnRTOS booting...\n");
     CpuFreq::init();
-    // unsafe { arch::traps::interrupt::enable_interrupt() };
+    enable_interrupts();
     print!("Hello from LrnRTOS!\n");
-    arch::traps::interrupt::enable_mie_mtie();
-    print!("debug mie.mtie: {:?}\n", arch::traps::misc::mie_mtie_is_set());
     loop {
-        print!("interrupt timer working\n");
-        set_ktime_ms(1000000);
+        let time = ktime_seconds();
+        print!("interrupt timer working: {:?}\n", time);
+        set_ktime_ms(10000000);
         unsafe {
             arch::traps::interrupt::enable_and_halt();
         }
