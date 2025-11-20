@@ -1,6 +1,6 @@
 use core::arch::asm;
 
-use super::handler::{TrapFrame, KERNEL_TRAP_FRAME};
+use super::handler::{KERNEL_TRAP_FRAME, TrapFrame};
 
 /// Enable interrupt
 ///
@@ -82,9 +82,20 @@ pub fn mtvec_set_trap_entry() {
     unsafe { asm!("csrw mtvec, {}", in(reg) handler_ptr) }
 }
 
+// Mscratch CSR
+
 pub fn mscratch_set_trap_frame() {
-    let ptr = (&mut unsafe { KERNEL_TRAP_FRAME }[0]
-		                     as *mut TrapFrame)
-		                    as usize;
+    let ptr = &unsafe { KERNEL_TRAP_FRAME } as *const _ as usize;
     unsafe { asm!("csrw mscratch, {}", in(reg) ptr) }
+}
+
+pub fn mscratch_read() -> u32 {
+    let value: u32;
+    unsafe {
+        core::arch::asm!(
+            "csrr {0}, mscratch",
+            out(reg) value
+        );
+    }
+    value
 }
