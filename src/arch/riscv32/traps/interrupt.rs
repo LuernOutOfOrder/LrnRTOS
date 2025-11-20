@@ -1,5 +1,7 @@
 use core::arch::asm;
 
+use super::handler::{TrapFrame, KERNEL_TRAP_FRAME};
+
 /// Enable interrupt
 ///
 /// # Safety
@@ -77,5 +79,12 @@ unsafe extern "C" {
 
 pub fn mtvec_set_trap_entry() {
     let handler_ptr: unsafe extern "C" fn() = trap_entry;
-    unsafe { asm!("csrw mtvec, {}", in(reg) handler_ptr)}
-} 
+    unsafe { asm!("csrw mtvec, {}", in(reg) handler_ptr) }
+}
+
+pub fn mscratch_set_trap_frame() {
+    let ptr = (&mut unsafe { KERNEL_TRAP_FRAME }[0]
+		                     as *mut TrapFrame)
+		                    as usize;
+    unsafe { asm!("csrw mscratch, {}", in(reg) ptr) }
+}

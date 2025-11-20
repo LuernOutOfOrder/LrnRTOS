@@ -1,6 +1,6 @@
-use core::arch::global_asm;
+use core::{arch::global_asm, ptr::null_mut};
 
-use crate::{arch::traps::misc::mstatus_mie_is_set, ktime::set_ktime_ms, print};
+use crate::{ktime::set_ktime_ms, print};
 
 use super::interrupt::trap_entry;
 
@@ -12,12 +12,26 @@ global_asm!(include_str!("trap_entry.S"));
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct TrapFrame {
-    pub regs: [usize; 32],   // 0 - 255
-    pub fregs: [usize; 32],  // 256 - 511
-    pub satp: usize,         // 512 - 519
-    pub trap_stack: *mut u8, // 520
-    pub hartid: usize,       // 528
+    pub gp_regs: [u32; 32], // x0..x31  - integer registers
+    pub fp_regs: [u64; 32], // f0..f31  - floating-point registers (64-bit wide)
+    pub satp: u32,
+    pub trap_stack: *mut u8, // offset in struct 388
+    pub hartid: u32,
 }
+
+impl TrapFrame {
+    pub const fn zero() -> Self {
+        TrapFrame {
+            gp_regs: [0; 32],
+            fp_regs: [0; 32],
+            satp: 0,
+            trap_stack: null_mut(),
+            hartid: 0,
+        }
+    }
+}
+
+pub static mut KERNEL_TRAP_FRAME: [TrapFrame; 8] = [TrapFrame::zero(); 8];
 
 /// Trap routines
 #[unsafe(no_mangle)]
@@ -29,6 +43,7 @@ unsafe extern "C" fn trap_handler(
     status: usize,
     frame: &mut TrapFrame,
 ) -> u32 {
+    print!("DEBUG\n");
     // mcause strut -> u32 -> 31 bit = interrupt or exception.
     // if 31 bit is 1 -> interrupt, else 31 bit is 0 -> exception.
     // The remaining 30..0 bits is the interrupt or exception cause.
@@ -73,6 +88,6 @@ fn interrupt_handler(mcause: u32, hart: usize) {
 }
 
 fn timer_interrupt() {
-    print!("debug\n");
+    print!("Timer interrupt\n");
     set_ktime_ms(10_000_000);
 }
