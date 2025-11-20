@@ -2,7 +2,7 @@ use core::{arch::global_asm, ptr::null_mut};
 
 use crate::{ktime::set_ktime_ms, print};
 
-use super::interrupt::trap_entry;
+use super::interrupt::{mscratch_read, trap_entry};
 
 // Include gnu_macro asm file in compilation
 global_asm!(include_str!("gnu_macro.S"));
@@ -35,48 +35,41 @@ pub static mut KERNEL_TRAP_FRAME: [TrapFrame; 8] = [TrapFrame::zero(); 8];
 
 /// Trap routines
 #[unsafe(no_mangle)]
-unsafe extern "C" fn trap_handler(
-    mepc: u32,
-    tval: usize,
-    mcause: u32,
-    hart: usize,
-    status: usize,
-    frame: &mut TrapFrame,
-) -> u32 {
-    print!("DEBUG\n");
+unsafe extern "C" fn _trap_handler(mcause: u32, mepc: usize, hart: usize) {
     // mcause strut -> u32 -> 31 bit = interrupt or exception.
     // if 31 bit is 1 -> interrupt, else 31 bit is 0 -> exception.
     // The remaining 30..0 bits is the interrupt or exception cause.
     // 31 bit[(interrupt or exception)] 30..0 bits[interrupt or exception cause]
     // Move all bits from mcause to 31 bits to the right to keep only the last bit
     // Last bit == interrupt
+    let ptr = &unsafe { KERNEL_TRAP_FRAME } as *const _ as usize;
+    let mscratch = mscratch_read();
+    print!("mscratch: {:#x}\t TrapFrame address: {:#x}\n", mscratch, ptr);
     let interrupt = mcause >> 31;
     // Bit mask to keep all bits except the last bit
     let cause = mcause & 0x7FFFFFFF;
-    let updated_pc = mepc;
     let trap_handler_addr = trap_entry as usize;
     match mepc {
         0 => panic!("mepc is 0, wrong wrong wrong"),
         0xFFFFFFFF => panic!("mepc is like BIG, so wrong wrong wrong"),
         _ => (),
     }
-    if mepc as usize == trap_handler_addr {
+    if mepc == trap_handler_addr {
         panic!("mecp shouldn't point to trap_entry addr")
     }
     match interrupt {
-        0 => exception_handler(cause),
+        0 => exception_handler(cause, hart),
         1 => interrupt_handler(cause, hart),
         _ => panic!(
             "Reach unreachable point, last mcause bit has an incorrect value that the kernel cannot handle"
         ),
     }
-    updated_pc
 }
 
-fn exception_handler(mcause: u32) {
+fn exception_handler(mcause: u32, hart: usize) {
     match mcause {
-        1 => panic!("Instruction access fault"),
-        _ => panic!("Mcause exception raised"),
+        1 => panic!("Instruction access fault: CPU#{}", hart),
+        _ => panic!("Mcause exception raised: {}", mcause),
     }
 }
 
