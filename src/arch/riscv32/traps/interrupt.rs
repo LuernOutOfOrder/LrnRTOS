@@ -72,7 +72,7 @@ pub fn mtvec_switch_to_direct_mode() {
 }
 
 unsafe extern "C" {
-    fn trap_entry();
+    pub fn trap_entry();
 }
 
 pub fn mtvec_set_trap_entry() {
