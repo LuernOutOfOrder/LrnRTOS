@@ -15,6 +15,7 @@ pub fn enable_interrupts() {
     mtvec_switch_to_direct_mode();
     mtvec_set_trap_entry();
     mscratch_set_trap_frame();
+
     // Enable interrupt handling in exception handler
     enable_mstatus_mie();
 }
