@@ -1,18 +1,14 @@
 use core::arch::global_asm;
 
-// Global asm for setting the sp, and jump to kernel entry point _start
-global_asm!(
-    "
-    .section .text.entry
-    .global kstart
-    .type kstart, @function
-    kstart:
-        la sp, stack_top    # load address of stack_top
-        j _start
-    ",
-);
+// Global asm for import start.S 
+global_asm!(include_str!("start.S"));
 
 #[unsafe(no_mangle)]
 unsafe extern "C" fn _start(_hartid: usize, dtb: usize) -> ! {
+    // static mut EARLY_WRITER: BootWriter = BootWriter {
+    //     base_addr: 0x1000_0000 as *mut u8,
+    // };
+    // #[allow(static_mut_refs)]
+    // KCONSOLE.set(unsafe { &mut EARLY_WRITER });
     crate::main(dtb);
 }
