@@ -12,10 +12,14 @@ global_asm!(include_str!("trap_entry.S"));
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct TrapFrame {
+    // Array to save all GP registers
     pub gp_regs: [u32; 32], // x0..x31  - integer registers
-    pub satp: u32,
-    pub trap_stack: *mut u8, // offset in struct 388
-    pub hartid: u32,
+    // Supervisor Address Translation and Protection Register (satp register only exist when supervisor mode is enabled)
+    pub satp: u32,           // Offset in struct 128
+    // Mutable ptr to a bytes buffer to save trap stack
+    pub trap_stack: *mut u8, // offset in struct 132
+    // Current hart id
+    pub hartid: u32,         // offset in struct 136
 }
 
 impl TrapFrame {
@@ -47,7 +51,7 @@ unsafe extern "C" fn trap_handler(
     mcause: u32,
     mepc: usize,
     hart: usize,
-    trap_frame: *mut TrapFrame,
+    _trap_frame: *mut TrapFrame,
 ) {
     // mcause strut -> u32 -> 31 bit = interrupt or exception.
     // if 31 bit is 1 -> interrupt, else 31 bit is 0 -> exception.
