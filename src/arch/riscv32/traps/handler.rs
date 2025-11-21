@@ -2,8 +2,6 @@ use core::{arch::global_asm, ptr::null_mut};
 
 use crate::{ktime::set_ktime_ms, print};
 
-use super::interrupt::trap_entry;
-
 // Include gnu_macro asm file in compilation
 global_asm!(include_str!("gnu_macro.S"));
 // Include trap_entry asm file for trap entry fn in compilation
@@ -62,14 +60,10 @@ unsafe extern "C" fn trap_handler(
     let interrupt = mcause >> 31;
     // Bit mask to keep all bits except the last bit
     let cause = mcause & 0x7FFFFFFF;
-    let trap_handler_addr = trap_entry as usize;
     match mepc {
         0 => panic!("mepc is 0, wrong wrong wrong"),
         0xFFFFFFFF => panic!("mepc is like BIG, so wrong wrong wrong"),
         _ => (),
-    }
-    if mepc == trap_handler_addr {
-        panic!("mecp shouldn't point to trap_entry addr")
     }
     match interrupt {
         0 => exception_handler(cause, hart),
