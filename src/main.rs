@@ -29,7 +29,7 @@ pub fn main(dtb_addr: usize) -> ! {
     loop {
         let time = ktime_seconds();
         print!("interrupt timer working: {:?}\n", time);
-        set_ktime_ms(10000000);
+        set_ktime_ms(20_000_000);
         unsafe {
             arch::traps::interrupt::enable_and_halt();
         }
