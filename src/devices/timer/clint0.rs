@@ -147,9 +147,9 @@ impl Clint0 {
         while mtime_high != mtime_high_check {
             let mtime_low_addr = self.region.addr + off;
             let mtime_high_addr = self.region.addr + off + 4;
-            mtime_high = unsafe { ptr::read(mtime_high_addr as *const u32) };
-            mtime_low = unsafe { ptr::read(mtime_low_addr as *const u32) };
-            mtime_high_check = unsafe { ptr::read(mtime_high_addr as *const u32) };
+            mtime_high = unsafe { ptr::read_volatile(mtime_high_addr as *const u32) };
+            mtime_low = unsafe { ptr::read_volatile(mtime_low_addr as *const u32) };
+            mtime_high_check = unsafe { ptr::read_volatile(mtime_high_addr as *const u32) };
         }
         // Bitwise to compute mtime from value. Cannot read u64 directly on riscv 32 bits.
         let output: u64 = ((mtime_high as u64) << 32) | (mtime_low as u64);
