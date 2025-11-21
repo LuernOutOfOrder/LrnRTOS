@@ -1,6 +1,6 @@
 use core::arch::global_asm;
 
-// Global asm for import start.S 
+// Global asm for import start.S
 global_asm!(include_str!("start.S"));
 
 #[unsafe(no_mangle)]
