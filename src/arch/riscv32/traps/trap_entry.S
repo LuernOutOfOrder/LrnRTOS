@@ -40,6 +40,14 @@ trap_entry:
   mv a3, t6
   # Call trap_handler rust function
   call trap_handler 
+  # Load all register back to previous state
+  csrr	t6, mscratch
+  # Restore all GP registers
+  .set	i, 1
+  .rept	31
+    load_gp %i
+    .set	i, i+1
+  .endr
   mret
 
 # Function used when the trap strack = 0, just infinite loop for debuging purpose 
