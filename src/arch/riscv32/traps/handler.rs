@@ -1,6 +1,6 @@
 use core::{arch::global_asm, ptr::null_mut};
 
-use crate::{ktime::set_ktime_ms, print};
+use crate::{ktime::set_ktime_ms, log, logs::LogLevel};
 
 // Include gnu_macro asm file in compilation
 global_asm!(include_str!("gnu_macro.S"));
@@ -86,6 +86,6 @@ fn interrupt_handler(mcause: u32, hart: usize) {
 }
 
 fn timer_interrupt() {
-    print!("Timer interrupt\n");
+    log!(LogLevel::Debug, "Timer interrupt");
     set_ktime_ms(10_000_000);
 }
