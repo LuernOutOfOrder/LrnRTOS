@@ -28,10 +28,10 @@ pub fn log(level: LogLevel, msg: &str) {
     if level >= LOG_LEVEL {
         match level {
             LogLevel::Info => print!("\x1b[32;1m[INFO]\x1b[0m {}\n", msg),
-            LogLevel::Debug => print!("\x1b[35m[DEBUG]\x1b[0m {}\n", msg),
-            LogLevel::Warn => print!("\x1b[33m[WARNING]\x1b[0m {}\n", msg),
+            LogLevel::Debug => print!("\x1b[35;1m[DEBUG]\x1b[0m {}\n", msg),
+            LogLevel::Warn => print!("\x1b[33;1m[WARNING]\x1b[0m {}\n", msg),
             LogLevel::Error => {
-                print!("\x1b[31m[ERROR]\x1b[0m {}\n", msg);
+                print!("\x1b[31;1m[ERROR]\x1b[0m {}\n", msg);
             }
         }
     }
