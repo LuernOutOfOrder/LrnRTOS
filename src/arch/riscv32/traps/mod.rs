@@ -8,15 +8,15 @@ pub mod interrupt;
 pub mod misc;
 
 pub fn enable_interrupts() {
+    // Enable direct mode in mtvec
+    mtvec_switch_to_direct_mode();
+    mtvec_set_trap_entry();
+    // Set trap frame in mscratch csr
     mscratch_set_trap_frame();
     // Enable timer interrupt
     enable_mie_mtie();
     // Enable softsare interrupt
     enable_mie_msie();
-    // Enable direct mode in mtvec
-    mtvec_switch_to_direct_mode();
-    mtvec_set_trap_entry();
-
     // Enable interrupt handling in exception handler
     enable_mstatus_mie();
 }

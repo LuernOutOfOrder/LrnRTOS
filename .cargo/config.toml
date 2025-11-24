@@ -15,11 +15,6 @@ rustflags = [
   "link-arg=-static",
   "-C",
   "relocation-model=static",
-  # Keep debug sym
-  # "-C",
-  # "debuginfo=2",
-  # "-C",
-  # "panic=abort",
   # Print memory usage 
   "-C",
   "link-arg=--print-memory-usage",

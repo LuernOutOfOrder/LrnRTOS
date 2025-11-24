@@ -2,8 +2,6 @@ use core::{arch::global_asm, ptr::null_mut};
 
 use crate::{ktime::set_ktime_ms, print};
 
-use super::interrupt::trap_entry;
-
 // Include gnu_macro asm file in compilation
 global_asm!(include_str!("gnu_macro.S"));
 // Include trap_entry asm file for trap entry fn in compilation
@@ -33,10 +31,8 @@ impl TrapFrame {
     }
 }
 
-#[unsafe(no_mangle)]
 static mut TRAP_STACK_BUFF: [u8; 1024] = [0u8; 1024];
 
-#[unsafe(no_mangle)]
 pub static mut KERNEL_TRAP_FRAME: TrapFrame = TrapFrame {
     gp_regs: [0; 32],
     satp: 0,
@@ -62,14 +58,9 @@ unsafe extern "C" fn trap_handler(
     let interrupt = mcause >> 31;
     // Bit mask to keep all bits except the last bit
     let cause = mcause & 0x7FFFFFFF;
-    let trap_handler_addr = trap_entry as *const () as usize;
-    match mepc {
-        0 => panic!("mepc is 0, wrong wrong wrong"),
-        0xFFFFFFFF => panic!("mepc is like BIG, so wrong wrong wrong"),
-        _ => (),
-    }
-    if mepc == trap_handler_addr {
-        panic!("mecp shouldn't point to trap_entry addr")
+    // Sanity check on mepc to panic if cannot mret
+    if mepc == 0 || mepc == 0xFFFFFFFF {
+        panic!("mepc value is wrong, cannot mret")
     }
     match interrupt {
         0 => exception_handler(cause, hart),

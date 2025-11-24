@@ -32,7 +32,7 @@ run:
 	$(RUNNER) -machine $(QEMU_MACHINE) -nographic -bios $(QEMU_BIOS) -kernel $(BUILD_DIR)
 
 debug:
-	$(DEBUGGER) $(DBUILD_DIR)
+	$(DEBUGGER) $(BUILD_DIR)
 
 objdump:
 	objdump -Sr $(DBUILD_DIR) > log.txt

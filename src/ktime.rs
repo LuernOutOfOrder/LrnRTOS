@@ -33,3 +33,13 @@ pub fn set_ktime_ms(delay: u64) {
         CLINT_DEVICE.set_mtimecmp(0, delta_mtime)
     };
 }
+
+pub fn set_ktime_tick_safety(tick: u64) {
+    #[allow(static_mut_refs)]
+    let mtime = unsafe { CLINT_DEVICE.read_mtime() };
+    let delta_mtime = mtime + tick;
+    #[allow(static_mut_refs)]
+    unsafe {
+        CLINT_DEVICE.set_mtimecmp(0, delta_mtime)
+    };
+}
