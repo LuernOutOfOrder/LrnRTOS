@@ -3,13 +3,18 @@
 
 // Arch specific module
 pub mod arch;
+
 // Devices module
 pub mod devices;
+
 // Device tree module
 mod dtb;
+
 // Logging modules
 pub mod log;
+pub mod logs;
 pub mod print;
+
 // Module for kernel time
 pub mod ktime;
 
@@ -17,19 +22,21 @@ use core::panic::PanicInfo;
 
 use arch::traps::enable_interrupts;
 use devices::{cpufreq::CpuFreq, init_devices};
-use ktime::{ktime_seconds, set_ktime_tick_safety};
+use ktime::set_ktime_tick_safety;
+
+// Actually used in macro
+#[allow(unused)]
+use logs::LogLevel;
 
 pub fn main(dtb_addr: usize) -> ! {
     dtb::parse_dtb_file(dtb_addr);
     init_devices();
-    print!("LrnRTOS booting...\n");
+    log!(LogLevel::Info, "LrnRTOS booting...");
     CpuFreq::init();
     set_ktime_tick_safety(20_000_000);
     enable_interrupts();
-    print!("Hello from LrnRTOS!\n");
+    log!(LogLevel::Info, "LrnRTOS started!");
     loop {
-        let time = ktime_seconds();
-        print!("interrupt timer working: {:?}\n", time);
         unsafe {
             arch::traps::interrupt::enable_and_halt();
         }
@@ -40,8 +47,5 @@ pub fn main(dtb_addr: usize) -> ! {
 fn panic_handler(panic: &PanicInfo) -> ! {
     print!("PANIC {:?}", panic);
     loop {
-        unsafe {
-            arch::traps::interrupt::enable_and_halt();
-        }
     }
 }
