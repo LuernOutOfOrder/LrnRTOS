@@ -46,6 +46,5 @@ pub fn main(dtb_addr: usize) -> ! {
 #[panic_handler]
 fn panic_handler(panic: &PanicInfo) -> ! {
     print!("PANIC {:?}", panic);
-    loop {
-    }
+    loop {}
 }
