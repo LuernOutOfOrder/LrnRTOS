@@ -1,4 +1,4 @@
-// Config file where all static is defined. 
+// Config file where all static is defined.
 // Use to modify the behaviour of the kernel. Like the scheduler time or logs level.
 
 use crate::logs::LogLevel;
