@@ -4,8 +4,8 @@
 // Arch specific module
 pub mod arch;
 
-// Devices module
-pub mod devices;
+// Drivers module
+pub mod drivers;
 
 // Device tree module
 mod fdt;
@@ -21,9 +21,8 @@ pub mod ktime;
 use core::panic::PanicInfo;
 
 use arch::traps::enable_interrupts;
-use devices::{cpufreq::CpuFreq, init_devices};
+use drivers::{cpufreq::CpuFreq, init_devices, timer::clint0::set_mtimecmp_ms};
 use fdt::parse_dtb_file;
-use ktime::set_ktime_tick_safety;
 
 // Actually used in macro
 #[allow(unused)]
@@ -34,7 +33,7 @@ pub fn main(dtb_addr: usize) -> ! {
     init_devices();
     log!(LogLevel::Info, "LrnRTOS booting...");
     CpuFreq::init();
-    set_ktime_tick_safety(20_000_000);
+    set_mtimecmp_ms(20_000_000);
     enable_interrupts();
     log!(LogLevel::Info, "LrnRTOS started!");
     loop {

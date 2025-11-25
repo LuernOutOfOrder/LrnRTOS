@@ -1,6 +1,6 @@
 use core::{arch::global_asm, ptr::null_mut};
 
-use crate::{ktime::set_ktime_ms, log, logs::LogLevel};
+use crate::{drivers::timer::clint0::set_mtimecmp_ms, log, logs::LogLevel};
 
 // Include gnu_macro asm file in compilation
 global_asm!(include_str!("gnu_macro.S"));
@@ -87,5 +87,5 @@ fn interrupt_handler(mcause: u32, hart: usize) {
 
 fn timer_interrupt() {
     log!(LogLevel::Debug, "Timer interrupt");
-    set_ktime_ms(10_000_000);
+    set_mtimecmp_ms(10_000_000);
 }

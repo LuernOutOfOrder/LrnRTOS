@@ -1,7 +1,7 @@
 use core::fmt::{self, Write};
 
 use crate::{
-    devices::{DriverRegion, serials::SERIAL_DEVICES},
+    drivers::{DriverRegion, serials::SERIAL_DEVICES},
     fdt::FdtNode,
 };
 
