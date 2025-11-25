@@ -1,6 +1,9 @@
 use core::{arch::global_asm, ptr::null_mut};
 
-use crate::{drivers::timer::clint0::set_mtimecmp_ms, log, logs::LogLevel};
+use crate::{
+    config::TICK_DURATION,
+    ktime::{set_ktime_ms, tick::increment_tick},
+};
 
 // Include gnu_macro asm file in compilation
 global_asm!(include_str!("gnu_macro.S"));
@@ -80,12 +83,14 @@ fn exception_handler(mcause: u32, hart: usize) {
 
 fn interrupt_handler(mcause: u32, hart: usize) {
     match mcause {
-        7 => timer_interrupt(),
+        7 => timer_interrupt(hart),
         _ => panic!("Unhandled async trap CPU#{} -> {}\n", hart, mcause),
     }
 }
 
-fn timer_interrupt() {
-    log!(LogLevel::Debug, "Timer interrupt");
-    set_mtimecmp_ms(10_000_000);
+fn timer_interrupt(hart: usize) {
+    if hart == 0 {
+        increment_tick();
+    }
+    set_ktime_ms(TICK_DURATION);
 }
