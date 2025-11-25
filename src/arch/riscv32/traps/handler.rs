@@ -2,11 +2,7 @@ use core::{arch::global_asm, ptr::null_mut};
 
 use crate::{
     config::TICK_DURATION,
-    drivers::timer::clint0::set_mtimecmp_delta,
     ktime::{set_ktime_ms, tick::increment_tick},
-    log,
-    logs::LogLevel,
-    print,
 };
 
 // Include gnu_macro asm file in compilation
