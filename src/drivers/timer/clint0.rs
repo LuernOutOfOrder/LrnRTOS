@@ -185,7 +185,7 @@ impl Clint0 {
     }
 }
 
-pub fn set_mtimecmp_ms(delay: u64) {
+pub fn set_mtimecmp_delta(delay: u64) {
     #[allow(static_mut_refs)]
     let mtime = unsafe { CLINT_DEVICE.read_mtime() };
     let delta_mtime = mtime + delay;

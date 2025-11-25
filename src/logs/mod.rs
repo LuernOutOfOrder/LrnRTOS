@@ -1,6 +1,7 @@
 // Actually used when logs feature is enabled
 #[allow(unused)]
 use crate::print;
+use crate::config::LOG_LEVEL;
 
 #[derive(PartialEq, PartialOrd)]
 /// Enum for logging level
@@ -15,8 +16,6 @@ pub enum LogLevel {
     Error,
 }
 
-// Static for log level, everything equal to this or below will be logged
-static LOG_LEVEL: LogLevel = LogLevel::Debug;
 
 /// Main log function, used for all logs, call to print! macro inside to avoid repeating codes. Use
 /// hexadecimal escape code to make prefix log in color
