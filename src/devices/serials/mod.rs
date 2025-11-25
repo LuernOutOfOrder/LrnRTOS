@@ -20,38 +20,6 @@ pub struct UartDevice {
     pub driver: &'static mut dyn UartDriver,
 }
 
-/// Global ptr for default kernel console
-/// Principally used for debugging when no uart is initialized
-pub struct KernelConsole {
-    pub console: UnsafeCell<Option<&'static mut dyn Write>>,
-}
-
-unsafe impl Sync for KernelConsole {}
-
-impl KernelConsole {
-    // New without default needed for const use
-    #[allow(clippy::new_without_default)]
-    pub const fn new() -> Self {
-        KernelConsole {
-            console: UnsafeCell::new(None),
-        }
-    }
-
-    pub fn set(&self, console: &'static mut dyn Write) {
-        unsafe { *self.console.get() = Some(console) }
-    }
-
-    pub fn get(&self) -> Option<&'static mut dyn Write> {
-        if let Some(console) = unsafe { &mut *self.console.get() } {
-            Some(console)
-        } else {
-            None
-        }
-    }
-}
-
-pub static KCONSOLE: KernelConsole = KernelConsole::new();
-
 /// Define and manage all serial devices.
 /// Devices: use an UnsafeCell with an array of Option<UartDevice> used to store and retrieve all
 /// device initialized.

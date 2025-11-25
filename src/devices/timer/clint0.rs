@@ -7,7 +7,7 @@ use crate::{
         DriverRegion,
         cpu_intc::riscv_cpu_intc::{CPU_INTC_POOL, CpuIntc},
     },
-    dtb::{
+    fdt::{
         FdtNode,
         helpers::{fdt_get_node, fdt_get_node_by_phandle, fdt_get_node_prop},
     },

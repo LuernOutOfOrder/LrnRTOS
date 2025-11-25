@@ -1,4 +1,4 @@
-use crate::dtb::helpers::{fdt_get_prop_by_node_name, fdt_get_prop_u32_value};
+use crate::fdt::helpers::{fdt_get_prop_by_node_name, fdt_get_prop_u32_value};
 
 pub struct CpuFreq {
     pub frequency: u32,

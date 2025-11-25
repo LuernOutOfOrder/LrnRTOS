@@ -8,10 +8,10 @@ pub mod arch;
 pub mod devices;
 
 // Device tree module
-mod dtb;
+mod fdt;
 
 // Logging modules
-pub mod log;
+pub mod kprint;
 pub mod logs;
 pub mod print;
 
@@ -22,6 +22,7 @@ use core::panic::PanicInfo;
 
 use arch::traps::enable_interrupts;
 use devices::{cpufreq::CpuFreq, init_devices};
+use fdt::parse_dtb_file;
 use ktime::set_ktime_tick_safety;
 
 // Actually used in macro
@@ -29,7 +30,7 @@ use ktime::set_ktime_tick_safety;
 use logs::LogLevel;
 
 pub fn main(dtb_addr: usize) -> ! {
-    dtb::parse_dtb_file(dtb_addr);
+    parse_dtb_file(dtb_addr);
     init_devices();
     log!(LogLevel::Info, "LrnRTOS booting...");
     CpuFreq::init();
