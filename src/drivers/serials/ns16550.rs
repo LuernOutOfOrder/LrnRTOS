@@ -1,8 +1,8 @@
 use core::fmt::{self, Write};
 
 use crate::{
-    devices::{DriverRegion, serials::SERIAL_DEVICES},
-    dtb::FdtNode,
+    drivers::{DriverRegion, serials::SERIAL_DEVICES},
+    fdt::FdtNode,
 };
 
 use super::{UartDevice, UartDriver};

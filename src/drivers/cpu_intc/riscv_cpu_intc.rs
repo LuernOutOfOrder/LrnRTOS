@@ -1,6 +1,6 @@
 use core::ptr;
 
-use crate::dtb::{
+use crate::fdt::{
     FdtNode,
     helpers::{fdt_get_node, fdt_get_node_prop},
 };

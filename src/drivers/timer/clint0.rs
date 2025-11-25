@@ -3,11 +3,11 @@ use core::ptr::{self, null_mut};
 use arrayvec::ArrayVec;
 
 use crate::{
-    devices::{
+    drivers::{
         DriverRegion,
         cpu_intc::riscv_cpu_intc::{CPU_INTC_POOL, CpuIntc},
     },
-    dtb::{
+    fdt::{
         FdtNode,
         helpers::{fdt_get_node, fdt_get_node_by_phandle, fdt_get_node_prop},
     },
@@ -183,4 +183,14 @@ impl Clint0 {
         let addr = self.region.addr + (hart_id * 4);
         unsafe { ptr::write_volatile(addr as *mut u32, 1) };
     }
+}
+
+pub fn set_mtimecmp_ms(delay: u64) {
+    #[allow(static_mut_refs)]
+    let mtime = unsafe { CLINT_DEVICE.read_mtime() };
+    let delta_mtime = mtime + delay;
+    #[allow(static_mut_refs)]
+    unsafe {
+        CLINT_DEVICE.set_mtimecmp(0, delta_mtime)
+    };
 }

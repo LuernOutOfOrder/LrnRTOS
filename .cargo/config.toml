@@ -9,7 +9,7 @@ target = "arch/riscv32imc-unknown-none-elf.json"
 rustflags = [
   # Give linker.ld file
   "-C",
-  "link-arg=linker.ld",
+  "link-arg=linkers/linker.ld",
   # Static compilation
   "-C",
   "link-arg=-static",

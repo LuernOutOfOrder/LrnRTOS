@@ -3,7 +3,7 @@ use core::ptr;
 use arrayvec::ArrayVec;
 use serials::ns16550::Ns16550;
 
-use crate::dtb::{
+use crate::fdt::{
     FdtNode,
     helpers::{fdt_get_all_nodes, fdt_get_node_prop, fdt_get_node_prop_in_hierarchy},
 };
