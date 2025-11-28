@@ -9,7 +9,7 @@ pub mod riscv_cpu_intc;
 pub trait CpuIntc {}
 
 pub struct CpuIntcSubSystem {
-    cpu_intc_pool: UnsafeCell<[Option<&'static mut dyn CpuIntc>; CPU_INTC_MAX_SIZE]>,
+    cpu_intc_pool: UnsafeCell<[Option<*mut dyn CpuIntc>; CPU_INTC_MAX_SIZE]>,
 }
 
 unsafe impl Sync for CpuIntcSubSystem {}
@@ -21,35 +21,46 @@ impl CpuIntcSubSystem {
         }
     }
 
-    pub fn add_cpu_intc(&self, cpu_intc: &'static mut dyn CpuIntc) {
+    /// Add a new driver for cpu interrupt-controller in the pool sub-system.
+    ///
+    /// Params:
+    /// &self: the sub-system structure.
+    /// cpu_intc: static structure of a driver implementing the CpuIntc trait.
+    /// index: used to represente the cpu interrupt-controller core id, also used as an index in
+    /// the sub-system pool. Because there's only one cpu interrupt-controller per cpu core, no
+    /// overlap possible.
+    pub fn add_cpu_intc(&self, cpu_intc: &'static mut dyn CpuIntc, index: usize) {
         let size = self.get_cpu_intc_array_size();
         if size == CPU_INTC_MAX_SIZE {
             panic!(
                 "Cpu interrupt-controller sub-system pool possible overflow. Consider increase size in config file."
             )
         }
-        let mut cpu_intc_subsystem_array_index: usize = 0;
-        for i in 0..CPU_INTC_MAX_SIZE {
-            let cpu_intc = unsafe { (&*self.cpu_intc_pool.get())[i].as_ref() };
-            if cpu_intc.is_none() {
-                cpu_intc_subsystem_array_index = i;
-                break;
-            }
-        }
         unsafe {
-            (&mut *self.cpu_intc_pool.get())[cpu_intc_subsystem_array_index] = Some(cpu_intc);
+            (&mut *self.cpu_intc_pool.get())[index] = Some(cpu_intc as *mut dyn CpuIntc);
         }
     }
 
     pub fn get_cpu_intc_array_size(&self) -> usize {
         let mut size: usize = 0;
         for i in 0..CPU_INTC_MAX_SIZE {
-            let cpu_intc = unsafe { (&*self.cpu_intc_pool.get())[i].as_ref() };
-            if cpu_intc.is_some() {
+            let present = unsafe { (&*self.cpu_intc_pool.get())[i].is_some() };
+            if present {
                 size += 1;
             }
         }
         size
+    }
+
+    pub fn get_cpu_intc(&self, index: usize) -> Option<*mut dyn CpuIntc> {
+        let cpu_intc_ptr = unsafe { (&*self.cpu_intc_pool.get())[index] };
+        if let Some(ptr) = cpu_intc_ptr {
+            // ptr was created from a &'static mut dyn CpuIntc in add_cpu_intc,
+            // converting the raw pointer back to a &'static mut is safe.
+            unsafe { Some(&mut *ptr) }
+        } else {
+            None
+        }
     }
 }
 
