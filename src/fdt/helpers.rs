@@ -166,3 +166,8 @@ pub fn fdt_get_prop_by_node_name(node_name: &str, prop_name: &str) -> Option<Pro
 pub fn fdt_get_prop_u32_value(prop: Property) -> u32 {
     u32::from_be(unsafe { ptr::read(prop.off_value as *const u32) })
 }
+
+pub fn fdt_get_node_by_compatible(compatible: &str) -> Option<&FdtNode> {
+    let nodes = fdt_get_all_nodes();
+    None
+}
