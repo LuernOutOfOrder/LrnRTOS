@@ -24,7 +24,7 @@ pub mod ktime;
 use core::panic::PanicInfo;
 
 use arch::traps::enable_interrupts;
-use drivers::{cpufreq::CpuFreq, init_devices};
+use drivers::{cpufreq::CpuFreq, init_devices_subsystems};
 use fdt::parse_dtb_file;
 
 use ktime::set_ktime_seconds;
@@ -33,7 +33,8 @@ use logs::LogLevel;
 #[unsafe(no_mangle)]
 pub fn main(dtb_addr: usize) -> ! {
     parse_dtb_file(dtb_addr);
-    init_devices();
+    kprint!("Initializing all sub-systems...\n");
+    init_devices_subsystems();
     log!(LogLevel::Info, "LrnRTOS booting...");
     CpuFreq::init();
     set_ktime_seconds(1);
