@@ -9,3 +9,9 @@ pub static TICK_DURATION: u64 = 4;
 
 // Static for log level, everything equal to this or below will be logged
 pub static LOG_LEVEL: LogLevel = LogLevel::Debug;
+
+// Define the uart address to use in kprint
+pub static KPRINT_ADDRESS: usize = 0x1000_0000;
+
+// ———————— Define the max size of devices sub-systems ————————
+pub static CPU_INTC_MAX_SIZE: usize = 2;

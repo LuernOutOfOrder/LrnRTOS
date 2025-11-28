@@ -1,6 +1,6 @@
 use core::{cell::UnsafeCell, fmt::Write};
 
-static KPRINT_ADDRESS: usize = 0x1000_0000;
+use crate::config::KPRINT_ADDRESS;
 
 /// Structure that is used for debugging purpose, used to print at a given address before devices
 /// are initialized
