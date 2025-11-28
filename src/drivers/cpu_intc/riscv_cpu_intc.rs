@@ -33,6 +33,6 @@ impl RiscVCpuIntc {
         let cpu_intc_pool: RiscVCpuIntc = RiscVCpuIntc { hart_id: reg_value };
         unsafe { RISCV_CPU_INTC_INSTANCE = cpu_intc_pool };
         // Update cpu-intc sub-system pool with new driver
-        CPU_INTC_SUBSYSTEM.add_cpu_intc(unsafe { &mut RISCV_CPU_INTC_INSTANCE });
+        CPU_INTC_SUBSYSTEM.add_cpu_intc(unsafe { &mut RISCV_CPU_INTC_INSTANCE }, reg_value as usize);
     }
 }
