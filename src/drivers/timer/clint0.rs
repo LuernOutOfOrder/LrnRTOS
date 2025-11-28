@@ -5,7 +5,7 @@ use arrayvec::ArrayVec;
 use crate::{
     drivers::{
         DriverRegion,
-        cpu_intc::riscv_cpu_intc::{CPU_INTC_POOL, CpuIntc},
+        cpu_intc::{CPU_INTC_SUBSYSTEM, riscv_cpu_intc::RiscVCpuIntc},
     },
     fdt::{
         FdtNode,
@@ -24,7 +24,7 @@ pub struct Clint0 {
 #[derive(Copy, Clone)]
 pub struct Interrupt {
     // Ptr to CpuIntc struct
-    cpu_intc: *mut CpuIntc,
+    cpu_intc: *mut RiscVCpuIntc,
     // Field to follow the len of the irq_ids array to avoid crushing valid data
     irq_len: usize,
     // Array of all irq
@@ -86,16 +86,18 @@ impl Clint0 {
             let cpu_reg_value = u32::from_be(unsafe { ptr::read(cpu_reg.off_value as *const u32) });
             let node_interrupt_cells_value =
                 u32::from_be(unsafe { ptr::read(node_interrupt_cells.off_value as *const u32) });
-            let mut cpu_intc_driver = unsafe { CPU_INTC_POOL[cpu_reg_value as usize] };
+            let cpu_intc_driver = CPU_INTC_SUBSYSTEM.get_cpu_intc(cpu_reg_value as usize);
+            let data_ptr = cpu_intc_driver.unwrap() as *mut ();
+            let riscv_cpu_intc_driver = data_ptr as *mut RiscVCpuIntc;
             let mut parsed_interrupt: Interrupt = Interrupt {
-                cpu_intc: &mut cpu_intc_driver,
+                cpu_intc: riscv_cpu_intc_driver,
                 irq_len: 0,
                 irq_ids: [0u32; 4],
             };
             // // Check if an interrupt for this phandle already exist
             #[allow(clippy::needless_range_loop)]
             for e in 0..intc_extended_array.len() {
-                if intc_extended_array[e].cpu_intc != &mut cpu_intc_driver {
+                if intc_extended_array[e].cpu_intc != riscv_cpu_intc_driver {
                     continue;
                 } else {
                     // Update current parsed interrupt with existing one
