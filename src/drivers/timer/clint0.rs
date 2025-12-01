@@ -13,7 +13,7 @@ use crate::{
     }, kprint,
 };
 
-use super::{Timer, TIMER_SUBSYSTEM};
+use super::{Timer, TimerType, TIMER_SUBSYSTEM};
 
 
 
@@ -23,6 +23,7 @@ pub struct Clint0 {
     region: DriverRegion,
     #[allow(unused)]
     interrupt_extended: [Interrupt; 4],
+    timer_type: TimerType,
 }
 
 impl Timer for Clint0 {
@@ -32,6 +33,10 @@ impl Timer for Clint0 {
 
     fn set_delay(&self, core: usize, delay: u64) {
         self.set_mtimecmp(core, delay);
+    }
+
+    fn timer_type(&self) -> TimerType {
+        self.timer_type
     }
 }
 
@@ -52,6 +57,7 @@ static mut CLINT0_INSTANCE: Clint0 = Clint0 {
         irq_len: 0,
         irq_ids: [0u32; 4],
     }; 4],
+    timer_type: TimerType::ArchitecturalTimer,
 };
 
 impl Clint0 {
@@ -107,7 +113,6 @@ impl Clint0 {
             let cpu_intc_driver = CPU_INTC_SUBSYSTEM.get_cpu_intc(cpu_reg_value as usize);
             let data_ptr = cpu_intc_driver.unwrap() as *mut ();
             let riscv_cpu_intc_driver = data_ptr as *mut RiscVCpuIntc;
-            kprint!("debug: \n");
             let mut parsed_interrupt: Interrupt = Interrupt {
                 cpu_intc: riscv_cpu_intc_driver,
                 irq_len: 0,
@@ -146,8 +151,12 @@ impl Clint0 {
         let clint0: Clint0 = Clint0 {
             region: device_addr,
             interrupt_extended: intc_extended_array,
+            timer_type: TimerType::ArchitecturalTimer,
         };
         unsafe { CLINT0_INSTANCE = clint0 };
+        // Allow static mut refs because it's only used on driver init, so no data race or UB
+        // possible
+        #[allow(static_mut_refs)]
         TIMER_SUBSYSTEM.add_timer(unsafe { &mut CLINT0_INSTANCE });
     }
 
