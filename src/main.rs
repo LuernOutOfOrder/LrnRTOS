@@ -35,12 +35,14 @@ pub fn main(dtb_addr: usize) -> ! {
     parse_dtb_file(dtb_addr);
     kprint!("Initializing all sub-systems...\n");
     init_devices_subsystems();
+    log!(LogLevel::Info, "Successfully initialized all sub-system.");
     log!(LogLevel::Info, "LrnRTOS booting...");
     CpuFreq::init();
     set_ktime_seconds(1);
     enable_interrupts();
     log!(LogLevel::Info, "LrnRTOS started!");
     loop {
+        log!(LogLevel::Debug, "Main loop working.");
         unsafe {
             arch::traps::interrupt::enable_and_halt();
         }
