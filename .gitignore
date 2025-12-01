@@ -6,3 +6,6 @@ log.txt
 
 # dtb files (when dumping from qemu)
 qemu_dtb.*
+
+# Misc
+.DS_Store
