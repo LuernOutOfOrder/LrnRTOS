@@ -4,14 +4,18 @@ use arrayvec::ArrayVec;
 
 use crate::{
     drivers::{
-        DriverRegion,
-        cpu_intc::{CPU_INTC_SUBSYSTEM, riscv_cpu_intc::RiscVCpuIntc},
+        cpu_intc::{riscv_cpu_intc::RiscVCpuIntc, CPU_INTC_SUBSYSTEM}, DriverRegion
     },
     fdt::{
-        FdtNode,
-        helpers::{fdt_get_node, fdt_get_node_by_phandle, fdt_get_node_prop},
-    },
+        helpers::{
+            fdt_get_node, fdt_get_node_by_compatible, fdt_get_node_by_phandle, fdt_get_node_prop,
+        }, FdtNode
+    }, kprint,
 };
+
+use super::{Timer, TIMER_SUBSYSTEM};
+
+
 
 /// Structure for sifive clint device driver
 #[derive(Copy, Clone)]
@@ -19,6 +23,16 @@ pub struct Clint0 {
     region: DriverRegion,
     #[allow(unused)]
     interrupt_extended: [Interrupt; 4],
+}
+
+impl Timer for Clint0 {
+    fn read_time(&self) -> u64 {
+        self.read_mtime()
+    }
+
+    fn set_delay(&self, core: usize, delay: u64) {
+        self.set_mtimecmp(core, delay);
+    }
 }
 
 #[derive(Copy, Clone)]
@@ -31,7 +45,7 @@ pub struct Interrupt {
     irq_ids: [u32; 4],
 }
 
-pub static mut CLINT_DEVICE: Clint0 = Clint0 {
+static mut CLINT0_INSTANCE: Clint0 = Clint0 {
     region: DriverRegion { addr: 0, size: 0 },
     interrupt_extended: [Interrupt {
         cpu_intc: null_mut(),
@@ -41,7 +55,11 @@ pub static mut CLINT_DEVICE: Clint0 = Clint0 {
 };
 
 impl Clint0 {
-    pub fn init(node: &FdtNode) {
+    pub fn init() {
+        let node: &FdtNode = match fdt_get_node_by_compatible("sifive,clint0") {
+            Some(n) => n,
+            None => return,
+        };
         let device_addr: DriverRegion = DriverRegion::new(node);
         let interrupt: Interrupt = Interrupt {
             cpu_intc: null_mut(),
@@ -89,6 +107,7 @@ impl Clint0 {
             let cpu_intc_driver = CPU_INTC_SUBSYSTEM.get_cpu_intc(cpu_reg_value as usize);
             let data_ptr = cpu_intc_driver.unwrap() as *mut ();
             let riscv_cpu_intc_driver = data_ptr as *mut RiscVCpuIntc;
+            kprint!("debug: \n");
             let mut parsed_interrupt: Interrupt = Interrupt {
                 cpu_intc: riscv_cpu_intc_driver,
                 irq_len: 0,
@@ -123,12 +142,13 @@ impl Clint0 {
             // Update array with current interrupt
             intc_extended_array[i] = parsed_interrupt;
         }
-        // Init Clint0 driver and update static for global access.
+        // Init Clint0 driver and update timer sub-system for global access.
         let clint0: Clint0 = Clint0 {
             region: device_addr,
             interrupt_extended: intc_extended_array,
         };
-        unsafe { CLINT_DEVICE = clint0 };
+        unsafe { CLINT0_INSTANCE = clint0 };
+        TIMER_SUBSYSTEM.add_timer(unsafe { &mut CLINT0_INSTANCE });
     }
 
     /// Read mtime from clint0 addr + offset from `https://chromitem-soc.readthedocs.io/en/latest/clint.html`
@@ -188,11 +208,11 @@ impl Clint0 {
 }
 
 pub fn set_mtimecmp_delta(delay: u64) {
-    #[allow(static_mut_refs)]
-    let mtime = unsafe { CLINT_DEVICE.read_mtime() };
-    let delta_mtime = mtime + delay;
-    #[allow(static_mut_refs)]
-    unsafe {
-        CLINT_DEVICE.set_mtimecmp(0, delta_mtime)
-    };
+    // #[allow(static_mut_refs)]
+    // let mtime = unsafe { CLINT_DEVICE.read_mtime() };
+    // let delta_mtime = mtime + delay;
+    // #[allow(static_mut_refs)]
+    // unsafe {
+    //     CLINT_DEVICE.set_mtimecmp(0, delta_mtime)
+    // };
 }

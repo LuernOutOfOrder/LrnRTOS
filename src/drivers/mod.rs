@@ -2,10 +2,14 @@ use core::ptr;
 
 use arrayvec::ArrayVec;
 use cpu_intc::init_cpu_intc_subsystem;
+use timer::init_timer_subsystem;
 
-use crate::fdt::{
-    FdtNode,
-    helpers::{fdt_get_node_prop, fdt_get_node_prop_in_hierarchy},
+use crate::{
+    fdt::{
+        FdtNode,
+        helpers::{fdt_get_node_prop, fdt_get_node_prop_in_hierarchy},
+    },
+    kprint,
 };
 
 /// Module for serials devices
@@ -79,5 +83,10 @@ impl DriverRegion {
 /// Init all device drivers, call all init function from device driver structure. The init function
 /// will automatically save the new initialized device drivers it's own sub system static array.
 pub fn init_devices_subsystems() {
+    kprint!("Cpu interrupt controller sub-system initializing...\n");
     init_cpu_intc_subsystem();
+    kprint!("Cpu interrupt-controller sub-system successfully initialized.\n");
+    kprint!("Timer sub-system initializing...\n");
+    init_timer_subsystem();
+    kprint!("Timer sub-system successfully initialized.\n");
 }
