@@ -7,6 +7,6 @@ edition = "2024"
 arrayvec = {version = "0.7.6", default-features = false}
 
 [features]
-default = ["logs"]
+default = ["logs", "kprint"]
 logs = []
 kprint = []
