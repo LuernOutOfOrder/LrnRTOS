@@ -18,8 +18,8 @@ unsafe extern "C" fn trap_handler(
     mtval: usize,
     mcause: usize,
     hart: usize,
-    mstatus: usize,
-    trap_frame: &mut TrapFrame,
+    _mstatus: usize,
+    _trap_frame: &mut TrapFrame,
 ) -> usize {
     let return_pc = mepc;
     // kprint_fmt!("trap frame: {:?}\n", trap_frame);
