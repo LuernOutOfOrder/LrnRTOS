@@ -1,6 +1,6 @@
 use core::arch::asm;
 
-use super::handler::KERNEL_TRAP_FRAME;
+use crate::arch::KERNEL_TRAP_FRAME;
 
 /// Enable interrupt
 ///
@@ -54,11 +54,21 @@ pub fn enable_mie_msie() {
     unsafe { asm!("csrrs zero, mie, {}", in(reg) MSIE) };
 }
 
+pub fn disable_mie_msie() {
+    const MSIE: u32 = 1 << 3;
+    unsafe { asm!("csrrc zero, mie, {}", in(reg) MSIE) };
+}
+
 // Machine Status
 
 pub fn enable_mstatus_mie() {
     const MIE: u32 = 1 << 3;
     unsafe { asm!("csrrs zero, mstatus, {}", in(reg) MIE) };
+}
+
+pub fn disable_mstatus_mie() {
+    const MIE: u32 = 1 << 3;
+    unsafe { asm!("csrrc zero, mstatus, {}", in(reg) MIE) };
 }
 
 // Machine Trap-Vector
