@@ -16,4 +16,4 @@ pub static KPRINT_ADDRESS: usize = 0x1000_0000;
 // ———————— Define the max size of devices sub-systems ————————
 pub static CPU_INTC_MAX_SIZE: usize = 2;
 pub static TIMER_MAX_SIZE: usize = 2;
-pub static SERIAL_MAX_SIZE: usize = 2;
+pub static SERIAL_MAX_SIZE: usize = 4;
