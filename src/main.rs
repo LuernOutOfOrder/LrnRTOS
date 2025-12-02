@@ -38,11 +38,14 @@ pub fn main(dtb_addr: usize) -> ! {
     log!(LogLevel::Info, "Successfully initialized all sub-system.");
     log!(LogLevel::Info, "LrnRTOS booting...");
     CpuFreq::init();
+    log!(LogLevel::Debug, "Initialing trap frame...");
+    arch::init_trap_frame();
+    log!(LogLevel::Debug, "Successfully initialized trap frame.");
     set_ktime_seconds(1);
     enable_interrupts();
     log!(LogLevel::Info, "LrnRTOS started!");
     loop {
-        log!(LogLevel::Debug, "Main loop working.");
+        log!(LogLevel::Debug, "Main loop uptime.");
         unsafe {
             arch::traps::interrupt::enable_and_halt();
         }
@@ -51,6 +54,6 @@ pub fn main(dtb_addr: usize) -> ! {
 
 #[panic_handler]
 fn panic_handler(panic: &PanicInfo) -> ! {
-    print!("PANIC {:?}", panic);
+    kprint_fmt!("PANIC {:?}", panic);
     loop {}
 }
