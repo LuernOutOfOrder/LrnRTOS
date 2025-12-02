@@ -1,6 +1,6 @@
 use core::{cell::UnsafeCell, fmt::Write};
 
-static KPRINT_ADDRESS: usize = 0x1000_0000;
+use crate::config::KPRINT_ADDRESS;
 
 /// Structure that is used for debugging purpose, used to print at a given address before devices
 /// are initialized
@@ -49,9 +49,17 @@ impl KernelConsole {
 /// Macro for easier use of write_fmt function and to use format_args macro
 #[cfg(feature = "kprint")]
 #[macro_export]
-macro_rules! kprint {
+macro_rules! kprint_fmt {
     ($($arg:tt)*) => {
         $crate::kprint::write_fmt(format_args!($($arg)*))
+    };
+}
+
+#[cfg(feature = "kprint")]
+#[macro_export]
+macro_rules! kprint {
+    ($msg:expr) => {
+        $crate::kprint::write_str($msg)
     };
 }
 
@@ -66,6 +74,14 @@ pub fn write_fmt(args: core::fmt::Arguments) {
     let kconsole = KCONSOLE.get();
     if let Some(w) = kconsole {
         let _ = w.write_fmt(args);
+    }
+}
+
+/// Get kconsole and use write_fmt of Write trait
+pub fn write_str(args: &str) {
+    let kconsole = KCONSOLE.get();
+    if let Some(w) = kconsole {
+        let _ = w.write_str(args);
     }
 }
 

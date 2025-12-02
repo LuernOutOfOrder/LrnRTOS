@@ -166,3 +166,36 @@ pub fn fdt_get_prop_by_node_name(node_name: &str, prop_name: &str) -> Option<Pro
 pub fn fdt_get_prop_u32_value(prop: Property) -> u32 {
     u32::from_be(unsafe { ptr::read(prop.off_value as *const u32) })
 }
+
+pub fn fdt_get_prop_value(prop: Property) -> ArrayVec<u8, 40> {
+    let mut prop_value: ArrayVec<u8, 40> = ArrayVec::new();
+    let mut off = prop.off_value;
+    for _ in 0..prop.value_len {
+        let char: u8 = u8::from_be(unsafe { ptr::read(off as *const u8) });
+        if char == 0u8 {
+            break;
+        } else {
+            prop_value.push(char);
+            off += 1;
+        }
+    }
+    prop_value
+}
+
+/// Find node by compatible property
+pub fn fdt_get_node_by_compatible(compatible: &str) -> Option<&FdtNode> {
+    let nodes = fdt_get_all_nodes();
+    for node in nodes {
+        let compatible_prop = match fdt_get_node_prop(node, "compatible") {
+            Some(c) => c,
+            None => continue,
+        };
+        let compatible_value = fdt_get_prop_value(compatible_prop);
+        let compatible_str: &str =
+            str::from_utf8(&compatible_value).expect("Failed to cast ArrayVec as &str");
+        if compatible == compatible_str {
+            return Some(node);
+        }
+    }
+    None
+}

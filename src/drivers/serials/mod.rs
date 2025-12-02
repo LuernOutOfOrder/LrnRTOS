@@ -1,5 +1,9 @@
 use core::{cell::UnsafeCell, fmt::Write};
 
+use ns16550::Ns16550;
+
+use crate::config::SERIAL_MAX_SIZE;
+
 pub mod ns16550;
 
 /// Generic trait to implement in each uart driver
@@ -25,7 +29,7 @@ pub struct UartDevice {
 /// device initialized.
 pub struct SerialManager {
     // UnsafeCell array containing all serial devices
-    pub devices: UnsafeCell<[Option<UartDevice>; 4]>,
+    pub devices: UnsafeCell<[Option<UartDevice>; SERIAL_MAX_SIZE]>,
 }
 
 unsafe impl Sync for SerialManager {}
@@ -35,7 +39,7 @@ impl SerialManager {
     #[allow(clippy::new_without_default)]
     pub const fn new() -> Self {
         SerialManager {
-            devices: UnsafeCell::new([const { None }; 4]),
+            devices: UnsafeCell::new([const { None }; SERIAL_MAX_SIZE]),
         }
     }
 
@@ -77,6 +81,25 @@ impl SerialManager {
             })
             .map(|d| d.as_mut().unwrap())
     }
+
+    pub fn get_serial_array_size(&self) -> usize {
+        let mut size: usize = 0;
+        for i in 0..SERIAL_MAX_SIZE {
+            let present = unsafe { (&*self.devices.get())[i].is_some() };
+            if present {
+                size += 1;
+            }
+        }
+        size
+    }
 }
 
 pub static SERIAL_DEVICES: SerialManager = SerialManager::new();
+
+pub fn init_serial_subsystem() {
+    Ns16550::init();
+    let size = SERIAL_DEVICES.get_serial_array_size();
+    if size == 0 {
+        panic!("Error while initializing serial sub-system, pool is empty.");
+    }
+}

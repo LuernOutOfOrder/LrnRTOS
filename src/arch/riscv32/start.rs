@@ -7,6 +7,6 @@ global_asm!(include_str!("start.S"));
 
 #[unsafe(no_mangle)]
 unsafe extern "C" fn _start(_hartid: usize, dtb: usize) -> ! {
-    kprint!("Really really early kprint\n");
+    kprint!("Enter kernel entry point\n");
     crate::main(dtb);
 }

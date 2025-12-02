@@ -1,6 +1,7 @@
-use core::{arch::global_asm, ptr::null_mut};
+use core::arch::global_asm;
 
 use crate::{
+    arch::TrapFrame,
     config::TICK_DURATION,
     ktime::{set_ktime_ms, tick::increment_tick},
 };
@@ -10,48 +11,18 @@ global_asm!(include_str!("gnu_macro.S"));
 // Include trap_entry asm file for trap entry fn in compilation
 global_asm!(include_str!("trap_entry.S"));
 
-#[repr(C)]
-#[derive(Clone, Copy)]
-pub struct TrapFrame {
-    // Array to save all GP registers
-    pub gp_regs: [u32; 32], // x0..x31  - integer registers
-    // Supervisor Address Translation and Protection Register (satp register only exist when supervisor mode is enabled)
-    pub satp: u32, // Offset in struct 128
-    // Mutable ptr to a bytes buffer to save trap stack
-    pub trap_stack: *mut u8, // offset in struct 132
-    // Current hart id
-    pub hartid: u32, // offset in struct 136
-}
-
-impl TrapFrame {
-    pub const fn zero() -> Self {
-        TrapFrame {
-            gp_regs: [0; 32],
-            satp: 0,
-            trap_stack: null_mut(),
-            hartid: 0,
-        }
-    }
-}
-
-static mut TRAP_STACK_BUFF: [u8; 1024] = [0u8; 1024];
-
-pub static mut KERNEL_TRAP_FRAME: TrapFrame = TrapFrame {
-    gp_regs: [0; 32],
-    satp: 0,
-    #[allow(static_mut_refs)]
-    trap_stack: unsafe { TRAP_STACK_BUFF.as_mut_ptr() },
-    hartid: 0,
-};
-
 /// Trap routines
 #[unsafe(no_mangle)]
 unsafe extern "C" fn trap_handler(
-    mcause: u32,
     mepc: usize,
+    mtval: usize,
+    mcause: usize,
     hart: usize,
-    _trap_frame: *mut TrapFrame,
-) {
+    _mstatus: usize,
+    _trap_frame: &mut TrapFrame,
+) -> usize {
+    let return_pc = mepc;
+    // kprint_fmt!("trap frame: {:?}\n", trap_frame);
     // mcause strut -> u32 -> 31 bit = interrupt or exception.
     // if 31 bit is 1 -> interrupt, else 31 bit is 0 -> exception.
     // The remaining 30..0 bits is the interrupt or exception cause.
@@ -66,22 +37,28 @@ unsafe extern "C" fn trap_handler(
         panic!("mepc value is wrong, cannot mret")
     }
     match interrupt {
-        0 => exception_handler(cause, hart),
+        0 => exception_handler(cause, hart, mtval),
         1 => interrupt_handler(cause, hart),
         _ => panic!(
             "Reach unreachable point, last mcause bit has an incorrect value that the kernel cannot handle"
         ),
     }
+    return_pc
 }
 
-fn exception_handler(mcause: u32, hart: usize) {
+fn exception_handler(mcause: usize, hart: usize, mtval: usize) {
     match mcause {
         1 => panic!("Instruction access fault: CPU#{}", hart),
+        2 => panic!("Illegal instruction: CPU#{}", hart),
+        5 => panic!(
+            "Load access fault: CPU#{}\t instruction fault address: {:#x}",
+            hart, mtval
+        ),
         _ => panic!("Mcause exception raised: {}", mcause),
     }
 }
 
-fn interrupt_handler(mcause: u32, hart: usize) {
+fn interrupt_handler(mcause: usize, hart: usize) {
     match mcause {
         7 => timer_interrupt(hart),
         _ => panic!("Unhandled async trap CPU#{} -> {}\n", hart, mcause),

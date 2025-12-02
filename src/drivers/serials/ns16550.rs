@@ -2,7 +2,7 @@ use core::fmt::{self, Write};
 
 use crate::{
     drivers::{DriverRegion, serials::SERIAL_DEVICES},
-    fdt::FdtNode,
+    fdt::{FdtNode, helpers::fdt_get_node_by_compatible},
 };
 
 use super::{UartDevice, UartDriver};
@@ -43,7 +43,11 @@ static mut NS16550_INSTANCE: Ns16550 = Ns16550 {
 /// Implementation of the Ns16550
 impl Ns16550 {
     /// Init a new Ns16550 from the given fdt node
-    pub fn init(node: &FdtNode) {
+    pub fn init() {
+        let node: &FdtNode = match fdt_get_node_by_compatible("ns16550a") {
+            Some(n) => n,
+            None => return,
+        };
         let device_addr: DriverRegion = DriverRegion::new(node);
         let ns16550: Ns16550 = Ns16550 {
             region: device_addr,

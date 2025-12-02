@@ -27,7 +27,6 @@ ifeq ($(DEBUGGER_EXISTS),)
 $(error "Debugger $(DEBUGGER) not found in PATH")
 endif
 
-
 run:
 	$(RUNNER) -machine $(QEMU_MACHINE) -nographic -bios $(QEMU_BIOS) -kernel $(BUILD_DIR)
 
