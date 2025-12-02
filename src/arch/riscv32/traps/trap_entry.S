@@ -33,9 +33,11 @@ trap_entry:
   # Move trap stack ptr into sp
   mv      sp, t1
   # Read CSR into function argument registers
-  csrr a0, mcause
-  csrr a1, mepc
-  csrr a2, mhartid
+  csrr	a0, mepc
+  csrr	a1, mtval
+  csrr	a2, mcause
+  csrr	a3, mhartid
+  csrr	a4, mstatus
   # Move trap frame structure into a3 function argument register
   mv a3, t6
   # Call trap_handler rust function
