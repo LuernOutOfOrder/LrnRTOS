@@ -167,6 +167,7 @@ pub fn fdt_get_prop_u32_value(prop: Property) -> u32 {
     u32::from_be(unsafe { ptr::read(prop.off_value as *const u32) })
 }
 
+/// Get the property value from a given prop. Use an ArrayVec for easier value handling
 pub fn fdt_get_prop_value(prop: Property) -> ArrayVec<u8, 40> {
     let mut prop_value: ArrayVec<u8, 40> = ArrayVec::new();
     let mut off = prop.off_value;

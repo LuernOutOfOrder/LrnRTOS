@@ -17,3 +17,7 @@ pub static KPRINT_ADDRESS: usize = 0x1000_0000;
 pub static CPU_INTC_MAX_SIZE: usize = 2;
 pub static TIMER_MAX_SIZE: usize = 2;
 pub static SERIAL_MAX_SIZE: usize = 4;
+
+// ———————— Define the max size of fdt pool ————————
+pub static FDT_MAX_STACK: usize = 64;
+pub static FDT_MAX_PROPS: usize = 128;
