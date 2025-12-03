@@ -19,7 +19,7 @@ global_asm!(include_str!("trap_entry.S"));
 unsafe extern "C" fn trap_handler(
     // Program counter csr, used when mret, it reload the program at the address contains in mepc
     mepc: usize,
-    // Optionnal csr, used on specific exceptions or interrupts, for exemple, on load access fault,
+    // Optionnal csr, used on specific exceptions or interrupts, for example, on load access fault,
     // mtval will contains the faulty address, on instruction fault exception it will contains the
     // illegal instruction. But on other exception it can be 0.
     mtval: usize,
