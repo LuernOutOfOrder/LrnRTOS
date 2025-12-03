@@ -23,15 +23,17 @@ pub mod ktime;
 
 use core::panic::PanicInfo;
 
+// Use from modules
 use arch::traps::{enable_interrupts, trap_frame::init_trap_frame};
+use config::TICK_SAFETY_DURATION;
 use drivers::{cpufreq::CpuFreq, init_devices_subsystems};
 use fdt::parse_dtb_file;
-
 use ktime::set_ktime_seconds;
 use logs::LogLevel;
 
 #[unsafe(no_mangle)]
-pub fn main(dtb_addr: usize) -> ! {
+pub fn main(core: usize, dtb_addr: usize) -> ! {
+    kprint_fmt!("Start kernel booting on CPU Core: {}.\n", core);
     parse_dtb_file(dtb_addr);
     kprint!("Initializing all sub-systems...\n");
     init_devices_subsystems();
@@ -41,7 +43,7 @@ pub fn main(dtb_addr: usize) -> ! {
     log!(LogLevel::Debug, "Initialing trap frame...");
     init_trap_frame();
     log!(LogLevel::Debug, "Successfully initialized trap frame.");
-    set_ktime_seconds(1);
+    set_ktime_seconds(TICK_SAFETY_DURATION);
     enable_interrupts();
     log!(LogLevel::Info, "LrnRTOS started!");
     loop {

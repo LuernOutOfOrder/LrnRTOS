@@ -7,6 +7,11 @@ use crate::logs::LogLevel;
 // 1 = 1ms
 pub static TICK_DURATION: u64 = 4;
 
+// Define the safety tick in kernel boot, used to avoid trigger an interrupt when the kernel is
+// booting
+// 1 = 1 seconds
+pub static TICK_SAFETY_DURATION: u64 = 1;
+
 // Static for log level, everything equal to this or below will be logged
 pub static LOG_LEVEL: LogLevel = LogLevel::Debug;
 
