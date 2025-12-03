@@ -3,6 +3,8 @@ use crate::drivers::timer::TIMER_SUBSYSTEM;
 pub mod tick;
 pub mod uptime;
 
+// ———— Read ktime in specific time units ————
+
 pub fn ktime_seconds() -> u64 {
     #[allow(static_mut_refs)]
     let cpu_freq = unsafe { CPUFREQ.frequency };
@@ -26,6 +28,9 @@ pub fn ktime_ns() -> u64 {
     let mtime = TIMER_SUBSYSTEM.get_primary_timer().read_time();
     (mtime * 1_000_000) / cpu_freq as u64
 }
+
+// Set ktime in specific time units, handle conversion from params duration to correct time unit
+// and use set_mtime_cmp to write to timer sub-system
 
 pub fn set_ktime_ms(duration_ms: u64) {
     #[allow(static_mut_refs)]

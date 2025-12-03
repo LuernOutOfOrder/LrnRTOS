@@ -2,12 +2,10 @@ use core::ptr;
 
 use arrayvec::ArrayVec;
 
+use crate::config::{FDT_MAX_PROPS, FDT_MAX_STACK};
+
 // Helpers module for node's props recovery
 pub mod helpers;
-
-// Static to define fdt max pool size for nodes and properties storage
-static FDT_MAX_STACK: usize = 64;
-static FDT_MAX_PROPS: usize = 128;
 
 /// Structure for the fdt header, used for parsing fdt. Based on the given structure in official
 /// device tree specifications. See: https://devicetree-specification.readthedocs.io/en/stable/

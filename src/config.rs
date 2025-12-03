@@ -7,6 +7,11 @@ use crate::logs::LogLevel;
 // 1 = 1ms
 pub static TICK_DURATION: u64 = 4;
 
+// Define the safety tick in kernel boot, used to avoid trigger an interrupt when the kernel is
+// booting
+// 1 = 1 seconds
+pub static TICK_SAFETY_DURATION: u64 = 1;
+
 // Static for log level, everything equal to this or below will be logged
 pub static LOG_LEVEL: LogLevel = LogLevel::Debug;
 
@@ -17,3 +22,7 @@ pub static KPRINT_ADDRESS: usize = 0x1000_0000;
 pub static CPU_INTC_MAX_SIZE: usize = 2;
 pub static TIMER_MAX_SIZE: usize = 2;
 pub static SERIAL_MAX_SIZE: usize = 4;
+
+// ———————— Define the max size of fdt pool ————————
+pub static FDT_MAX_STACK: usize = 64;
+pub static FDT_MAX_PROPS: usize = 128;

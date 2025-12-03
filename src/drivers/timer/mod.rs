@@ -22,7 +22,9 @@ pub enum TimerType {
 }
 
 pub struct TimerSubSystem {
+    // Timer for scheduling and global work on the kernel
     pub primary_timer: UnsafeCell<Option<*mut dyn Timer>>,
+    // Timer pool where all timer initialized is store, waiting to be assigned at another field
     pub timer_pool: UnsafeCell<[Option<*mut dyn Timer>; TIMER_MAX_SIZE]>,
 }
 

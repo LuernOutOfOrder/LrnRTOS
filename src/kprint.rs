@@ -29,9 +29,7 @@ pub struct KernelConsole {
 unsafe impl Sync for KernelConsole {}
 
 impl KernelConsole {
-    // New without default needed for const use
-    #[allow(clippy::new_without_default)]
-    pub const fn new(console: &'static mut dyn Write) -> Self {
+    pub const fn init(console: &'static mut dyn Write) -> Self {
         KernelConsole {
             console: UnsafeCell::new(Some(console)),
         }
@@ -90,4 +88,4 @@ static mut EARLY_WRITER: BootWriter = BootWriter {
 };
 
 #[allow(static_mut_refs)]
-pub static KCONSOLE: KernelConsole = KernelConsole::new(unsafe { &mut EARLY_WRITER });
+pub static KCONSOLE: KernelConsole = KernelConsole::init(unsafe { &mut EARLY_WRITER });
