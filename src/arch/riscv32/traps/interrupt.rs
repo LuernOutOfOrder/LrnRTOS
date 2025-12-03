@@ -2,7 +2,6 @@ use core::arch::asm;
 
 use super::trap_frame::KERNEL_TRAP_FRAME;
 
-
 /// Enable supervisor interrupt
 ///
 /// # Safety

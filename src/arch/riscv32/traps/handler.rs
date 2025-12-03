@@ -28,7 +28,7 @@ unsafe extern "C" fn trap_handler(
     mcause: usize,
     // Hart id, the core cpu where the trap happened.
     hart: usize,
-    // Global register for machine state, used to manage exception, machine mode, etc. 
+    // Global register for machine state, used to manage exception, machine mode, etc.
     _mstatus: usize,
     _trap_frame: &mut TrapFrame,
 ) -> usize {

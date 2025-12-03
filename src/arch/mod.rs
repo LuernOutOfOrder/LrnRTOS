@@ -1,6 +1,6 @@
 // Architecture module, import all architecture specific module, like arm or riscv and only use the
 // module for actual target. Allow to import or use specific function without importing it from a
-// specific arch. 
+// specific arch.
 // Exemple:
 //
 // arch::interrupt::halt();
