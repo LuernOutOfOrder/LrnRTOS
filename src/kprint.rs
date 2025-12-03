@@ -1,15 +1,16 @@
-use core::{cell::UnsafeCell, fmt::Write};
+use core::fmt::Write;
 
 use crate::config::KPRINT_ADDRESS;
 
-/// Structure that is used for debugging purpose, used to print at a given address before devices
-/// are initialized
-pub struct BootWriter {
+/// Global ptr for default kernel console
+/// Principally used for debugging when no uart is initialized
+/// Use global static KPRINT_ADDRESS in config file to make the KernelConsole work
+pub struct KernelConsole {
     pub base_addr: *mut u8,
 }
 
 /// Implement fmt::Write for BootWriter to allow format
-impl core::fmt::Write for BootWriter {
+impl core::fmt::Write for KernelConsole {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
         for b in s.bytes() {
             unsafe {
@@ -20,26 +21,12 @@ impl core::fmt::Write for BootWriter {
     }
 }
 
-/// Global ptr for default kernel console
-/// Principally used for debugging when no uart is initialized
-pub struct KernelConsole {
-    pub console: UnsafeCell<Option<&'static mut dyn Write>>,
-}
-
 unsafe impl Sync for KernelConsole {}
 
 impl KernelConsole {
-    pub const fn init(console: &'static mut dyn Write) -> Self {
+    pub const fn init() -> Self {
         KernelConsole {
-            console: UnsafeCell::new(Some(console)),
-        }
-    }
-
-    pub fn get(&self) -> Option<&'static mut dyn Write> {
-        if let Some(console) = unsafe { &mut *self.console.get() } {
-            Some(console)
-        } else {
-            None
+            base_addr: KPRINT_ADDRESS as *mut u8,
         }
     }
 }
@@ -69,23 +56,17 @@ macro_rules! kprint {
 
 /// Get kconsole and use write_fmt of Write trait
 pub fn write_fmt(args: core::fmt::Arguments) {
-    let kconsole = KCONSOLE.get();
-    if let Some(w) = kconsole {
-        let _ = w.write_fmt(args);
-    }
+    #[allow(static_mut_refs)]
+    let kconsole = unsafe { &mut KCONSOLE };
+    let _ = kconsole.write_fmt(args);
 }
 
 /// Get kconsole and use write_fmt of Write trait
 pub fn write_str(args: &str) {
-    let kconsole = KCONSOLE.get();
-    if let Some(w) = kconsole {
-        let _ = w.write_str(args);
-    }
+    #[allow(static_mut_refs)]
+    let kconsole = unsafe { &mut KCONSOLE };
+    let _ = kconsole.write_str(args);
 }
 
-static mut EARLY_WRITER: BootWriter = BootWriter {
-    base_addr: KPRINT_ADDRESS as *mut u8,
-};
-
 #[allow(static_mut_refs)]
-pub static KCONSOLE: KernelConsole = KernelConsole::init(unsafe { &mut EARLY_WRITER });
+pub static mut KCONSOLE: KernelConsole = KernelConsole::init();
