@@ -6,8 +6,10 @@ use crate::config::CPU_INTC_MAX_SIZE;
 
 pub mod riscv_cpu_intc;
 
+// Trait to implement in all cpu interrupt-controller driver
 pub trait CpuIntc {}
 
+// Structure handling the cpu interrupt-controller initialized drivers
 pub struct CpuIntcSubSystem {
     cpu_intc_pool: UnsafeCell<[Option<*mut dyn CpuIntc>; CPU_INTC_MAX_SIZE]>,
 }

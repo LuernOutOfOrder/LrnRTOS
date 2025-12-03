@@ -28,16 +28,13 @@ pub struct UartDevice {
 /// Devices: use an UnsafeCell with an array of Option<UartDevice> used to store and retrieve all
 /// device initialized.
 pub struct SerialManager {
-    // UnsafeCell array containing all serial devices
     pub devices: UnsafeCell<[Option<UartDevice>; SERIAL_MAX_SIZE]>,
 }
 
 unsafe impl Sync for SerialManager {}
 
 impl SerialManager {
-    // New without default needed for const use
-    #[allow(clippy::new_without_default)]
-    pub const fn new() -> Self {
+    pub const fn init() -> Self {
         SerialManager {
             devices: UnsafeCell::new([const { None }; SERIAL_MAX_SIZE]),
         }
@@ -94,7 +91,7 @@ impl SerialManager {
     }
 }
 
-pub static SERIAL_DEVICES: SerialManager = SerialManager::new();
+pub static SERIAL_DEVICES: SerialManager = SerialManager::init();
 
 pub fn init_serial_subsystem() {
     Ns16550::init();
