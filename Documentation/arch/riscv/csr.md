@@ -35,6 +35,25 @@ Important bit:
 - MODE (1:0) (WARL (0x0, 0x1)): Change the trap handling mode, 0 = direct mode, 1 = vectored mode.
 - trap entry address (31:1): Write the address of the trap entry function, written in all bits excepted the first bit.
 
+### mscratch - Machine Scratch
+
+Description: Used to save ptr to a trap frame structure, the structure is used when entering trap entry to save all global registers and use a dedicated stack for trap handling instead of the kernel stack.
+Important bit:
+
+- Scratch value (31:0) (RW): the mscratch csr is just a XLEN bits register used to store the address of the trap frame structure.
+
+## CSR Instructions
+
+RiscV CSR cannot be accessed with simple instruction like mv or else, it can only be accessed by using csr instructions. Here's a list of csr instructions used in the kernel, with a description, how they work, how we use them, and why.
+
+- csrrs - Atomic Read and Set Bits in CSR: reads CSR value, zero-extends the value to XLEN bits, and write it to integer register rd. The value in rs1 is treated like a bit mask, it specified bit position to be set in the CSR. Any bit that is high in rs1 will cause the corresponding bit to be set in the CSR, if that CSR bit is writable. Other bits in the CSR are not explicitly written.
+- csrrc - Atomic Read and Clear Bits in CSR: clears CSR value, zero-extends the value to XLEN bits, and write it to integer register rd. The value in rs1 is treated like a bit mask, it specified bit position to be cleared in the CSR. Any bit that is high in rs1 will cause the corresponding bit to be cleared in the CSR, if that CSR bit is writable. Other bits in the CSR are not explicitly written.
+
+For csrrs and csrrc, if rs1 = x0, the instruction will not write at all in the CSR.
+
+- csrw - Write in CSR: Write rs1 into CSR. Used for exemple to write the trap frame ptr to mscratch.
+- csrr - Read from CSR: Read CSR into rd.
+
 
 
 ## References
