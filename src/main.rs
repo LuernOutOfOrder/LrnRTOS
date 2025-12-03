@@ -23,7 +23,7 @@ pub mod ktime;
 
 use core::panic::PanicInfo;
 
-use arch::traps::enable_interrupts;
+use arch::traps::{enable_interrupts, trap_frame::init_trap_frame};
 use drivers::{cpufreq::CpuFreq, init_devices_subsystems};
 use fdt::parse_dtb_file;
 
@@ -39,7 +39,7 @@ pub fn main(dtb_addr: usize) -> ! {
     log!(LogLevel::Info, "LrnRTOS booting...");
     CpuFreq::init();
     log!(LogLevel::Debug, "Initialing trap frame...");
-    arch::init_trap_frame();
+    init_trap_frame();
     log!(LogLevel::Debug, "Successfully initialized trap frame.");
     set_ktime_seconds(1);
     enable_interrupts();

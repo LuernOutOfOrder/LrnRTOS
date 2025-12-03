@@ -1,10 +1,11 @@
 use core::arch::global_asm;
 
 use crate::{
-    arch::TrapFrame,
     config::TICK_DURATION,
     ktime::{set_ktime_ms, tick::increment_tick},
 };
+
+use super::trap_frame::TrapFrame;
 
 // Include gnu_macro asm file in compilation
 global_asm!(include_str!("gnu_macro.S"));
@@ -12,18 +13,27 @@ global_asm!(include_str!("gnu_macro.S"));
 global_asm!(include_str!("trap_entry.S"));
 
 /// Trap routines
+/// Enter this function from trap_entry caller
+/// Handle all exceptions and interrupts
 #[unsafe(no_mangle)]
 unsafe extern "C" fn trap_handler(
+    // Program counter csr, used when mret, it reload the program at the address contains in mepc
     mepc: usize,
+    // Optionnal csr, used on specific exceptions or interrupts, for exemple, on load access fault,
+    // mtval will contains the faulty address, on instruction fault exception it will contains the
+    // illegal instruction. But on other exception it can be 0.
     mtval: usize,
+    // Used to know if it's an exception or interrupt. The bit 31 give the type of trap, and the
+    // remaining bits, 30..0, the cause.
     mcause: usize,
+    // Hart id, the core cpu where the trap happened.
     hart: usize,
+    // Global register for machine state, used to manage exception, machine mode, etc. 
     _mstatus: usize,
     _trap_frame: &mut TrapFrame,
 ) -> usize {
     let return_pc = mepc;
-    // kprint_fmt!("trap frame: {:?}\n", trap_frame);
-    // mcause strut -> u32 -> 31 bit = interrupt or exception.
+    // mcause -> u32 -> 31 bit = interrupt or exception.
     // if 31 bit is 1 -> interrupt, else 31 bit is 0 -> exception.
     // The remaining 30..0 bits is the interrupt or exception cause.
     // 31 bit[(interrupt or exception)] 30..0 bits[interrupt or exception cause]
@@ -46,6 +56,7 @@ unsafe extern "C" fn trap_handler(
     return_pc
 }
 
+/// Handle all exceptions, mostly panic because we don't want to handle all exception on an RTOS.
 fn exception_handler(mcause: usize, hart: usize, mtval: usize) {
     match mcause {
         1 => panic!("Instruction access fault: CPU#{}", hart),
@@ -58,6 +69,7 @@ fn exception_handler(mcause: usize, hart: usize, mtval: usize) {
     }
 }
 
+/// Handle all interrupts, machine or software interrupt.
 fn interrupt_handler(mcause: usize, hart: usize) {
     match mcause {
         7 => timer_interrupt(hart),
@@ -65,6 +77,7 @@ fn interrupt_handler(mcause: usize, hart: usize) {
     }
 }
 
+/// Handle timer interrupt, increment global tick and re set the timer for next timer interrupt.
 fn timer_interrupt(hart: usize) {
     if hart == 0 {
         increment_tick();
