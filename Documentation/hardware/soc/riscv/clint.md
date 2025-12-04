@@ -1,8 +1,8 @@
-# RiscV Core Local Interrupt (CLINT)
+# RISC-V Core Local Interrupt (CLINT)
 
 ## Description 
 
-The clint is a soc device only in riscv. It is responsible for maintaining memory mapped control and status registers which are associated with the software and timer interrupts. Basically, the clint is used to trigger timer or softwate interrupt or send interrupt to a specific hart. 
+The clint is a soc device only in RISC-V. It is responsible for maintaining memory mapped control and status registers which are associated with the software and timer interrupts. Basically, the clint is used to trigger timer or softwate interrupt or send interrupt to a specific hart. 
 
 ## Properties
 

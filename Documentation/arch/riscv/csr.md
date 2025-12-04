@@ -1,8 +1,8 @@
-# RISCV CSR
+# RISC-V CSR
 
 ## CSR roles
 
-The RiscV CSR(Control and Status Register) are special purpose register. They are used to manage and observe hardware behavior. Unlike general purpose registers, CSR are not used to store and compute ordinary values. They exposed machine state, like interrupt configurations, trap handling, privilege level, or other low-level controler over the CPU.
+The RISC-V CSR(Control and Status Register) are special purpose register. They are used to manage and observe hardware behavior. Unlike general purpose registers, CSR are not used to store and compute ordinary values. They exposed machine state, like interrupt configurations, trap handling, privilege level, or other low-level controler over the CPU.
 
 Accessing CSR lets software read or modify hardware behavior directly. Typical operations include enabling or disabling interrupts, configuring trap vectors, reading exception causes, saving return addresses after traps, or switching between privilege modes.
 
@@ -75,7 +75,7 @@ Important bit:
 
 Zicsr instructions set.
 
-RiscV CSR cannot be accessed with simple instruction like mv or else, it can only be accessed by using csr instructions. Here's a list of csr instructions used in the kernel, with a description, how they work, how we use them, and why.
+RISC-V CSR cannot be accessed with simple instruction like mv or else, it can only be accessed by using csr instructions. Here's a list of csr instructions used in the kernel, with a description, how they work, how we use them, and why.
 
 - csrrs - Atomic Read and Set Bits in CSR: reads CSR value, zero-extends the value to XLEN bits, and write it to integer register rd. The value in rs1 is treated like a bit mask, it specified bit position to be set in the CSR. Any bit that is high in rs1 will cause the corresponding bit to be set in the CSR, if that CSR bit is writable. Other bits in the CSR are not explicitly written.
 - csrrc - Atomic Read and Clear Bits in CSR: clears bits from rs1 in CSR value, zero-extends the value to XLEN bits, and write it to integer register rd. The value in rs1 is treated like a bit mask, it specified bit position to be cleared in the CSR. Any bit that is high in rs1 will cause the corresponding bit to be cleared in the CSR, if that CSR bit is writable. Other bits in the CSR are not explicitly written.
