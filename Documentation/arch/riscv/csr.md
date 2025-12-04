@@ -46,6 +46,31 @@ Important bit:
 
 - Scratch value (31:0) (RW): the mscratch csr is just a XLEN bits register used to store the address of the trap frame structure.
 
+### mcause - Machine Cause
+
+Description: Used when a trap happened.
+
+Important bit:
+
+- Interrupt (31) (RW): The bit is set(1) when an interrupt happened, else it's an exception. This bit is used to know what type of trap was triggered.
+- Exccode (30:0) (WLRL): All remaining bits from 30:0 contains the interrupt or exception code. 
+
+### mepc - Machine Exception Program Counter
+
+Description: Program counter csr, used when mret, it reload the program at the address contains in mepc
+
+Important bit:
+
+- mepc (31:1) (WARL): When an exception occured, the current pc is saved in mepc. When mret after handling exception, the value from mepc replaces the current pc.
+
+### mtval - Machine Trap Value
+
+Description: Optionnal csr, used on specific exceptions or interrupts, for example, on load access fault, mtval will contains the faulty address, on instruction fault exception it will contains the illegal instruction. But on other exception it can be 0.
+
+Important bit:
+
+- mtval (31:0) (WARL): Contains optionnal trap value.
+
 ## CSR Instructions
 
 Zicsr instructions set.
