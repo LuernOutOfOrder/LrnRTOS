@@ -100,8 +100,6 @@ If rd = x0, then the old value is discard.
 
 So using csrw instead of csrrw is like using csrrw but with x0 as rd.
 
-
-
 ## References
 
 Official CSR documentation: `https://docs.riscv.org/reference/isa/priv/priv-csrs.html?utm_source=chatgpt.com#csr-field-specifications`

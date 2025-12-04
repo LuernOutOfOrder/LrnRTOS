@@ -1,3 +1,5 @@
+// See documentation in `Documentation/hardware/soc/riscv/clint.md`
+
 use core::ptr::{self, null_mut};
 
 use arrayvec::ArrayVec;
@@ -17,7 +19,6 @@ use crate::{
 
 use super::{TIMER_SUBSYSTEM, Timer, TimerType};
 
-/// Structure for sifive clint device driver
 #[derive(Copy, Clone)]
 pub struct Clint0 {
     region: DriverRegion,
