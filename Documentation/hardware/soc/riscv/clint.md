@@ -75,6 +75,30 @@ The driver expose 3 functions used by the timer sub-system:
 - set_mtimecmp(hart_id: usize, delay: u64): Set mtimecmp at the mtime register on given hart_id with the delay params. For safety, when writting to mtimecmp, on Risc-V 32 bits, the register is still 64 bits, so we cannot write the delay params in one time. So we need to write two time, one high address and one low address. We use bitwise shifting to "split" the delay params in two parts. Then we start by the high address and set it to 0xFFFFFFFF, it avoid to trigger a timer interrupt when updating mtimecmp. Then we write at the lower address and rewrite at the high address.
 - send_ipi(hart_id: usize): Write one bit to the msip register of the hart_id params.
 
+## Driver Structure
+
+The driver is defined using those structures:
+
+```rust
+pub struct Clint0 {
+    // Device mem region in MMIO
+    region: DriverRegion,
+    // List of Interrupt, each interrupt is a hart_id with a list of irqs_id.
+    interrupt_extended: [Interrupt; 4],
+    // Timer type used in the timer sub-system
+    timer_type: TimerType,
+}
+
+pub struct Interrupt {
+    // Ptr to CpuIntc struct
+    cpu_intc: *mut RiscVCpuIntc,
+    // Field to follow the len of the irq_ids array to avoid crushing valid data
+    irq_len: usize,
+    // Array of all irq
+    irq_ids: [u32; 4],
+}
+```
+
 ## References
 
 `https://chromitem-soc.readthedocs.io/en/latest/clint.html`
