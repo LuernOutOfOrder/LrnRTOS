@@ -105,3 +105,4 @@ So using csrw instead of csrrw is like using csrrw but with x0 as rd.
 Official CSR documentation: `https://docs.riscv.org/reference/isa/priv/priv-csrs.html?utm_source=chatgpt.com#csr-field-specifications`
 OpenHW group CSR documentation: `https://docs.openhwgroup.org/projects/cv32e40s-user-manual/en/latest/control_status_registers.html`
 Zicsr csr instruction documentation: `https://five-embeddev.com/riscv-user-isa-manual/Priv-v1.12/csr.html`
+Machine-Level ISA: `https://five-embeddev.com/riscv-priv-isa-manual/Priv-v1.12/machine.html`
