@@ -2,7 +2,7 @@
 
 ## Description
 
-The Cpu Interrupt-Controller, or cpu-intc for shorter, is not like a real device. It's a local part of a cpu core, it can raise three type of interruptions:
+The CPU Interrupt-Controller, or cpu-intc for shorter, is not like a real device. It's a local part of a CPU core, it can raise three type of interruptions:
 
 - Timer interrupt.
 - Software interrupt.
@@ -15,12 +15,12 @@ It's the cpu-intc that make possible the traps to work. The cpu-intc will check 
 
 ### Hart id
 
-The id of the Cpu core. Used to know at which core send interrupt.
+The id of the CPU core. Used to know at which core send interrupt.
 
-## What does the Cpu Interrupt-Controller does ?
+## What does the CPU Interrupt-Controller does ?
 
 That's the part of the hart that handle local interruptions.
-It's not a separate part of the hardware, it's part of the Cpu core.
+It's not a separate part of the hardware, it's part of the CPU core.
 
 Also including:
 

@@ -14,7 +14,7 @@ The clint used a region memory in MMIO like other devices.
 
 The clint has a property called interrupt-extended, it contains a list of hart id and irqs id.
 
-It can be read like that: (&cpu_id, irq_id), where the &cpu_id is actually, in the device tree, a phandle to a cpu interrupt-controller to a specific hart, hence the &cpu_id.
+It can be read like that: (&cpu_id, irq_id), where the &cpu_id is actually, in the device tree, a phandle to a CPU interrupt-controller to a specific hart, hence the &cpu_id.
 The interrupt-extended is basically a list of (&cpu_id, irq_id).
 
 ## Registers
