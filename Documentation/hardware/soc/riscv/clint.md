@@ -39,7 +39,7 @@ Access-type: RW
 
 #### Description:
 
-mtimecmp register hold the compare value for the timer. It can be used to trigger timer interrupt. The hardware automatically compare mtime with mtime cmp. If timer interrupt is enabled, the hardware will check mtime >= mtimecmp, if true, interrupt happened.
+mtimecmp register hold the compare value for the timer. It can be used to trigger timer interrupt. The hardware automatically compare mtime with mtime cmp. If timer interrupt is enabled, the hardware will check mtime >= mtimecmp, if true, the clint will send and irq to the CPU interrupt-controller, and the interrupt-controller will write to mip.MTIP.
 
 #### Info:
 
