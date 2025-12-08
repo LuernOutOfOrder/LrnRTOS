@@ -71,6 +71,16 @@ Important bit:
 
 - mtval (31:0) (WARL): Contains optionnal trap value.
 
+### mip - Machine Interrupt Pending
+
+Description: Used when an interrupt is raised. When a timer interrupt happened, the hardware update the mip.MTIP to 1, and enter trap handler.
+
+Important bit:
+
+- MSIP (3) (R): Machine Software Interrupt pending enabled.
+- MTIP (7) (R): Machine Timer Interrupt pending enabled.
+- MEIP (11) (R): Machine External Interrupt pending enabled.
+
 ## CSR Instructions
 
 Zicsr instructions set.
