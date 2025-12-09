@@ -1,6 +1,6 @@
 use crate::fdt::helpers::{fdt_get_prop_by_node_name, fdt_get_prop_u32_value};
 
-// Struct to handle the cpu frequency
+// Struct to handle the CPU frequency
 pub struct CpuFreq {
     pub frequency: u32,
 }

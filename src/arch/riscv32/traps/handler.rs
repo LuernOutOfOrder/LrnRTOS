@@ -1,3 +1,6 @@
+// See RISC-V documentation at: `Documentation/kernel/arch/riscv/traps.md`
+// See general documentation at: `Documentation/kernel/traps.md`
+
 use core::arch::global_asm;
 
 use crate::{
@@ -17,18 +20,10 @@ global_asm!(include_str!("trap_entry.S"));
 /// Handle all exceptions and interrupts
 #[unsafe(no_mangle)]
 unsafe extern "C" fn trap_handler(
-    // Program counter csr, used when mret, it reload the program at the address contains in mepc
     mepc: usize,
-    // Optionnal csr, used on specific exceptions or interrupts, for exemple, on load access fault,
-    // mtval will contains the faulty address, on instruction fault exception it will contains the
-    // illegal instruction. But on other exception it can be 0.
     mtval: usize,
-    // Used to know if it's an exception or interrupt. The bit 31 give the type of trap, and the
-    // remaining bits, 30..0, the cause.
     mcause: usize,
-    // Hart id, the core cpu where the trap happened.
     hart: usize,
-    // Global register for machine state, used to manage exception, machine mode, etc.
     _mstatus: usize,
     _trap_frame: &mut TrapFrame,
 ) -> usize {

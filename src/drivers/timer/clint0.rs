@@ -1,3 +1,5 @@
+// See documentation in `Documentation/hardware/soc/riscv/clint.md`
+
 use core::ptr::{self, null_mut};
 
 use arrayvec::ArrayVec;
@@ -17,7 +19,6 @@ use crate::{
 
 use super::{TIMER_SUBSYSTEM, Timer, TimerType};
 
-/// Structure for sifive clint device driver
 #[derive(Copy, Clone)]
 pub struct Clint0 {
     region: DriverRegion,
@@ -182,7 +183,7 @@ impl Clint0 {
             mtime_low = unsafe { ptr::read_volatile(mtime_low_addr as *const u32) };
             mtime_high_check = unsafe { ptr::read_volatile(mtime_high_addr as *const u32) };
         }
-        // Bitwise to compute mtime from value. Cannot read u64 directly on riscv 32 bits.
+        // Bitwise to compute mtime from value. Cannot read u64 directly on RISC-V 32 bits.
         let output: u64 = ((mtime_high as u64) << 32) | (mtime_low as u64);
         output
     }
