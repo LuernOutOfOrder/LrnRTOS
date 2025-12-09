@@ -32,7 +32,7 @@ When parsing the fdt, we use the fdt token, it's just u32 value defining what we
 
 When entering token, we increment the ptr by 4 bytes to skip the token and pass to the value, like node or property. 
 Because the cursor must be alligned on 4 bytes, when parsing a node or a property, the cursor can be misalligned after, because of the property value or the node name that can be non alligned on 4 bytes.
-So after parsing a node or a property, we realligned the cursor on 4 bytes, always.
+So after parsing a node or a property, we realigned the cursor on 4 bytes, always.
 
 ### Allocation
 

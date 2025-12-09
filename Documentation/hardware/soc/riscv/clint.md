@@ -72,7 +72,7 @@ Access-type: RW
 The driver expose 3 functions used by the timer sub-system:
 
 - read_mtime(): Read current mtime at the mtime register and return the value as u64.
-- set_mtimecmp(hart_id: usize, delay: u64): Set mtimecmp at the mtime register on given hart_id with the delay params. For safety, when writting to mtimecmp, on Risc-V 32 bits, the register is still 64 bits, so we cannot write the delay params in one time. So we need to write two time, one high address and one low address. We use bitwise shifting to "split" the delay params in two parts. Then we start by the high address and set it to 0xFFFFFFFF, it avoid to trigger a timer interrupt when updating mtimecmp. Then we write at the lower address and rewrite at the high address.
+- set_mtimecmp(hart_id: usize, delay: u64): Set mtimecmp at the mtime register on given hart_id with the delay params. For safety, when writing to mtimecmp, on Risc-V 32 bits, the register is still 64 bits, so we cannot write the delay params in one time. So we need to write two time, one high address and one low address. We use bitwise shifting to "split" the delay params in two parts. Then we start by the high address and set it to 0xFFFFFFFF, it avoid to trigger a timer interrupt when updating mtimecmp. Then we write at the lower address and rewrite at the high address.
 - send_ipi(hart_id: usize): Write one bit to the msip register of the hart_id params.
 
 ## Driver Structure

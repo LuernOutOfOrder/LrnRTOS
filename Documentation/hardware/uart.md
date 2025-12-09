@@ -2,7 +2,7 @@
 
 ## Description
 
-The UART is a serial protocol used to transger data asynchronous between two machines. The communication can be:
+The UART is a serial protocol used to transfer data asynchronously between two machines. The communication can be:
 
 - simplex: Data is send in one direction.
 - half-duplex: Both side send data but one at a time.
