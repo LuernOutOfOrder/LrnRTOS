@@ -22,7 +22,7 @@ We save some CSRs in the trap_frame, load the trap stack from trap_frame into a 
 ## Handling traps
 
 In the trap_handler function, we use bitwise and bit masking to know the trap type(exception or interrupt), and the trap cause. 
-We dispatch to the correct function to handle the trap, most of the exception will just panic, because on a small kernel for real time we canno't handle as much exception as on general purpose, I guess.
+We dispatch to the correct function to handle the trap by checking the trap type, and the cause. Most of the exception will just panic, because on a small kernel for real time we canno't handle as much exception as on general purpose, I guess.
 If it can be handle, it will and the trap_handler function will return and runtime will continue in the caller function.
 
 ## Restore context

@@ -19,6 +19,13 @@ The kernel’s trap handler must then:
 – Perform all required work in privileged mode, such as servicing hardware, signaling the scheduler, or handling memory faults.
 – Restore the saved context so that execution can continue in the trapped program, unless the trap requires terminating or switching tasks.
 
+## Trap Model
+
+There's different way to handle trap, currently the kernel only support direct mode, so only one function, and the address to it store in a specific register.
+Later there'll be support for vectored mode too.
+
+To save the context when a trap is triggered, we use a trap_frame structure. We save the address of this structure in a specific register and save all General Purpose registers and specific registers when a trap is triggered.
+
 ## Traps gone wrong
 
 Handling traps can be simple, but when there's error or UB, it's much harder to debug.
