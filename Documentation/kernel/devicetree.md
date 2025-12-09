@@ -81,3 +81,25 @@ Properties:
 - nameoff: offset to the property name in the string block.
 - off_value: offset to the property value in the structure block.
 - value_len: size of the value in the structure block. Used for parsing and getting the correct value size.
+
+
+##### Why this structure
+
+Properties being defined in the structure block, one after the other in a node, we don't need to keep all properties information inside the structure, otherwise we will allocate to much, so we just need to keep ptr to the correct offset of the property.
+
+A property is defined like that in the official devicetree specification:
+
+```C
+struct {
+    uint32_t len;
+    uint32_t nameoff;
+}
+```
+
+Just the definition of the len of the property and the name offset in the string block. The actual value of the property is after this structure, and it's len size:
+
+```md
+[property_header: 8 bytes][property_value: property_header.len]
+```
+
+The structure used to define a node property is the same as the one in the devicetree specification but adding the offset of this property in the structure block.
