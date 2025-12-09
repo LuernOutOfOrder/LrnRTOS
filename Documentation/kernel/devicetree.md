@@ -20,6 +20,20 @@ After that we just pass the ptr to the parsing function.
 
 For the parsing, we parse all the fdt and store all nodes and properties. We use a stack for the parsing, using it when entering a node to keep track of the hierarchy, and static arrays to store nodes and properties to be able to access them outside the parsing.
 
+### Flow
+
+When parsing the fdt, we use the fdt token, it's just u32 value defining what we parsing in the tree, here's the list of the fdt token:
+
+- FDT_BEGIN_NODE (0x00000001): We entering a node, so create and push the new node in the stack and in the NODE_POOL.
+- FDT_END_NODE (0x00000002): Exit a node, pop the last element of the stack.
+- FDT_PROP (0x00000003): Entering a property, create and push the new property on the PROPERTIES_POOL, and update the last node in NODE_POOL.
+- FDT_NOP (0x00000004): Skip token.
+- FDT_END (0x00000009): End of the fdt.
+
+When entering token, we increment the ptr by 4 bytes to skip the token and pass to the value, like node or property. 
+Because the cursor must be alligned on 4 bytes, when parsing a node or a property, the cursor can be misalligned after, because of the property value or the node name that can be non alligned on 4 bytes.
+So after parsing a node or a property, we realligned the cursor on 4 bytes, always.
+
 ### Allocation
 
 #### Pool
