@@ -3,7 +3,7 @@
 ## Description
 
 On a machine, a trap is a control transfer that occurs when the processor must stop normal program execution and switch into privileged mode to handle an exceptional condition. 
-A trap is triggered either by an exception (a synchronous event) or by an interrupt (an asynchronous event).
+A trap is triggered either by an exception (a synchronous event) or by an interrupt (an asynchronous event) by writting into specific register so that the hardware can know that a trap has been raised.
 
 When a trap is triggered, the processor performs a well-defined sequence of actions:
 
