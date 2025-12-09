@@ -1,3 +1,6 @@
+// See RISC-V documentation at: `Documentation/kernel/arch/riscv/traps.md`
+// See general documentation at: `Documentation/kernel/traps.md`
+
 use core::arch::global_asm;
 
 use crate::{
