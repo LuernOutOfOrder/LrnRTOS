@@ -33,7 +33,7 @@ pub struct TimerSubSystem {
 
 ```
 
-By using trait, when we are writting new timer drivers, we just need to implement the trait, and add the auto-register driver at the end of the driver init function and that's it, we don't need to modify the sub-system each time we add new drivers.
+By using trait, when we are writing new timer drivers, we just need to implement the trait, and add the auto-register driver at the end of the driver init function and that's it, we don't need to modify the sub-system each time we add new drivers.
 
 ## How they work together
 

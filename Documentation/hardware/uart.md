@@ -12,7 +12,7 @@ UART datas are send as frames.
 
 ## Duration and synchronization of UART protocols
 
-UART is asynchronous, receiver and transmitter doesn't share a commun clock. It simplify the protocol but leads to make the transmitter and receiver to use the same transfer speed. 
+UART is asynchronous, receiver and transmitter doesn't share a common clock. It simplify the protocol but leads to make the transmitter and receiver to use the same transfer speed. 
 Today's most used baud rate is 800, 9600, 19,2K, 57,6K et 115,2K.
 In addition to having the same baud rate, both transmitter and receiver need to use the same frame structure.
 

@@ -28,7 +28,7 @@ impl CpuIntcSubSystem {
     /// Params:
     /// &self: the sub-system structure.
     /// cpu_intc: static structure of a driver implementing the CpuIntc trait.
-    /// index: used to represente the CPU interrupt-controller core id, also used as an index in
+    /// index: used to represent the CPU interrupt-controller core id, also used as an index in
     /// the sub-system pool. Because there's only one CPU interrupt-controller per CPU core, no
     /// overlap possible.
     pub fn add_cpu_intc(&self, cpu_intc: &'static mut dyn CpuIntc, index: usize) {

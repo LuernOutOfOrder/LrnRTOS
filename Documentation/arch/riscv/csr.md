@@ -2,7 +2,7 @@
 
 ## CSR roles
 
-The RISC-V CSR(Control and Status Register) are special purpose register. They are used to manage and observe hardware behavior. Unlike general purpose registers, CSR are not used to store and compute ordinary values. They exposed machine state, like interrupt configurations, trap handling, privilege level, or other low-level controler over the CPU.
+The RISC-V CSR(Control and Status Register) are special purpose register. They are used to manage and observe hardware behavior. Unlike general purpose registers, CSR are not used to store and compute ordinary values. They exposed machine state, like interrupt configurations, trap handling, privilege level, or other low-level control over the CPU.
 
 Accessing CSR lets software read or modify hardware behavior directly. Typical operations include enabling or disabling interrupts, configuring trap vectors, reading exception causes, saving return addresses after traps, or switching between privilege modes.
 
@@ -65,11 +65,11 @@ Important bit:
 
 ### mtval - Machine Trap Value
 
-Description: Optionnal csr, used on specific exceptions or interrupts, for example, on load access fault, mtval will contains the faulty address, on instruction fault exception it will contains the illegal instruction. But on other exception it can be 0.
+Description: Optional csr, used on specific exceptions or interrupts, for example, on load access fault, mtval will contains the faulty address, on instruction fault exception it will contains the illegal instruction. But on other exception it can be 0.
 
 Important bit:
 
-- mtval (31:0) (WARL): Contains optionnal trap value.
+- mtval (31:0) (WARL): Contains optional trap value.
 
 ### mip - Machine Interrupt Pending
 
