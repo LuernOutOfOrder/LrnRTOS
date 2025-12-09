@@ -40,14 +40,7 @@ impl FdtHeader {
 
 /// Definition of a node, used to save node information in static pool for node recovery outside
 /// the fdt parsing.
-/// nameoff: offset to the node name in structure block.
-/// first_prop_off: offset to the first node's prop in the PROPERTIES_POOL, save only the
-/// first property because all node's properties are following each other in the structure block. So we
-/// only need the first property and a counter of properties to recover them all.
-/// prop_count: counter to keep track of all property found. Increment each time a new property is
-/// found
-/// parent_node_index: the index of the parent node in the device tree, index in NODE_POOL.
-/// Important for keeping the hierarchy of the device tree.
+/// See documentation: `Documentation/kernel/devicetree.md`
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 pub struct FdtNode {
@@ -69,10 +62,7 @@ struct FdtPropHeader {
 
 /// Structure to define a property parsed from fdt, used to save property information in static
 /// pool for property recovery outside the fdt parsing.
-/// nameoff: offset to the property name in the string block.
-/// off_value: offset to the property value in the structure block.
-/// value_len: size of the value in the structure block. Used for parsing and getting the correct
-/// value size.
+/// See documentation: `Documentation/kernel/devicetree.md`
 #[derive(Clone, Copy, Debug)]
 pub struct Property {
     pub nameoff: usize,
