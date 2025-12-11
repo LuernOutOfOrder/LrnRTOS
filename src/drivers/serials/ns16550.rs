@@ -1,15 +1,14 @@
 use core::fmt::{self, Write};
 
 use crate::{
+    devices::devices_get_info,
     drivers::{DriverRegion, serials::SERIAL_DEVICES},
-    fdt::{FdtNode, helpers::fdt_get_node_by_compatible},
 };
 
 use super::{UartDevice, UartDriver};
 
 /// Structure for Ns16550 driver
 /// region: DriverRegion struct to define address memory region to use with the driver and the address size
-#[derive(Copy, Clone)]
 pub struct Ns16550 {
     pub region: DriverRegion,
 }
@@ -44,13 +43,12 @@ static mut NS16550_INSTANCE: Ns16550 = Ns16550 {
 impl Ns16550 {
     /// Init a new Ns16550 from the given fdt node
     pub fn init() {
-        let node: &FdtNode = match fdt_get_node_by_compatible("ns16550a") {
-            Some(n) => n,
+        let device_info = match devices_get_info("ns16550a") {
+            Some(d) => d,
             None => return,
         };
-        let device_addr: DriverRegion = DriverRegion::new(node);
         let ns16550: Ns16550 = Ns16550 {
-            region: device_addr,
+            region: device_info.header.device_addr,
         };
         unsafe { NS16550_INSTANCE = ns16550 };
         let device = UartDevice {
