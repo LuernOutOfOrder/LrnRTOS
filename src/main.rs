@@ -12,8 +12,8 @@ pub mod drivers;
 
 // Device init
 pub mod devices;
-pub mod fdt;
 pub mod devices_info;
+pub mod fdt;
 
 // Logging modules
 pub mod kprint;
@@ -28,8 +28,8 @@ use core::panic::PanicInfo;
 // Use from modules
 use arch::traps::{enable_interrupts, trap_frame::init_trap_frame};
 use config::TICK_SAFETY_DURATION;
-use drivers::{cpufreq::CpuFreq, init_devices_subsystems};
 use devices::devices_init;
+use drivers::{cpufreq::CpuFreq, init_devices_subsystems};
 use ktime::set_ktime_seconds;
 use logs::LogLevel;
 
