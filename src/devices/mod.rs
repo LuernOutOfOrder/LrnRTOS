@@ -17,7 +17,7 @@ pub fn devices_init(dtb_addr: usize) {
     }
 }
 
-pub fn get_device_info(compatible: &'_ str) -> Option<Devices<'_>> {
+pub fn devices_get_info(compatible: &'_ str) -> Option<Devices<'_>> {
     match unsafe { DEVICES_INFO } {
         true => {
             let node: &FdtNode = match fdt_get_node_by_compatible(compatible) {
