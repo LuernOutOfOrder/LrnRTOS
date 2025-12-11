@@ -1,4 +1,8 @@
-use crate::fdt::{fdt_present, helpers::fdt_get_node_by_compatible, parse_dtb_file};
+use crate::{
+    devices_info::{DEVICES, DeviceType, Devices, DevicesHeader},
+    drivers::DriverRegion,
+    fdt::{FdtNode, fdt_present, helpers::fdt_get_node_by_compatible, parse_dtb_file},
+};
 
 // Boolean to define the type of info from devices to get.
 // true == FDT
@@ -13,8 +17,34 @@ pub fn devices_init(dtb_addr: usize) {
     }
 }
 
-pub fn get_device_info(compatible: &str) {
-    if unsafe { DEVICES_INFO } {
-        fdt_get_node_by_compatible(compatible);
+pub fn get_device_info(compatible: &'_ str) -> Option<Devices<'_>> {
+    match unsafe { DEVICES_INFO } {
+        true => {
+            let node: &FdtNode = match fdt_get_node_by_compatible(compatible) {
+                Some(n) => n,
+                None => {
+                    return None;
+                }
+            };
+            let device_addr: DriverRegion = DriverRegion::new(node);
+            let devices: Devices = Devices {
+                header: DevicesHeader {
+                    device_type: DeviceType::Serial,
+                    compatible,
+                    device_addr,
+                },
+                info: None,
+            };
+            Some(devices)
+        }
+        false => {
+            let mut device: &Devices = &Devices::init();
+            for each in DEVICES {
+                if each.header.compatible == compatible {
+                    device = each;
+                }
+            }
+            Some(*device)
+        }
     }
 }
