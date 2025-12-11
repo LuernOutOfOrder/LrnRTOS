@@ -1,8 +1,8 @@
 use core::fmt::{self, Write};
 
 use crate::{
-    devices::devices_get_info,
-    drivers::{DriverRegion, serials::SERIAL_DEVICES},
+    devices::{devices_get_info, DeviceType},
+    drivers::{serials::SERIAL_DEVICES, DriverRegion},
 };
 
 use super::{UartDevice, UartDriver};
@@ -43,7 +43,7 @@ static mut NS16550_INSTANCE: Ns16550 = Ns16550 {
 impl Ns16550 {
     /// Init a new Ns16550 from the given fdt node
     pub fn init() {
-        let device_info = match devices_get_info("ns16550a") {
+        let device_info = match devices_get_info("ns16550a", DeviceType::Serial) {
             Some(d) => d,
             None => return,
         };
