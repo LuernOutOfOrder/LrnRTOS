@@ -1,25 +1,23 @@
 // See documentation in `Documentation/hardware/soc/riscv/clint.md`
 
-use core::ptr::{self, null_mut};
+use core::ptr::{self};
 
 use arrayvec::ArrayVec;
 
 use crate::{
-    drivers::{
-        DriverRegion,
-        cpu_intc::{CPU_INTC_SUBSYSTEM, riscv_cpu_intc::RiscVCpuIntc},
-    },
+    drivers::
+        DriverRegion
+    ,
     fdt::{
-        FdtNode,
         helpers::{
             fdt_get_node, fdt_get_node_by_compatible, fdt_get_node_by_phandle, fdt_get_node_prop,
-        },
-    },
+        }, FdtNode
+    }, kprint_fmt,
 };
 
 use super::{TIMER_SUBSYSTEM, Timer, TimerType};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Clint0 {
     region: DriverRegion,
     #[allow(unused)]
@@ -41,10 +39,10 @@ impl Timer for Clint0 {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Interrupt {
     // Ptr to CpuIntc struct
-    cpu_intc: *mut RiscVCpuIntc,
+    cpu_intc: u32,
     // Field to follow the len of the irq_ids array to avoid crushing valid data
     irq_len: usize,
     // Array of all irq
@@ -54,7 +52,7 @@ pub struct Interrupt {
 static mut CLINT0_INSTANCE: Clint0 = Clint0 {
     region: DriverRegion { addr: 0, size: 0 },
     interrupt_extended: [Interrupt {
-        cpu_intc: null_mut(),
+        cpu_intc: 0,
         irq_len: 0,
         irq_ids: [0u32; 4],
     }; 4],
@@ -69,7 +67,7 @@ impl Clint0 {
         };
         let device_addr: DriverRegion = DriverRegion::new(node);
         let interrupt: Interrupt = Interrupt {
-            cpu_intc: null_mut(),
+            cpu_intc: 0,
             irq_len: 0,
             irq_ids: [0u32; 4],
         };
@@ -111,18 +109,15 @@ impl Clint0 {
             let cpu_reg_value = u32::from_be(unsafe { ptr::read(cpu_reg.off_value as *const u32) });
             let node_interrupt_cells_value =
                 u32::from_be(unsafe { ptr::read(node_interrupt_cells.off_value as *const u32) });
-            let cpu_intc_driver = CPU_INTC_SUBSYSTEM.get_cpu_intc(cpu_reg_value as usize);
-            let data_ptr = cpu_intc_driver.unwrap() as *mut ();
-            let riscv_cpu_intc_driver = data_ptr as *mut RiscVCpuIntc;
             let mut parsed_interrupt: Interrupt = Interrupt {
-                cpu_intc: riscv_cpu_intc_driver,
+                cpu_intc: cpu_reg_value,
                 irq_len: 0,
                 irq_ids: [0u32; 4],
             };
             // // Check if an interrupt for this phandle already exist
             #[allow(clippy::needless_range_loop)]
             for e in 0..intc_extended_array.len() {
-                if intc_extended_array[e].cpu_intc != riscv_cpu_intc_driver {
+                if intc_extended_array[e].cpu_intc != cpu_reg_value {
                     continue;
                 } else {
                     // Update current parsed interrupt with existing one
@@ -154,6 +149,7 @@ impl Clint0 {
             interrupt_extended: intc_extended_array,
             timer_type: TimerType::ArchitecturalTimer,
         };
+        kprint_fmt!("debug interrupt_extended: {:?}\n", clint0.interrupt_extended);
         unsafe { CLINT0_INSTANCE = clint0 };
         // Allow static mut refs because it's only used on driver init, so no data race or UB
         // possible
