@@ -92,6 +92,14 @@ static mut PROPERTIES_POOL: [Property; FDT_MAX_PROPS] = [Property {
 static mut NODE_COUNT: usize = 0;
 static mut PROPS_COUNT: usize = 0;
 
+pub fn fdt_present(dtb: usize) -> bool {
+    let header: FdtHeader = unsafe { ptr::read(dtb as *const FdtHeader) };
+    if !header.valid_magic() {
+        return false;
+    }
+    true
+}
+
 /// Parse the dtb header from the given address and call structure block parsing function
 pub fn parse_dtb_file(dtb: usize) {
     let header: FdtHeader = unsafe { ptr::read(dtb as *const FdtHeader) };
