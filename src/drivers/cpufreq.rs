@@ -10,7 +10,7 @@ pub struct CpuFreq {
 
 impl CpuFreq {
     pub fn init() {
-        let device = match devices_get_info("", DeviceType::CpuFreq) {
+        let device = match devices_get_info("cpu-freq", DeviceType::CpuFreq) {
             Some(d) => d,
             None => panic!("ERROR: Failed to get CPU frequency"),
         };
