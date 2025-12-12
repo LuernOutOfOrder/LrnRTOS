@@ -17,13 +17,13 @@ use fdt::{
 // Boolean to define the type of info from devices to get.
 // true == FDT
 // false == static
-static mut DEVICES_INFO: bool = false;
+static mut PLATFORM_INFO: bool = false;
 
 /// Initialize the FDT and the static devices. Choose the correct one to use.
 pub fn platform_init(dtb_addr: usize) {
     if fdt_present(dtb_addr) {
         parse_dtb_file(dtb_addr);
-        unsafe { DEVICES_INFO = true };
+        unsafe { PLATFORM_INFO = true };
     }
 }
 
@@ -297,7 +297,7 @@ fn init_device(compatible: &'_ str, device_type: DeviceType) -> Option<Devices<'
 }
 
 pub fn devices_get_info(compatible: &'_ str, device_type: DeviceType) -> Option<Devices<'_>> {
-    match unsafe { DEVICES_INFO } {
+    match unsafe { PLATFORM_INFO } {
         true => init_device(compatible, device_type),
         false => {
             let mut device: &Devices = &Devices::init_default();
