@@ -14,7 +14,7 @@ use crate::{
     },
 };
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum DeviceType {
     Serial,
     Timer,
@@ -55,7 +55,7 @@ unsafe impl<'a> Sync for Devices<'a> {}
 pub struct SerialDevice {}
 
 impl SerialDevice {
-    pub const fn new() -> Self {
+    pub const fn init() -> Self {
         SerialDevice {}
     }
 }
@@ -64,7 +64,7 @@ pub struct TimerDevice {
     pub interrupt_extended: [InterruptExtended; 4],
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub struct InterruptExtended {
     // CPU core id
     pub cpu_intc: u32,
@@ -75,6 +75,7 @@ pub struct InterruptExtended {
 }
 
 impl TimerDevice {
+    #[allow(clippy::new_without_default)]
     pub const fn new() -> Self {
         TimerDevice {
             interrupt_extended: [InterruptExtended {
@@ -185,18 +186,19 @@ static mut DEVICES_INFO: bool = false;
 pub fn devices_init(dtb_addr: usize) {
     if fdt_present(dtb_addr) {
         parse_dtb_file(dtb_addr);
+        unsafe { DEVICES_INFO = true };
     }
 }
 
 static mut TIMER_DEVICE_INSTANCE: TimerDevice = TimerDevice::new();
-static mut SERIAL_DEVICE_INSTANCE: SerialDevice = SerialDevice::new();
+static mut SERIAL_DEVICE_INSTANCE: SerialDevice = SerialDevice::init();
 
-fn init_device(compatible: &'_ str, device_type: DeviceType) -> Devices {
+fn init_device(compatible: &'_ str, device_type: DeviceType) -> Devices<'_> {
     let mut device: Devices = Devices::init();
     match device_type {
         #[allow(static_mut_refs)]
         DeviceType::Serial => {
-            let serial_device: SerialDevice = SerialDevice::new();
+            let serial_device: SerialDevice = SerialDevice::init();
             unsafe { SERIAL_DEVICE_INSTANCE = serial_device };
             device.info = Some(unsafe { &mut SERIAL_DEVICE_INSTANCE });
         }
