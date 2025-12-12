@@ -14,6 +14,19 @@ use fdt::{
     parse_dtb_file,
 };
 
+// Boolean to define the type of info from devices to get.
+// true == FDT
+// false == static
+static mut DEVICES_INFO: bool = false;
+
+/// Initialize the FDT and the static devices. Choose the correct one to use.
+pub fn platform_init(dtb_addr: usize) {
+    if fdt_present(dtb_addr) {
+        parse_dtb_file(dtb_addr);
+        unsafe { DEVICES_INFO = true };
+    }
+}
+
 #[derive(Copy, Clone)]
 pub enum DeviceType {
     Serial,
@@ -242,19 +255,6 @@ impl DeviceInfo for SerialDevice {}
 impl DeviceInfo for TimerDevice {}
 impl DeviceInfo for CpuIntCDevice {}
 impl DeviceInfo for CpuFreqDevice {}
-
-// Boolean to define the type of info from devices to get.
-// true == FDT
-// false == static
-static mut DEVICES_INFO: bool = false;
-
-/// Initialize the FDT and the static devices. Choose the correct one to use.
-pub fn platform_init(dtb_addr: usize) {
-    if fdt_present(dtb_addr) {
-        parse_dtb_file(dtb_addr);
-        unsafe { DEVICES_INFO = true };
-    }
-}
 
 static mut TIMER_DEVICE_INSTANCE: TimerDevice = TimerDevice::new();
 static mut SERIAL_DEVICE_INSTANCE: SerialDevice = SerialDevice::init();
