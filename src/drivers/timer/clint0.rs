@@ -2,23 +2,14 @@
 
 use core::ptr::{self};
 
-use arrayvec::ArrayVec;
-
 use crate::{
     devices::{DeviceType, InterruptExtended, TimerDevice, devices_get_info},
     drivers::DriverRegion,
-    fdt::{
-        FdtNode,
-        helpers::{
-            fdt_get_node, fdt_get_node_by_compatible, fdt_get_node_by_phandle, fdt_get_node_prop,
-        },
-    },
-    kprint_fmt,
 };
 
 use super::{TIMER_SUBSYSTEM, Timer, TimerType};
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub struct Clint0 {
     region: DriverRegion,
     #[allow(unused)]
@@ -38,16 +29,6 @@ impl Timer for Clint0 {
     fn timer_type(&self) -> TimerType {
         self.timer_type
     }
-}
-
-#[derive(Copy, Clone, Debug)]
-pub struct Interrupt {
-    // Ptr to CpuIntc struct
-    cpu_intc: u32,
-    // Field to follow the len of the irq_ids array to avoid crushing valid data
-    irq_len: usize,
-    // Array of all irq
-    irq_ids: [u32; 4],
 }
 
 static mut CLINT0_INSTANCE: Clint0 = Clint0 {
@@ -83,10 +64,6 @@ impl Clint0 {
             interrupt_extended: timer_device_ref.interrupt_extended,
             timer_type: TimerType::ArchitecturalTimer,
         };
-        kprint_fmt!(
-            "debug interrupt_extended: {:?}\n",
-            clint0.interrupt_extended
-        );
         unsafe { CLINT0_INSTANCE = clint0 };
         // Allow static mut refs because it's only used on driver init, so no data race or UB
         // possible
@@ -99,7 +76,6 @@ impl Clint0 {
     /// to UB.
     pub fn read_mtime(&self) -> u64 {
         // Offset from doc
-        // TODO: check if I can make this better than just hardcoded offset ????
         let off = 0xBFF8;
         // Define mtime value
         let mut mtime_low: u32 = 0;
