@@ -23,6 +23,9 @@ pub mod print;
 // Module for kernel time
 pub mod ktime;
 
+// Misc mod
+pub mod misc;
+
 use core::panic::PanicInfo;
 
 // Use from modules
