@@ -1,4 +1,4 @@
-use crate::{devices::{DeviceInfo, DeviceType, Devices, DevicesHeader, SerialDevice}, drivers::DriverRegion};
+use crate::{platform::{DeviceInfo, DeviceType, Devices, DevicesHeader, SerialDevice}, drivers::DriverRegion};
 
 static mut SERIAL_DEVICE: SerialDevice = SerialDevice {};
 

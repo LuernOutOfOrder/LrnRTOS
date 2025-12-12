@@ -1,5 +1,5 @@
 use crate::{
-    devices::{CpuIntCDevice, DeviceType, devices_get_info},
+    platform::{CpuIntCDevice, DeviceType, devices_get_info},
     misc::RawTraitObject,
 };
 

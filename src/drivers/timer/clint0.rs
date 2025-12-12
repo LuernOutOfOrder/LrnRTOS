@@ -3,7 +3,7 @@
 use core::ptr::{self};
 
 use crate::{
-    devices::{devices_get_info, DeviceType, InterruptExtended, TimerDevice},
+    platform::{devices_get_info, DeviceType, InterruptExtended, TimerDevice},
     drivers::DriverRegion, misc::RawTraitObject,
 };
 
@@ -40,8 +40,6 @@ static mut CLINT0_INSTANCE: Clint0 = Clint0 {
     }; 4],
     timer_type: TimerType::ArchitecturalTimer,
 };
-
-
 
 impl Clint0 {
     pub fn init() {

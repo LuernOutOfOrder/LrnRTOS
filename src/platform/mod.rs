@@ -1,3 +1,5 @@
+pub mod fdt;
+
 use core::ptr;
 
 use arrayvec::ArrayVec;
@@ -5,14 +7,14 @@ use arrayvec::ArrayVec;
 use crate::{
     devices_info::DEVICES,
     drivers::DriverRegion,
-    fdt::{
+};
+use fdt::{
         FdtNode, fdt_present,
         helpers::{
             fdt_get_node, fdt_get_node_by_compatible, fdt_get_node_by_phandle, fdt_get_node_prop,
         },
         parse_dtb_file,
-    },
-};
+    };
 
 #[derive(Copy, Clone)]
 pub enum DeviceType {
@@ -228,7 +230,7 @@ impl DeviceInfo for CpuIntCDevice {}
 static mut DEVICES_INFO: bool = false;
 
 /// Initialize the FDT and the static devices. Choose the correct one to use.
-pub fn devices_init(dtb_addr: usize) {
+pub fn platform_init(dtb_addr: usize) {
     if fdt_present(dtb_addr) {
         parse_dtb_file(dtb_addr);
         unsafe { DEVICES_INFO = true };

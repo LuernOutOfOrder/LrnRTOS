@@ -1,7 +1,7 @@
 use core::fmt::{self, Write};
 
 use crate::{
-    devices::{devices_get_info, DeviceType},
+    platform::{devices_get_info, DeviceType},
     drivers::{serials::SERIAL_DEVICES, DriverRegion},
 };
 
