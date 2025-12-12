@@ -4,23 +4,22 @@ use core::ptr;
 
 use arrayvec::ArrayVec;
 
-use crate::{
-    devices_info::DEVICES,
-    drivers::DriverRegion,
-};
+use crate::{devices_info::DEVICES, drivers::DriverRegion};
 use fdt::{
-        FdtNode, fdt_present,
-        helpers::{
-            fdt_get_node, fdt_get_node_by_compatible, fdt_get_node_by_phandle, fdt_get_node_prop,
-        },
-        parse_dtb_file,
-    };
+    FdtNode, fdt_present,
+    helpers::{
+        fdt_get_node, fdt_get_node_by_compatible, fdt_get_node_by_phandle, fdt_get_node_prop,
+        fdt_get_prop_by_node_name, fdt_get_prop_u32_value,
+    },
+    parse_dtb_file,
+};
 
 #[derive(Copy, Clone)]
 pub enum DeviceType {
     Serial,
     Timer,
     CpuIntC,
+    CpuFreq,
 }
 
 pub trait DeviceInfo {}
@@ -103,6 +102,25 @@ impl CpuIntCDevice {
             .expect("ERROR: riscv,cpu-intc parent has no reg property in fdt");
         let reg_value = u32::from_be(unsafe { ptr::read(reg.off_value as *const u32) });
         CpuIntCDevice { core_id: reg_value }
+    }
+}
+
+pub struct CpuFreqDevice {
+    pub freq: u32,
+}
+
+impl CpuFreqDevice {
+    pub const fn init_default() -> Self {
+        CpuFreqDevice { freq: 0 }
+    }
+
+    pub fn init() -> Self {
+        let cpus_freq = match fdt_get_prop_by_node_name("cpus", "timebase-frequency") {
+            Some(n) => n,
+            None => panic!("Error while creating new CPU freq generic structure"),
+        };
+        let freq_value = fdt_get_prop_u32_value(cpus_freq);
+        CpuFreqDevice { freq: freq_value }
     }
 }
 
@@ -223,6 +241,7 @@ impl TimerDevice {
 impl DeviceInfo for SerialDevice {}
 impl DeviceInfo for TimerDevice {}
 impl DeviceInfo for CpuIntCDevice {}
+impl DeviceInfo for CpuFreqDevice {}
 
 // Boolean to define the type of info from devices to get.
 // true == FDT
@@ -240,6 +259,7 @@ pub fn platform_init(dtb_addr: usize) {
 static mut TIMER_DEVICE_INSTANCE: TimerDevice = TimerDevice::new();
 static mut SERIAL_DEVICE_INSTANCE: SerialDevice = SerialDevice::init();
 static mut CPU_INTC_DEVICE_INSTANCE: CpuIntCDevice = CpuIntCDevice::init();
+static mut CPU_FREQ_INSTANCE: CpuFreqDevice = CpuFreqDevice::init_default();
 
 fn init_device(compatible: &'_ str, device_type: DeviceType) -> Option<Devices<'_>> {
     let mut default_device: Devices = Devices::init_default();
@@ -265,6 +285,12 @@ fn init_device(compatible: &'_ str, device_type: DeviceType) -> Option<Devices<'
             let cpu_intc_device: CpuIntCDevice = CpuIntCDevice::init_info(compatible);
             unsafe { CPU_INTC_DEVICE_INSTANCE = cpu_intc_device };
             default_device.info = Some(unsafe { &mut CPU_INTC_DEVICE_INSTANCE });
+        }
+        #[allow(static_mut_refs)]
+        DeviceType::CpuFreq => {
+            let cpu_freq_device: CpuFreqDevice = CpuFreqDevice::init();
+            unsafe { CPU_FREQ_INSTANCE = cpu_freq_device };
+            default_device.info = Some(unsafe { &mut CPU_FREQ_INSTANCE });
         }
     }
     Some(default_device)
