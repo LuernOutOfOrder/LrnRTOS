@@ -14,10 +14,11 @@ use crate::{
     },
 };
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub enum DeviceType {
     Serial,
     Timer,
+    CpuIntC,
 }
 
 pub trait DeviceInfo {}
@@ -38,12 +39,30 @@ pub struct Devices<'a> {
 }
 
 impl Devices<'_> {
-    pub const fn init() -> Self {
+    pub const fn init_default() -> Self {
         Devices {
             header: DevicesHeader {
                 device_type: DeviceType::Serial,
                 compatible: "",
                 device_addr: DriverRegion { addr: 0, size: 0 },
+            },
+            info: None,
+        }
+    }
+
+    pub fn init<'a>(compatible: &'a str, device_type: DeviceType) -> Devices<'a> {
+        let node: &FdtNode = match fdt_get_node_by_compatible(compatible) {
+            Some(n) => n,
+            None => {
+                panic!("Error while initialize generic device structure");
+            }
+        };
+        let device_addr: DriverRegion = DriverRegion::new(node);
+        Devices {
+            header: DevicesHeader {
+                device_type,
+                compatible,
+                device_addr,
             },
             info: None,
         }
@@ -57,6 +76,31 @@ pub struct SerialDevice {}
 impl SerialDevice {
     pub const fn init() -> Self {
         SerialDevice {}
+    }
+}
+
+pub struct CpuIntCDevice {
+    pub core_id: u32,
+}
+
+impl CpuIntCDevice {
+    pub const fn init() -> Self {
+        CpuIntCDevice { core_id: 0 }
+    }
+
+    pub fn init_info(compatible: &'_ str) -> Self {
+        let node: &FdtNode = match fdt_get_node_by_compatible(compatible) {
+            Some(n) => n,
+            None => panic!("Error while creating new CPU interrupt-controller generic structure"),
+        };
+        let parent_node = fdt_get_node(
+            node.parent_node_index
+                .expect("ERROR: riscv,cpu-intc has no parent node in fdt"),
+        );
+        let reg = fdt_get_node_prop(&parent_node, "reg")
+            .expect("ERROR: riscv,cpu-intc parent has no reg property in fdt");
+        let reg_value = u32::from_be(unsafe { ptr::read(reg.off_value as *const u32) });
+        CpuIntCDevice { core_id: reg_value }
     }
 }
 
@@ -176,6 +220,7 @@ impl TimerDevice {
 // Implement DeviceInfo trait to all Device type structure
 impl DeviceInfo for SerialDevice {}
 impl DeviceInfo for TimerDevice {}
+impl DeviceInfo for CpuIntCDevice {}
 
 // Boolean to define the type of info from devices to get.
 // true == FDT
@@ -192,49 +237,42 @@ pub fn devices_init(dtb_addr: usize) {
 
 static mut TIMER_DEVICE_INSTANCE: TimerDevice = TimerDevice::new();
 static mut SERIAL_DEVICE_INSTANCE: SerialDevice = SerialDevice::init();
+static mut CPU_INTC_DEVICE_INSTANCE: CpuIntCDevice = CpuIntCDevice::init();
 
-fn init_device(compatible: &'_ str, device_type: DeviceType) -> Devices<'_> {
-    let mut device: Devices = Devices::init();
+fn init_device(compatible: &'_ str, device_type: DeviceType) -> Option<Devices<'_>> {
+    let mut default_device: Devices = Devices::init_default();
     match device_type {
         #[allow(static_mut_refs)]
         DeviceType::Serial => {
             let serial_device: SerialDevice = SerialDevice::init();
             unsafe { SERIAL_DEVICE_INSTANCE = serial_device };
+            let mut device: Devices = Devices::init(compatible, device_type);
             device.info = Some(unsafe { &mut SERIAL_DEVICE_INSTANCE });
+            default_device = device;
         }
         #[allow(static_mut_refs)]
         DeviceType::Timer => {
             let timer_device: TimerDevice = TimerDevice::init(compatible);
             unsafe { TIMER_DEVICE_INSTANCE = timer_device };
+            let mut device: Devices = Devices::init(compatible, device_type);
             device.info = Some(unsafe { &mut TIMER_DEVICE_INSTANCE });
+            default_device = device;
+        }
+        #[allow(static_mut_refs)]
+        DeviceType::CpuIntC => {
+            let cpu_intc_device: CpuIntCDevice = CpuIntCDevice::init_info(compatible);
+            unsafe { CPU_INTC_DEVICE_INSTANCE = cpu_intc_device };
+            default_device.info = Some(unsafe { &mut CPU_INTC_DEVICE_INSTANCE });
         }
     }
-    device
+    Some(default_device)
 }
 
 pub fn devices_get_info(compatible: &'_ str, device_type: DeviceType) -> Option<Devices<'_>> {
     match unsafe { DEVICES_INFO } {
-        true => {
-            let node: &FdtNode = match fdt_get_node_by_compatible(compatible) {
-                Some(n) => n,
-                None => {
-                    return None;
-                }
-            };
-            let device_addr: DriverRegion = DriverRegion::new(node);
-            let device_info = init_device(compatible, device_type);
-            let devices: Devices = Devices {
-                header: DevicesHeader {
-                    device_type,
-                    compatible,
-                    device_addr,
-                },
-                info: device_info.info,
-            };
-            Some(devices)
-        }
+        true => init_device(compatible, device_type),
         false => {
-            let mut device: &Devices = &Devices::init();
+            let mut device: &Devices = &Devices::init_default();
             for each in DEVICES {
                 if each.header.compatible == compatible {
                     device = each;
