@@ -3,8 +3,8 @@
 use core::ptr::{self};
 
 use crate::{
-    devices::{DeviceType, InterruptExtended, TimerDevice, devices_get_info},
-    drivers::DriverRegion,
+    devices::{devices_get_info, DeviceType, InterruptExtended, TimerDevice},
+    drivers::DriverRegion, misc::RawTraitObject,
 };
 
 use super::{TIMER_SUBSYSTEM, Timer, TimerType};
@@ -41,11 +41,7 @@ static mut CLINT0_INSTANCE: Clint0 = Clint0 {
     timer_type: TimerType::ArchitecturalTimer,
 };
 
-#[repr(C)]
-struct RawTraitObject {
-    data: *const (),
-    vtable: *const (),
-}
+
 
 impl Clint0 {
     pub fn init() {
