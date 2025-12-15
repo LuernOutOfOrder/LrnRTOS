@@ -22,6 +22,9 @@ pub mod print;
 // Module for kernel time
 pub mod ktime;
 
+// Memory management module
+pub mod mem;
+
 // Misc mod
 pub mod misc;
 
@@ -33,6 +36,7 @@ use config::TICK_SAFETY_DURATION;
 use drivers::{cpufreq::CpuFreq, init_devices_subsystems};
 use ktime::set_ktime_seconds;
 use logs::LogLevel;
+use mem::memory_init;
 use platform::platform_init;
 
 #[unsafe(no_mangle)]
@@ -43,6 +47,9 @@ pub fn main(core: usize, dtb_addr: usize) -> ! {
     kprint!("Initializing all sub-systems...\n");
     init_devices_subsystems();
     log!(LogLevel::Info, "Successfully initialized all sub-system.");
+    log!(LogLevel::Info, "Initializing memory...");
+    memory_init();
+    log!(LogLevel::Info, "Successfully initialized memory.");
     log!(LogLevel::Info, "LrnRTOS booting...");
     CpuFreq::init();
     log!(LogLevel::Debug, "Initialing trap frame...");

@@ -1,5 +1,6 @@
 pub mod fdt;
 pub mod platform_info;
+pub mod mem;
 
 use core::ptr;
 
