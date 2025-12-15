@@ -4,7 +4,7 @@ use crate::{
     drivers::DriverRegion,
     platform::{
         CpuFreqDevice, CpuIntCDevice, DeviceInfo, DeviceType, Devices, DevicesHeader,
-        InterruptExtended, SerialDevice, TimerDevice,
+        InterruptExtended, SerialDevice, TimerDevice, mem::MemoryProvider,
     },
 };
 
@@ -18,6 +18,13 @@ static mut CLINT_DEVICE: TimerDevice = TimerDevice {
 };
 static mut CPU_INTC_DEVICE: CpuIntCDevice = CpuIntCDevice { core_id: 0 };
 static mut CPU_FREQ_DEVICE: CpuFreqDevice = CpuFreqDevice { freq: 10000000 };
+
+pub static MEM: MemoryProvider = MemoryProvider {
+    reg: DriverRegion {
+        addr: 0x80000000,
+        size: 0x8000000,
+    },
+};
 
 pub static DEVICES: &[Devices] = &[
     Devices {
