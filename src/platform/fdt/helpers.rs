@@ -200,3 +200,21 @@ pub fn fdt_get_node_by_compatible(compatible: &str) -> Option<&FdtNode> {
     }
     None
 }
+
+/// Find node by device_type property
+pub fn fdt_get_node_by_device_type(device_type: &str) -> Option<&FdtNode> {
+    let nodes = fdt_get_all_nodes();
+    for node in nodes {
+        let device_type_prop = match fdt_get_node_prop(node, "device_type") {
+            Some(c) => c,
+            None => continue,
+        };
+        let device_type_value = fdt_get_prop_value(device_type_prop);
+        let device_type_str: &str =
+            str::from_utf8(&device_type_value).expect("Failed to cast ArrayVec as &str");
+        if device_type == device_type_str {
+            return Some(node);
+        }
+    }
+    None
+}
