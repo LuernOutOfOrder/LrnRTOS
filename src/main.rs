@@ -42,8 +42,9 @@ use platform::platform_init;
 #[unsafe(no_mangle)]
 pub fn main(core: usize, dtb_addr: usize) -> ! {
     kprint_fmt!("Start kernel booting on CPU Core: {}.\n", core);
-    kprint!("Initializing platform...");
+    kprint!("Initializing platform...\n");
     platform_init(dtb_addr);
+    kprint!("Successfully initialized platform.\n");
     kprint!("Initializing all sub-systems...\n");
     init_devices_subsystems();
     log!(LogLevel::Info, "Successfully initialized all sub-system.");
