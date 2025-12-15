@@ -1,8 +1,10 @@
 pub mod fdt;
+pub mod platform_info;
 
 use core::ptr;
 
 use arrayvec::ArrayVec;
+use platform_info::PlatformInfo;
 
 use crate::{devices_info::DEVICES, drivers::DriverRegion};
 use fdt::{
@@ -14,16 +16,16 @@ use fdt::{
     parse_dtb_file,
 };
 
-// Boolean to define the type of info from devices to get.
-// true == FDT
-// false == static
-static mut PLATFORM_INFO: bool = false;
+static mut PLATFORM_INFO: PlatformInfo = PlatformInfo::init();
 
 /// Initialize the FDT and the static devices. Choose the correct one to use.
 pub fn platform_init(dtb_addr: usize) {
     if fdt_present(dtb_addr) {
         parse_dtb_file(dtb_addr);
-        unsafe { PLATFORM_INFO = true };
+        #[allow(static_mut_refs)]
+        unsafe {
+            PLATFORM_INFO.set_mode_fdt()
+        };
     }
 }
 
@@ -297,7 +299,8 @@ fn init_device(compatible: &'_ str, device_type: DeviceType) -> Option<Devices<'
 }
 
 pub fn devices_get_info(compatible: &'_ str, device_type: DeviceType) -> Option<Devices<'_>> {
-    match unsafe { PLATFORM_INFO } {
+    #[allow(static_mut_refs)]
+    match unsafe { PLATFORM_INFO.read_mode() } {
         true => init_device(compatible, device_type),
         false => {
             let mut device: &Devices = &Devices::init_default();
