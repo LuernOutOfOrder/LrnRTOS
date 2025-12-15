@@ -1,13 +1,11 @@
-use core::ptr;
-
-use crate::fdt::{
-    FdtNode,
-    helpers::{fdt_get_node, fdt_get_node_by_compatible, fdt_get_node_prop},
+use crate::{
+    misc::RawTraitObject,
+    platform::{CpuIntCDevice, DeviceType, devices_get_info},
 };
 
 use super::{CPU_INTC_SUBSYSTEM, CpuIntc};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 pub struct RiscVCpuIntc {
     #[allow(unused)]
     hart_id: u32,
@@ -19,22 +17,23 @@ static mut RISCV_CPU_INTC_INSTANCE: RiscVCpuIntc = RiscVCpuIntc { hart_id: 0 };
 
 impl RiscVCpuIntc {
     pub fn init() {
-        let node: &FdtNode = match fdt_get_node_by_compatible("riscv,cpu-intc") {
-            Some(n) => n,
+        let device_info = match devices_get_info("riscv,cpu-intc", DeviceType::CpuIntC) {
+            Some(d) => d,
             None => return,
         };
-        let parent_node = fdt_get_node(
-            node.parent_node_index
-                .expect("ERROR: riscv,cpu-intc has no parent node in fdt"),
-        );
-        let reg = fdt_get_node_prop(&parent_node, "reg")
-            .expect("ERROR: riscv,cpu-intc parent has no reg property in fdt");
-        let reg_value = u32::from_be(unsafe { ptr::read(reg.off_value as *const u32) });
-        let cpu_intc_pool: RiscVCpuIntc = RiscVCpuIntc { hart_id: reg_value };
+        let device_info_trait = device_info.info.unwrap();
+        let raw: RawTraitObject = unsafe { core::mem::transmute(device_info_trait) };
+        let cpu_intc_device_ptr = raw.data as *const CpuIntCDevice;
+        let cpu_intc_device_ref = unsafe { &*cpu_intc_device_ptr };
+        let cpu_intc_pool: RiscVCpuIntc = RiscVCpuIntc {
+            hart_id: cpu_intc_device_ref.core_id,
+        };
         unsafe { RISCV_CPU_INTC_INSTANCE = cpu_intc_pool };
         // Update cpu-intc sub-system pool with new driver
         #[allow(static_mut_refs)]
-        CPU_INTC_SUBSYSTEM
-            .add_cpu_intc(unsafe { &mut RISCV_CPU_INTC_INSTANCE }, reg_value as usize);
+        CPU_INTC_SUBSYSTEM.add_cpu_intc(
+            unsafe { &mut RISCV_CPU_INTC_INSTANCE },
+            cpu_intc_device_ref.core_id as usize,
+        );
     }
 }

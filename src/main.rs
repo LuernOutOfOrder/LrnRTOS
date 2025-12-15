@@ -10,8 +10,9 @@ pub mod arch;
 // Drivers module
 pub mod drivers;
 
-// Device tree module
-mod fdt;
+// Device init
+pub mod devices_info;
+pub mod platform;
 
 // Logging modules
 pub mod kprint;
@@ -21,20 +22,24 @@ pub mod print;
 // Module for kernel time
 pub mod ktime;
 
+// Misc mod
+pub mod misc;
+
 use core::panic::PanicInfo;
 
 // Use from modules
 use arch::traps::{enable_interrupts, trap_frame::init_trap_frame};
 use config::TICK_SAFETY_DURATION;
 use drivers::{cpufreq::CpuFreq, init_devices_subsystems};
-use fdt::parse_dtb_file;
 use ktime::set_ktime_seconds;
 use logs::LogLevel;
+use platform::platform_init;
 
 #[unsafe(no_mangle)]
 pub fn main(core: usize, dtb_addr: usize) -> ! {
     kprint_fmt!("Start kernel booting on CPU Core: {}.\n", core);
-    parse_dtb_file(dtb_addr);
+    kprint!("Initializing platform...");
+    platform_init(dtb_addr);
     kprint!("Initializing all sub-systems...\n");
     init_devices_subsystems();
     log!(LogLevel::Info, "Successfully initialized all sub-system.");

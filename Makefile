@@ -7,12 +7,12 @@ BUILD_DIR = target/$(BUILD_ARCH)/$(BUILD_PROFILE)/lrnrtos
 RUNNER = qemu-system-riscv32
 QEMU_MACHINE = virt
 QEMU_BIOS = none
-QEMU_DUMP_DTB = ,dumpdtb=qemu_dtb.dtb
+QEMU_DUMP_DTB = ,dumpdtb=logs/qemu_dtb.dtb
 # Debugger(like gdb)
 DEBUGGER = riscv64-elf-gdb
 # Debug flags (for debugger or runner)
 DEBUG_GDB_FLAGS = -S -gdb tcp::1234
-DEBUG_FLAGS = -d int -D out.log
+DEBUG_FLAGS = -d int -D logs/out.log
 
 # Check bin in $PATH
 RUNNER_EXISTS := $(shell which $(RUNNER))
@@ -35,3 +35,10 @@ debug:
 
 objdump:
 	objdump -Sr $(DBUILD_DIR) > log.txt
+
+dtc:
+	dtc -I dtb -O dts logs/qemu_dtb.dtb > logs/qemu_dtb.dts
+
+clean:
+	rm -rf target/*
+	rm -rf logs/*

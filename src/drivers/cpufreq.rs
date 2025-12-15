@@ -1,4 +1,7 @@
-use crate::fdt::helpers::{fdt_get_prop_by_node_name, fdt_get_prop_u32_value};
+use crate::{
+    misc::RawTraitObject,
+    platform::{CpuFreqDevice, DeviceType, devices_get_info},
+};
 
 // Struct to handle the CPU frequency
 pub struct CpuFreq {
@@ -7,16 +10,18 @@ pub struct CpuFreq {
 
 impl CpuFreq {
     pub fn init() {
-        let cpus_freq = fdt_get_prop_by_node_name("cpus", "timebase-frequency");
-        if let Some(freq) = cpus_freq {
-            let freq_value = fdt_get_prop_u32_value(freq);
-            let cpu_freq: CpuFreq = CpuFreq {
-                frequency: freq_value,
-            };
-            unsafe { CPUFREQ = cpu_freq };
-        } else {
-            panic!("ERROR: Failed to create cpu frequency structure");
-        }
+        let device = match devices_get_info("cpu-freq", DeviceType::CpuFreq) {
+            Some(d) => d,
+            None => panic!("ERROR: Failed to get CPU frequency"),
+        };
+        let device_info_trait = device.info.unwrap();
+        let raw: RawTraitObject = unsafe { core::mem::transmute(device_info_trait) };
+        let cpu_freq_device_ptr = raw.data as *const CpuFreqDevice;
+        let cpu_freq_device_ref = unsafe { &*cpu_freq_device_ptr };
+        let cpu_freq: CpuFreq = CpuFreq {
+            frequency: cpu_freq_device_ref.freq,
+        };
+        unsafe { CPUFREQ = cpu_freq };
     }
 }
 
