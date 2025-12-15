@@ -3,8 +3,9 @@
 use core::ptr::{self};
 
 use crate::{
-    platform::{devices_get_info, DeviceType, InterruptExtended, TimerDevice},
-    drivers::DriverRegion, misc::RawTraitObject,
+    drivers::DriverRegion,
+    misc::RawTraitObject,
+    platform::{DeviceType, InterruptExtended, TimerDevice, devices_get_info},
 };
 
 use super::{TIMER_SUBSYSTEM, Timer, TimerType};

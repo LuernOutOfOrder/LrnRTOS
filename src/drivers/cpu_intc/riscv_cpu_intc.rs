@@ -1,6 +1,6 @@
 use crate::{
-    platform::{CpuIntCDevice, DeviceType, devices_get_info},
     misc::RawTraitObject,
+    platform::{CpuIntCDevice, DeviceType, devices_get_info},
 };
 
 use super::{CPU_INTC_SUBSYSTEM, CpuIntc};

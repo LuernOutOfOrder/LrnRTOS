@@ -11,8 +11,8 @@ pub mod arch;
 pub mod drivers;
 
 // Device init
-pub mod platform;
 pub mod devices_info;
+pub mod platform;
 
 // Logging modules
 pub mod kprint;

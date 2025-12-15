@@ -6,12 +6,12 @@ use serials::init_serial_subsystem;
 use timer::init_timer_subsystem;
 
 use crate::{
+    kprint, log,
+    logs::LogLevel,
     platform::fdt::{
         FdtNode,
         helpers::{fdt_get_node_prop, fdt_get_node_prop_in_hierarchy},
     },
-    kprint, log,
-    logs::LogLevel,
 };
 
 /// Module for serials devices
