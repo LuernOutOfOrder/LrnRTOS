@@ -5,13 +5,23 @@
 All machine use devices, but not all machine define devices the same ways. On more modern and complexe, or bigger machine, there the FDT [1], So the kernel use the FDT to devices informations.
 But on smaller machines, or in embedded, there's no FDT. So it's the user who's using the kernel who has the responsability to define the devices needed for the bare minimum working of the kernel,
 or the devices he want to use. Because we want the kernel to be able to know if there's a FDT or not, and the drivers to be able to init themselves without knowing if there's a FDT or not, 
-we define an abstraction layer. This abstraction layer will check if there's a FDT or not and handle a static: `PLATFORM_INFO`, a static boolean used to either using the FDT or a static devices definitions.
+we define an abstraction layer. This abstraction layer will check if there's a FDT or not and handle a static: `PLATFORM_INFO`, a static used to either using the FDT or a static devices definitions.
 Depending on the static `PLATFORM_INFO`, the abstraction layer will either use the FDT to retrieve information about a specified device, or use the static array `DEVICES`, defined in `src/devices_info.rs`, where all static devices is defined.
+The platform layer sits between early boot and driver initialization, and acts as a unified device-discovery backend.
 
 ## Booting process flow
 
+The platform layer must be initialized before initializing drivers, because if not, the FDT would not be parsed, and the platform layer would not know if there's a FDT or not, so the drivers coulnd't be initialized.
 Before initializing drivers, the function `platform_init()` is called. Pass the FDT address to it, the function will lookup to see if there's a FDT present or not. If there's it will update the
-static `PLATFORM_INFO` and set it to `true`. If there's no FDT, the static will not be change, as it is initialized on `false`. 
+static `PLATFORM_INFO` and set the mode flag to `true`. If there's no FDT, the static will not be change, as it is initialized on `0`.
+
+### Platform info flags
+
+The `PLATFORM_INFO` static is a u8, it is used as a set of different flags, describing the platform behavior or changing it.
+Here's a list of all the different flag used:
+
+- mode (bit 0): define the platform device info mode, 0 = static, 1 = fdt.
+
 
 ## Getting devices information
 
@@ -38,8 +48,6 @@ Getting devices information is deterministic: driver always give a "compatible" 
 If a device is not found or the description is malformed, the platform layer returns a well-defined error.
 The kernel guarantees that no driver is probed with incomplete or inconsistent device information.
 So if the kernel cannot initialize properly a driver, the kernel will panic.
-
-
 
 ## References
 
