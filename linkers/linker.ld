@@ -27,7 +27,7 @@ SECTIONS {
   .stack (NOLOAD) : ALIGN(4)
 {
   stack_top = ORIGIN(RAM) + LENGTH(RAM);  /* stack starts at RAM top */
-  . = stack_top - 0x4000;                 /* 0x4000 = 16 KiB */
+  . = stack_top - 0x2000;                 /* 0x4000 = 16 KiB */
   stack_start = .;
 } > RAM
   
