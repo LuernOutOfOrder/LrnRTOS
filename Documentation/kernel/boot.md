@@ -17,6 +17,10 @@ For the kernel to be able to boot correctly, it will need:
 - Disable the kprint module in Cargo.toml if no need or if you don't know a correct serial device address. 
 - Only boot on mono-core machine ! No multi-core handled for now.
 
+## Non-goals
+
+This documentation does not describe exact instruction-level execution, only kernel-level invariants and phases.
+
 ## Boot phases
 
 Initialize all different component of the kernel.
