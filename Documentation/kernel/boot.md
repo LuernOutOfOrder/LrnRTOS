@@ -6,6 +6,17 @@ This document describes the boot flow of LrnRTOS. It is intended for developers 
 The goal is to outline the phases of boot, the invariants established at each stage, and the restrictions on subsystem usage before these invariants are guaranteed.
 This ensures that anyone extending or modifying the kernel understands the assumptions and guarantees at each point in the boot process.
 
+## Prerequisites
+
+For the kernel to be able to boot correctly, it will need:
+
+- At least 8kb stack.
+- CPU in M-mode.
+- To know if the machine has a FDT, if not, need to define basic devices in static.
+- The config file setup correctly.
+- Disable the kprint module in Cargo.toml if no need or if you don't know a correct serial device address. 
+- Only boot on mono-core machine ! No multi-core handled for now.
+
 ## Boot phases
 
 Initialize all different component of the kernel.
