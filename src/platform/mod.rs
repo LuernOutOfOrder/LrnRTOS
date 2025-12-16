@@ -7,7 +7,7 @@ use core::ptr;
 use arrayvec::ArrayVec;
 use platform_info::PlatformInfo;
 
-use crate::{devices_info::DEVICES, drivers::DriverRegion};
+use crate::{devices_info::DEVICES, drivers::DriverRegion, kprint};
 use fdt::{
     FdtNode, fdt_present,
     helpers::{
@@ -27,6 +27,13 @@ pub fn platform_init(dtb_addr: usize) {
         unsafe {
             PLATFORM_INFO.set_mode_fdt()
         };
+    }
+    // Condition with just kprint for debug purpose
+    #[allow(static_mut_refs)]
+    if unsafe { PLATFORM_INFO.read_mode() } {
+        kprint!("Platform mode set to FDT.\n");
+    } else {
+        kprint!("Platform mode set to STATIC.\n");
     }
 }
 
