@@ -9,5 +9,5 @@ global_asm!(include_str!("start.S"));
 /// Kernel entry point for riscv32
 unsafe extern "C" fn _start(hartid: usize, dtb: usize) -> ! {
     kprint!("Enter kernel RISC-V 32 bits entry point.\n");
-    crate::main(hartid, dtb);
+    crate::boot::kernel_early_boot(hartid, dtb);
 }

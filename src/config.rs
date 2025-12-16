@@ -26,3 +26,9 @@ pub static SERIAL_MAX_SIZE: usize = 4;
 // ———————— Define the max size of fdt pool ————————
 pub static FDT_MAX_STACK: usize = 64;
 pub static FDT_MAX_PROPS: usize = 128;
+
+// Kernel stack size
+// WARNING
+// Changing the kernel stack size can cause a lot of error, UB, or just break everything's
+// don't touch this unless you know what you do
+pub static KERNEL_STACK_SIZE: usize = 0x4000;

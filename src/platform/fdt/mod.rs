@@ -42,7 +42,7 @@ impl FdtHeader {
 /// the fdt parsing.
 /// See documentation: `Documentation/kernel/devicetree.md`
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub struct FdtNode {
     // Name is max 31 bytes
     pub nameoff: u32,
@@ -52,7 +52,7 @@ pub struct FdtNode {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 /// Define a property header, len + nameoff of the prop follow by [u8;len] as the value of the
 /// property
 struct FdtPropHeader {
@@ -63,7 +63,7 @@ struct FdtPropHeader {
 /// Structure to define a property parsed from fdt, used to save property information in static
 /// pool for property recovery outside the fdt parsing.
 /// See documentation: `Documentation/kernel/devicetree.md`
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 pub struct Property {
     pub nameoff: usize,
     pub off_value: usize,
@@ -168,7 +168,7 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
             let prop_header: FdtPropHeader = unsafe { ptr::read(cursor as *const FdtPropHeader) };
             let idx = node_stack.last().unwrap();
             let mut node = unsafe { NODE_POOL[*idx] };
-            if node.first_prop_off == 0 {
+            if node.first_prop_off == 0 && node.parent_node_index.is_some() {
                 node.first_prop_off = unsafe { PROPS_COUNT } as u32;
                 node.prop_count += 1;
             } else {
