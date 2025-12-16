@@ -1,10 +1,12 @@
 mod kernel;
 
-use core::mem;
+use core::{arch::asm, mem};
 
-use kernel::{KernelStack, KERNEL_STACK};
+use kernel::{KERNEL_STACK, KernelStack};
 
-use crate::{config::KERNEL_STACK_SIZE, platform::mem::platform_init_mem};
+use crate::{
+    arch, config::KERNEL_STACK_SIZE, log, logs::LogLevel, platform::mem::platform_init_mem, print,
+};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Memory {
@@ -40,9 +42,19 @@ pub fn memory_init() {
     };
     let stack_top: usize = unsafe { MEMORY.ram_end };
     let stack_bottom: usize = unsafe { MEMORY.ram_end - KERNEL_STACK_SIZE };
-    unsafe {KERNEL_STACK = KernelStack { top: stack_top, bottom: stack_bottom }};
+    unsafe {
+        KERNEL_STACK = KernelStack {
+            top: stack_top,
+            bottom: stack_bottom,
+        }
+    };
+    log!(LogLevel::Debug, "Set kernel stack...");
+    set_kernel_sp();
+    log!(LogLevel::Debug, "Kernel stack successfully set.");
 }
 
+#[unsafe(no_mangle)]
 fn set_kernel_sp() {
-
+    unsafe { asm!("mv a0, {}", in(reg) KERNEL_STACK.top) };
+    unsafe { arch::asm::kernel_sp() };
 }
