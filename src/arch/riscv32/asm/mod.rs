@@ -1,7 +1,7 @@
 use core::arch::global_asm;
 
-global_asm!(include_str!("kernel_sp.S"));
+global_asm!(include_str!("set_kernel_sp.S"));
 
 unsafe extern "C" {
-    pub fn kernel_sp();
+    pub fn set_kernel_sp();
 }

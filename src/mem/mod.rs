@@ -49,12 +49,12 @@ pub fn memory_init() {
         }
     };
     log!(LogLevel::Debug, "Set kernel stack...");
-    set_kernel_sp();
+    update_kernel_sp();
     log!(LogLevel::Debug, "Kernel stack successfully set.");
 }
 
 #[unsafe(no_mangle)]
-fn set_kernel_sp() {
+fn update_kernel_sp() {
     unsafe { asm!("mv a0, {}", in(reg) KERNEL_STACK.top) };
-    unsafe { arch::asm::kernel_sp() };
+    unsafe { arch::asm::set_kernel_sp() };
 }
