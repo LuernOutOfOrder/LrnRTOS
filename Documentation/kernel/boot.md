@@ -37,6 +37,8 @@ Without the platform layer, the early boot cannot continue, basically.
 
 Initialize all kernel sub-systems(serial,timer,etc) [2]. 
 It guarantees that all kernel's sub-systems is initialized properly.
+The sub-systems use static from config file to set a static size for sub-systems pool. The kernel consider that all sub-systems pool have a correct size. If there's a panic during boot,
+consider this invariant violated.
 The sub-systems depends on the platform layer, it cannot be initialized and run properly without it.
 Without the sub-systems the kernel cannot do anything, because all the kernel depends on different sub-systems.
 
@@ -67,6 +69,74 @@ If the memory is not initialized, the kernel will not work properly, unless you 
 After the memory is initialized, the kernel will jump directly to the main functions, there cannot be return on functions modifying the stack pointer.
 So if we want to initialize the memory just after plaftorm, we need to modify all the early boot functions, because there cannot be return after changing sp, it's easier to just jump to the main functions.
 All of the allocation made in early boot was made on the temporary stack from the linker script. All sub-systems, drivers, anything else, is static. So after changing the stack, the kernel is like all clean up, ready to start is job.
+
+## WARNINGS
+
+This section cover a list of knowns and common errors on the early boot flow. 
+It follow the following structure: Symptoms (what problem you encounter): Likely cause (what invariant is possibly broken).
+
+### Drivers
+
+- Driver failed to init: wrong definition of the driver in static or wrong compatible string given.
+
+### Platform
+
+- Use the wrong discovery mode: incorrect use of platform flags mode.
+
+### Sub-systems
+
+- Possible pool overflow: increase sub-system pool size in config file.
+
+### Interruptions
+
+- Failed to handle basic interruption: trap frame not properly initialized.
+- Timer interrupt not handled properly: possible error in the timer sub-system. 
+
+## Diagram
+
+Show the current boot flow.
+
++----------------------+
+|       Hardware       |
+|   (FDT or STATIC)    |
++----------+-----------+
+           v            
+      +----------+      
+      | Platform |      
+      +----+-----+      
+           |            
+           |            
+           v            
+     +-----------+      
+     |Sub-systems|      
+     +-----+-----+      
+           |            
+           v            
+     +------------+     
+     |            |     
+     | Trap-frame |     
+     | (init only)|
+     +-----+------+     
+           |            
+           |            
+           v            
+     +------------+     
+     | Enable     |     
+     | Interrupts |     
+     +-----+------+     
+           |            
+           v            
+        +-----------+        
+        |  Memory   |        
+        |(RAM init) |
+        +--+--------+        
+           |
+           v            
+ +---------------------+
+ | Jump to kernel main |
+ | avoid return because|
+ | of temp stack       |
+ +---------------------+
 
 ## References
 
