@@ -5,7 +5,7 @@ use core::{arch::asm, mem};
 use kernel::{KERNEL_STACK, KernelStack};
 
 use crate::{
-    arch, config::KERNEL_STACK_SIZE, log, logs::LogLevel, platform::mem::platform_init_mem, print,
+    arch, config::KERNEL_STACK_SIZE, log, logs::LogLevel, platform::mem::platform_init_mem,
 };
 
 #[derive(Debug, Copy, Clone)]

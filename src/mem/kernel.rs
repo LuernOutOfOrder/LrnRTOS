@@ -2,6 +2,7 @@ use core::mem;
 
 pub struct KernelStack {
     pub top: usize,
+    #[allow(unused)]
     pub bottom: usize,
 }
 

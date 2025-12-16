@@ -2,7 +2,10 @@ use core::mem;
 
 use crate::{devices_info::MEM, drivers::DriverRegion};
 
-use super::{fdt::{helpers::fdt_get_node_by_device_type, FdtNode}, PLATFORM_INFO};
+use super::{
+    PLATFORM_INFO,
+    fdt::{FdtNode, helpers::fdt_get_node_by_device_type},
+};
 
 pub struct MemoryProvider {
     pub reg: DriverRegion,
