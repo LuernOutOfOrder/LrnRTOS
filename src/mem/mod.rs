@@ -8,12 +8,9 @@ use crate::{
     arch, config::KERNEL_STACK_SIZE, log, logs::LogLevel, platform::mem::platform_init_mem,
 };
 
-#[derive(Debug, Copy, Clone)]
 pub struct Memory {
-    pub addr: usize,
-    pub size: usize,
-    pub ram_start: usize,
-    pub ram_end: usize,
+    pub mem_start: usize,
+    pub mem_end: usize,
 }
 
 impl Memory {
@@ -23,10 +20,8 @@ impl Memory {
     pub fn init() -> Self {
         let platform_mem = platform_init_mem();
         Memory {
-            addr: platform_mem.reg.addr,
-            size: platform_mem.reg.size,
-            ram_start: platform_mem.reg.addr,
-            ram_end: platform_mem.reg.addr + platform_mem.reg.size,
+            mem_start: platform_mem.reg.addr,
+            mem_end: platform_mem.reg.addr + platform_mem.reg.size,
         }
     }
 }
@@ -40,17 +35,16 @@ pub fn memory_init() {
     unsafe {
         MEMORY = init_mem
     };
-    let stack_top: usize = unsafe { MEMORY.ram_end };
-    let stack_bottom: usize = unsafe { MEMORY.ram_end - KERNEL_STACK_SIZE };
+    let stack_top: usize = unsafe { MEMORY.mem_end };
+    let stack_bottom: usize = unsafe { MEMORY.mem_end - KERNEL_STACK_SIZE };
     unsafe {
         KERNEL_STACK = KernelStack {
             top: stack_top,
             bottom: stack_bottom,
         }
     };
-    log!(LogLevel::Debug, "Set kernel stack...");
+    log!(LogLevel::Debug, "Switch to new kernel stack...");
     update_kernel_sp();
-    log!(LogLevel::Debug, "Kernel stack successfully set.");
 }
 
 #[unsafe(no_mangle)]
