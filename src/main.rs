@@ -38,6 +38,7 @@ use logs::LogLevel;
 
 #[unsafe(no_mangle)]
 unsafe extern "C" fn main() -> ! {
+    log!(LogLevel::Debug, "Successfully switch to new kernel stack.");
     log!(LogLevel::Info, "LrnRTOS started!");
     loop {
         log!(LogLevel::Debug, "Main loop uptime.");
