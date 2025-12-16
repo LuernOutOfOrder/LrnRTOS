@@ -9,8 +9,9 @@ This ensures that anyone extending or modifying the kernel understands the assum
 ## Boot phases
 
 Initialize all different component of the kernel.
+After all phases, the kernel guarantees that all core subsystems are initialized, traps are handled, memory is available, and drivers can be safely probed.
 
-### Plaftorm
+### Platform
 
 Initialize the platform layer [1], this is the first phase of early boot, it allows the kernel to know on what type of platform it runs basically, like embedded or not(with FDT).
 It guarantees that the kernel can initialize properly all sub-systems and memory.
@@ -31,11 +32,26 @@ This will just correctly initialized the trap-frame structure used for trap hand
 It guarantees that all trap handling can work correctly using the trap-frame.
 If the trap-frame is not initialized, trap handling cannot work, there's no obligation to initialize the trap-frame at this point, there's no dependency for the trap-frame init.
 It just need to be initialized before enabling interruptions, and that's the next boot phase, so I find that correct to init trap-frame now.
-Without the trap-frame, there's no trap handling, if there's no trap handling, there's no scheduling, timer interrupt, exception handling, nothing.
+Without the trap-frame, core services such as scheduling, interrupts, and exception handling cannot function.
 
 ### Enabling interruptions
 
+Enable all interruptions and exceptions available on the machine.
+Before enabling interruptions, we set a safety delay using the timer sub-systems, to avoid trigger a timer interruption before the kernel finalize booting properly.
+This will guarantees that the trap handling can be trigger.
+If the interruptions is not enabled, there's no trap handling, no trap handling, nothing working basically.
+This need to be initialized after the sub-systems because the trap handler will use the sub-systems for trap handling, like timer interruption for exemple. 
 
+### Memory 
+
+Initialize machine memory, like ram.
+It need the platform to be initialized, but it doesn't depends on sub-systems or trap handling, so it can be initialized just after the platform.
+This guarantees the kernel to use the memory from the machine instead of the one define in the linker script at compilation.
+It will be used for first: changing the temporary kernel stack with definitie stack, and used for all memory allocation on the heap(if there's one).
+If the memory is not initialized, the kernel will not work properly, unless you modify the linker script for a specific machine but it's not recommended at all.
+After the memory is initialized, the kernel will jump directly to the main functions, there cannot be return on functions modifying the stack pointer.
+So if we want to initialize the memory just after plaftorm, we need to modify all the early boot functions, because there cannot be return after changing sp, it's easier to just jump to the main functions.
+All of the allocation made in early boot was made on the temporary stack from the linker script. All sub-systems, drivers, anything else, is static. So after changing the stack, the kernel is like all clean up, ready to start is job.
 
 ## References
 
