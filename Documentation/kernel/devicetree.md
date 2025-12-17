@@ -122,6 +122,10 @@ The structure used to define a node property is the same as the one in the devic
 
 To retrieve node or property outside the parsing, we use the pool: NODE_POOL and PROPERTIES_POOL. There's a lot of helpers functions wrote around the pool to retrieve all nodes, specific node by property like compatible, etc. Helpers functions are used when initialize drivers.
 
+## Invariants
+
+When FDT parsing start, the node and properties pool must have a correct size; any overflow on the pool indicates a violation of kernel assumptions and results in a panic.
+
 ## References
 
 Official devicetree documentation: 'https://www.devicetree.org/specifications'
