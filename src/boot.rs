@@ -1,7 +1,7 @@
 use crate::{
     arch::traps::{enable_interrupts, trap_frame::init_trap_frame},
     config::TICK_SAFETY_DURATION,
-    drivers::{cpufreq::CpuFreq, init_devices_subsystems},
+    drivers::{cpufreq::CpuFreq, init_subsystems},
     kprint, kprint_fmt,
     ktime::set_ktime_seconds,
     log,
@@ -17,7 +17,7 @@ pub fn kernel_early_boot(core: usize, dtb_addr: usize) -> ! {
     platform_init(dtb_addr);
     kprint!("Successfully initialized platform.\n");
     kprint!("Initializing all sub-systems...\n");
-    init_devices_subsystems();
+    init_subsystems();
     log!(LogLevel::Info, "Successfully initialized all sub-system.");
     log!(LogLevel::Info, "LrnRTOS booting...");
     CpuFreq::init();

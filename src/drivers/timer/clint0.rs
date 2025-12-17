@@ -5,7 +5,7 @@ use core::ptr::{self};
 use crate::{
     drivers::DriverRegion,
     misc::RawTraitObject,
-    platform::{DeviceType, InterruptExtended, TimerDevice, devices_get_info},
+    platform::{DeviceType, InterruptExtended, TimerDevice,platform_get_device_info},
 };
 
 use super::{TIMER_SUBSYSTEM, Timer, TimerType};
@@ -44,7 +44,7 @@ static mut CLINT0_INSTANCE: Clint0 = Clint0 {
 
 impl Clint0 {
     pub fn init() {
-        let device_info = match devices_get_info("sifive,clint0", DeviceType::Timer) {
+        let device_info = match platform_get_device_info("sifive,clint0", DeviceType::Timer) {
             Some(d) => d,
             None => return,
         };

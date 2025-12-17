@@ -1,6 +1,6 @@
 use crate::{
     misc::RawTraitObject,
-    platform::{CpuIntCDevice, DeviceType, devices_get_info},
+    platform::{CpuIntCDevice, DeviceType, platform_get_device_info},
 };
 
 use super::{CPU_INTC_SUBSYSTEM, CpuIntc};
@@ -17,7 +17,7 @@ static mut RISCV_CPU_INTC_INSTANCE: RiscVCpuIntc = RiscVCpuIntc { hart_id: 0 };
 
 impl RiscVCpuIntc {
     pub fn init() {
-        let device_info = match devices_get_info("riscv,cpu-intc", DeviceType::CpuIntC) {
+        let device_info = match platform_get_device_info("riscv,cpu-intc", DeviceType::CpuIntC) {
             Some(d) => d,
             None => return,
         };
