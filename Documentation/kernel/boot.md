@@ -138,6 +138,10 @@ Show the current boot flow.
  | of temp stack       |
  +---------------------+
 
+## Invariants
+
+All the boot sequence assume that none of the invariant of any phases are violated.
+
 ## References
 
 [1] platform documentation: `Documentation/kernel/platform.md`.

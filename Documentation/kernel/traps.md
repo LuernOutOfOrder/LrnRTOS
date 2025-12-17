@@ -46,3 +46,10 @@ A trap handler that triggers another trap before returning—often due to access
 
 - Silent Failures:
 Some traps do not produce visible failures immediately. An incorrectly restored mstatus, a stale satp value, or an accidentally cleared interrupt enable bit can leave the system in a subtly broken state where scheduling, system calls, or preemption behave inconsistently.
+
+## Invariants
+
+When interrupts are enabled, a valid trap frame and kernel stack must always be available; interrupt handling assumes these structures are correctly initialized and stable.
+
+When interrupts are enabled; the kernel assume that all sub-systems are available and properly initialized; some interruptions or exceptions handlers use kernel sub-systems, incorrect sub-systems will lead to panics or UB.
+
