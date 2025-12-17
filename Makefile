@@ -59,3 +59,4 @@ dtc:
 clean:
 	rm -rf target/*
 	rm -rf logs/*
+	rm -rf target/*
