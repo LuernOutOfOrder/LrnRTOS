@@ -55,8 +55,14 @@ Getting devices information is deterministic: driver always give a "compatible" 
 ### Error model
 
 If a device is not found or the description is malformed, the platform layer returns a well-defined error.
-The kernel guarantees that no driver is probed with incomplete or inconsistent device information.
+The kernel guarantees that no driver is probed with incomplete or inconsistent device information(this doesn't cover a wrong description of a device, for exemple if a device is described with the wrong MMIO region, the platform layer couldn't return a correct error, and will continue execution).
 So if the kernel cannot initialize properly a driver, the kernel will panic.
+
+## Invariants
+
+Once the platform layer is initialized, the kernel assumes that the hardware description (memory layout, interrupt controllers, timers) is accurate and will not change for the lifetime of the system.
+
+If the platform layer use static hardware description; the kernel assume that the descriptions are correct and will leads to errors or UB if the descriptions are incorrect.
 
 ## References
 
