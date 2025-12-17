@@ -41,6 +41,12 @@ endif
 run:
 	$(RUNNER) -machine $(QEMU_MACHINE)$(DUMP_DTB_RUN_FLAGS) -nographic -bios $(QEMU_BIOS) -kernel $(BUILD_DIR) $(DEBUG_RUN_FLAGS) $(DUMP_RUN_FLAGS)
 
+build:
+	cargo c && cargo b
+
+check:
+	cargo ft && cargo w
+
 debug:
 	$(DEBUGGER) $(BUILD_DIR)
 
