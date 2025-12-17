@@ -306,7 +306,10 @@ fn init_fdt_device(compatible: &'_ str, device_type: DeviceType) -> Option<Devic
     Some(default_device)
 }
 
-pub fn platform_get_device_info(compatible: &'_ str, device_type: DeviceType) -> Option<Devices<'_>> {
+pub fn platform_get_device_info(
+    compatible: &'_ str,
+    device_type: DeviceType,
+) -> Option<Devices<'_>> {
     #[allow(static_mut_refs)]
     match unsafe { PLATFORM_INFO.read_mode() } {
         true => init_fdt_device(compatible, device_type),

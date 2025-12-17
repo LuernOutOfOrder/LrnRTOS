@@ -1,6 +1,6 @@
 use crate::{
     misc::RawTraitObject,
-    platform::{CpuFreqDevice, DeviceType,platform_get_device_info},
+    platform::{CpuFreqDevice, DeviceType, platform_get_device_info},
 };
 
 // Struct to handle the CPU frequency

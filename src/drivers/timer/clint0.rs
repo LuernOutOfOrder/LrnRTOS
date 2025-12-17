@@ -5,7 +5,7 @@ use core::ptr::{self};
 use crate::{
     drivers::DriverRegion,
     misc::RawTraitObject,
-    platform::{DeviceType, InterruptExtended, TimerDevice,platform_get_device_info},
+    platform::{DeviceType, InterruptExtended, TimerDevice, platform_get_device_info},
 };
 
 use super::{TIMER_SUBSYSTEM, Timer, TimerType};
