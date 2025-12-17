@@ -127,8 +127,4 @@ pub static TIMER_SUBSYSTEM: TimerSubSystem = TimerSubSystem::init();
 pub fn init_timer_subsystem() {
     Clint0::init();
     TIMER_SUBSYSTEM.select_primary_timer();
-    // let size = TIMER_SUBSYSTEM.get_timer_array_size();
-    // if size == 0 {
-    //     panic!("Error while initializing timer sub-system, pool is empty.");
-    // }
 }

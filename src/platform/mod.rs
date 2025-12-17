@@ -63,7 +63,7 @@ pub struct Devices<'a> {
 }
 
 impl Devices<'_> {
-    pub const fn init_default() -> Self {
+    pub const fn init() -> Self {
         Devices {
             header: DevicesHeader {
                 device_type: DeviceType::Serial,
@@ -74,7 +74,7 @@ impl Devices<'_> {
         }
     }
 
-    pub fn init<'a>(compatible: &'a str, device_type: DeviceType) -> Devices<'a> {
+    pub fn init_fdt<'a>(compatible: &'a str, device_type: DeviceType) -> Devices<'a> {
         let node: &FdtNode = match fdt_get_node_by_compatible(compatible) {
             Some(n) => n,
             None => {
@@ -112,7 +112,7 @@ impl CpuIntCDevice {
         CpuIntCDevice { core_id: 0 }
     }
 
-    pub fn init_info(compatible: &'_ str) -> Self {
+    pub fn init_fdt(compatible: &'_ str) -> Self {
         let node: &FdtNode = match fdt_get_node_by_compatible(compatible) {
             Some(n) => n,
             None => panic!("Error while creating new CPU interrupt-controller generic structure"),
@@ -133,11 +133,11 @@ pub struct CpuFreqDevice {
 }
 
 impl CpuFreqDevice {
-    pub const fn init_default() -> Self {
+    pub const fn init() -> Self {
         CpuFreqDevice { freq: 0 }
     }
 
-    pub fn init() -> Self {
+    pub fn init_fdt() -> Self {
         let cpus_freq = match fdt_get_prop_by_node_name("cpus", "timebase-frequency") {
             Some(n) => n,
             None => panic!("Error while creating new CPU freq generic structure"),
@@ -163,7 +163,7 @@ pub struct InterruptExtended {
 
 impl TimerDevice {
     #[allow(clippy::new_without_default)]
-    pub const fn new() -> Self {
+    pub const fn init() -> Self {
         TimerDevice {
             interrupt_extended: [InterruptExtended {
                 cpu_intc: 0,
@@ -172,7 +172,7 @@ impl TimerDevice {
             }; 4],
         }
     }
-    pub fn init(compatible: &str) -> Self {
+    pub fn init_fdt(compatible: &str) -> Self {
         let node: &FdtNode = match fdt_get_node_by_compatible(compatible) {
             Some(n) => n,
             None => panic!("Error while creating new TimerDevice Generic structure"),
@@ -266,39 +266,39 @@ impl DeviceInfo for TimerDevice {}
 impl DeviceInfo for CpuIntCDevice {}
 impl DeviceInfo for CpuFreqDevice {}
 
-static mut TIMER_DEVICE_INSTANCE: TimerDevice = TimerDevice::new();
+static mut TIMER_DEVICE_INSTANCE: TimerDevice = TimerDevice::init();
 static mut SERIAL_DEVICE_INSTANCE: SerialDevice = SerialDevice::init();
 static mut CPU_INTC_DEVICE_INSTANCE: CpuIntCDevice = CpuIntCDevice::init();
-static mut CPU_FREQ_INSTANCE: CpuFreqDevice = CpuFreqDevice::init_default();
+static mut CPU_FREQ_INSTANCE: CpuFreqDevice = CpuFreqDevice::init();
 
-fn init_device(compatible: &'_ str, device_type: DeviceType) -> Option<Devices<'_>> {
-    let mut default_device: Devices = Devices::init_default();
+fn init_fdt_device(compatible: &'_ str, device_type: DeviceType) -> Option<Devices<'_>> {
+    let mut default_device: Devices = Devices::init();
     match device_type {
         #[allow(static_mut_refs)]
         DeviceType::Serial => {
             let serial_device: SerialDevice = SerialDevice::init();
             unsafe { SERIAL_DEVICE_INSTANCE = serial_device };
-            let mut device: Devices = Devices::init(compatible, device_type);
+            let mut device: Devices = Devices::init_fdt(compatible, device_type);
             device.info = Some(unsafe { &mut SERIAL_DEVICE_INSTANCE });
             default_device = device;
         }
         #[allow(static_mut_refs)]
         DeviceType::Timer => {
-            let timer_device: TimerDevice = TimerDevice::init(compatible);
+            let timer_device: TimerDevice = TimerDevice::init_fdt(compatible);
             unsafe { TIMER_DEVICE_INSTANCE = timer_device };
-            let mut device: Devices = Devices::init(compatible, device_type);
+            let mut device: Devices = Devices::init_fdt(compatible, device_type);
             device.info = Some(unsafe { &mut TIMER_DEVICE_INSTANCE });
             default_device = device;
         }
         #[allow(static_mut_refs)]
         DeviceType::CpuIntC => {
-            let cpu_intc_device: CpuIntCDevice = CpuIntCDevice::init_info(compatible);
+            let cpu_intc_device: CpuIntCDevice = CpuIntCDevice::init_fdt(compatible);
             unsafe { CPU_INTC_DEVICE_INSTANCE = cpu_intc_device };
             default_device.info = Some(unsafe { &mut CPU_INTC_DEVICE_INSTANCE });
         }
         #[allow(static_mut_refs)]
         DeviceType::CpuFreq => {
-            let cpu_freq_device: CpuFreqDevice = CpuFreqDevice::init();
+            let cpu_freq_device: CpuFreqDevice = CpuFreqDevice::init_fdt();
             unsafe { CPU_FREQ_INSTANCE = cpu_freq_device };
             default_device.info = Some(unsafe { &mut CPU_FREQ_INSTANCE });
         }
@@ -306,12 +306,15 @@ fn init_device(compatible: &'_ str, device_type: DeviceType) -> Option<Devices<'
     Some(default_device)
 }
 
-pub fn devices_get_info(compatible: &'_ str, device_type: DeviceType) -> Option<Devices<'_>> {
+pub fn platform_get_device_info(
+    compatible: &'_ str,
+    device_type: DeviceType,
+) -> Option<Devices<'_>> {
     #[allow(static_mut_refs)]
     match unsafe { PLATFORM_INFO.read_mode() } {
-        true => init_device(compatible, device_type),
+        true => init_fdt_device(compatible, device_type),
         false => {
-            let mut device: &Devices = &Devices::init_default();
+            let mut device: &Devices = &Devices::init();
             for each in DEVICES {
                 if each.header.compatible == compatible {
                     device = each;

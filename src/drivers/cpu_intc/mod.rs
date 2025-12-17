@@ -78,6 +78,6 @@ pub fn init_cpu_intc_subsystem() {
     RiscVCpuIntc::init();
     let size = CPU_INTC_SUBSYSTEM.get_cpu_intc_array_size();
     if size == 0 {
-        panic!("Error while initializing Cpu interrupt-controller sub-system, pool is empty.");
+        panic!("Error while initializing CPU interrupt-controller sub-system, pool is empty.");
     }
 }

@@ -84,7 +84,7 @@ impl DriverRegion {
 
 /// Init all device drivers sub-system, call all init function from device driver structure. The init function
 /// will automatically save the new initialized device drivers it's own sub system static array.
-pub fn init_devices_subsystems() {
+pub fn init_subsystems() {
     kprint!("Serial sub-system initializing...\n");
     init_serial_subsystem();
     log!(

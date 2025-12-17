@@ -12,7 +12,7 @@ pub struct MemoryProvider {
 }
 
 impl MemoryProvider {
-    pub const fn init_default() -> Self {
+    pub const fn init() -> Self {
         unsafe { mem::zeroed() }
     }
 
@@ -37,7 +37,7 @@ impl MemoryProvider {
 pub fn platform_init_mem() -> MemoryProvider {
     #[allow(static_mut_refs)]
     let mode = unsafe { PLATFORM_INFO.read_mode() };
-    let mut mem: MemoryProvider = MemoryProvider::init_default();
+    let mut mem: MemoryProvider = MemoryProvider::init();
     if mode {
         mem = MemoryProvider::init_fdt();
     } else {
