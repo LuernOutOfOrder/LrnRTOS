@@ -51,7 +51,7 @@ debug:
 	$(DEBUGGER) $(BUILD_DIR)
 
 objdump:
-	objdump -Sr $(DBUILD_DIR) > log.txt
+	objdump -Sr $(BUILD_DIR) > logs/objdump.txt
 
 dtc:
 	dtc -I dtb -O dts logs/qemu_dtb.dtb > logs/qemu_dtb.dts

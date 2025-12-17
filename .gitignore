@@ -1,11 +1,6 @@
 /target
-# debug log from qemu
-out.log
-# log from objdump
-log.txt
-
-# dtb files (when dumping from qemu)
-qemu_dtb.*
+# Debug logs
+/logs
 
 # Misc
 .DS_Store
