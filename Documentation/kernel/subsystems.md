@@ -38,3 +38,9 @@ By using trait, when we are writing new timer drivers, we just need to implement
 ## How they work together
 
 If some sub-system need to work together, they just call sub-system functions, like the timer sub-system need the cpu-intc sub-system, so it call the cpu-intc sub-system functions.
+
+## Invariants
+
+Once all sub-systems are initialized; the kernel assumes that all sub-systems are correct and they will not change for the lifetime of the system.
+
+After initialization, all sub-system pools are assumed to have sufficient and fixed capacity; any exhaustion or overflow indicates a violation of kernel assumptions and results in a panic.
