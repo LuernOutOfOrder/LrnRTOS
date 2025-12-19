@@ -2,12 +2,10 @@ use core::ptr;
 
 use arrayvec::ArrayVec;
 
+use crate::config::{FDT_MAX_PROPS, FDT_MAX_STACK};
+
 // Helpers module for node's props recovery
 pub mod helpers;
-
-// Static to define fdt max pool size for nodes and properties storage
-static FDT_MAX_STACK: usize = 64;
-static FDT_MAX_PROPS: usize = 128;
 
 /// Structure for the fdt header, used for parsing fdt. Based on the given structure in official
 /// device tree specifications. See: https://devicetree-specification.readthedocs.io/en/stable/
@@ -42,16 +40,9 @@ impl FdtHeader {
 
 /// Definition of a node, used to save node information in static pool for node recovery outside
 /// the fdt parsing.
-/// nameoff: offset to the node name in structure block.
-/// first_prop_off: offset to the first node's prop in the PROPERTIES_POOL, save only the
-/// first property because all node's properties are following each other in the structure block. So we
-/// only need the first property and a counter of properties to recover them all.
-/// prop_count: counter to keep track of all property found. Increment each time a new property is
-/// found
-/// parent_node_index: the index of the parent node in the device tree, index in NODE_POOL.
-/// Important for keeping the hierarchy of the device tree.
+/// See documentation: `Documentation/kernel/devicetree.md`
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub struct FdtNode {
     // Name is max 31 bytes
     pub nameoff: u32,
@@ -61,7 +52,7 @@ pub struct FdtNode {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 /// Define a property header, len + nameoff of the prop follow by [u8;len] as the value of the
 /// property
 struct FdtPropHeader {
@@ -71,11 +62,8 @@ struct FdtPropHeader {
 
 /// Structure to define a property parsed from fdt, used to save property information in static
 /// pool for property recovery outside the fdt parsing.
-/// nameoff: offset to the property name in the string block.
-/// off_value: offset to the property value in the structure block.
-/// value_len: size of the value in the structure block. Used for parsing and getting the correct
-/// value size.
-#[derive(Clone, Copy, Debug)]
+/// See documentation: `Documentation/kernel/devicetree.md`
+#[derive(Clone, Copy)]
 pub struct Property {
     pub nameoff: usize,
     pub off_value: usize,
@@ -104,6 +92,14 @@ static mut PROPERTIES_POOL: [Property; FDT_MAX_PROPS] = [Property {
 static mut NODE_COUNT: usize = 0;
 static mut PROPS_COUNT: usize = 0;
 
+pub fn fdt_present(dtb: usize) -> bool {
+    let header: FdtHeader = unsafe { ptr::read(dtb as *const FdtHeader) };
+    if !header.valid_magic() {
+        return false;
+    }
+    true
+}
+
 /// Parse the dtb header from the given address and call structure block parsing function
 pub fn parse_dtb_file(dtb: usize) {
     let header: FdtHeader = unsafe { ptr::read(dtb as *const FdtHeader) };
@@ -130,7 +126,8 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
     let fdt_nop = 0x00000004;
     let fdt_end = 0x00000009;
 
-    let mut node_stack: ArrayVec<FdtNode, FDT_MAX_STACK> = ArrayVec::new();
+    // Stack used to save NODE_POOL size and keep hierarchie during the parsing
+    let mut node_stack: ArrayVec<usize, FDT_MAX_STACK> = ArrayVec::new();
     loop {
         let token = u32::from_be(unsafe { ptr::read(cursor as *const u32) });
         cursor += 4;
@@ -143,12 +140,19 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
                     if node_stack.is_empty() {
                         None
                     } else {
-                        Some(node_stack.len())
+                        // Parent index is the last element of the stack (index inside the
+                        // NODE_POOL)
+                        Some(*node_stack.last().unwrap())
                     }
                 },
             };
-            // Push new node to top of the stack
-            node_stack.push(node);
+            // Push new node index to top of the stack
+            node_stack.push(unsafe { NODE_COUNT });
+            unsafe {
+                NODE_POOL[NODE_COUNT] = node;
+                // Increment node_count
+                NODE_COUNT += 1;
+            };
             // Bitwise to re align cursor on 4 bytes
             cursor = (cursor + 3) & !3;
             continue;
@@ -162,26 +166,26 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
         if token == fdt_prop {
             // Cast current cursor ptr as prop header
             let prop_header: FdtPropHeader = unsafe { ptr::read(cursor as *const FdtPropHeader) };
-            if let Some(mut node) = node_stack.pop() {
-                if node.first_prop_off == 0 {
-                    node.first_prop_off = unsafe { PROPS_COUNT } as u32;
-                    node.prop_count += 1;
-                } else {
-                    node.prop_count += 1;
-                }
-                let prop: Property = Property {
-                    nameoff: string_block_off + prop_header.nameoff.swap_bytes() as usize,
-                    off_value: cursor + size_of::<FdtPropHeader>(),
-                    value_len: prop_header.len.swap_bytes(),
-                };
-                // Push new property in static pool and increment static pool prop counter
-                unsafe {
-                    PROPERTIES_POOL[PROPS_COUNT] = prop;
-                    PROPS_COUNT += 1;
-                }
-                // Re push popped node from stack to the top of it
-                node_stack.push(node);
+            let idx = node_stack.last().unwrap();
+            let mut node = unsafe { NODE_POOL[*idx] };
+            if node.first_prop_off == 0 && node.parent_node_index.is_some() {
+                node.first_prop_off = unsafe { PROPS_COUNT } as u32;
+                node.prop_count += 1;
+            } else {
+                node.prop_count += 1;
             }
+            let prop: Property = Property {
+                nameoff: string_block_off + prop_header.nameoff.swap_bytes() as usize,
+                off_value: cursor + size_of::<FdtPropHeader>(),
+                value_len: prop_header.len.swap_bytes(),
+            };
+            // Push new property in static pool and increment static pool prop counter
+            unsafe {
+                PROPERTIES_POOL[PROPS_COUNT] = prop;
+                PROPS_COUNT += 1;
+            }
+            // Update node from NODE_POOL
+            unsafe { NODE_POOL[*idx] = node };
             // Increment the cursor by the len of the prop
             cursor += size_of::<FdtPropHeader>() + prop_header.len.swap_bytes() as usize;
             // Align cursor on 4 bytes
@@ -190,21 +194,13 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
         }
         if token == fdt_end_node {
             // Pop top of the node stack or continue if stack empty
-            let node = {
-                if !node_stack.is_empty() {
-                    node_stack
-                        .pop()
-                        .expect("Failed to pop the top of FDT node stack")
-                } else {
-                    continue;
-                }
-            };
-            // Update node pool to add static node
-            unsafe {
-                NODE_POOL[NODE_COUNT] = node;
-                // Increment node_count
-                NODE_COUNT += 1;
-            };
+            if !node_stack.is_empty() {
+                node_stack
+                    .pop()
+                    .expect("Failed to pop the top of FDT node stack");
+            } else {
+                continue;
+            }
             continue;
         }
     }

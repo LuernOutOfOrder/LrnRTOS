@@ -1,38 +1,55 @@
 #![no_std]
 #![no_main]
-#![warn(static_mut_refs)]
+
+// Config module
+pub mod config;
 
 // Arch specific module
 pub mod arch;
-// Devices module
-pub mod devices;
-// Device tree module
-mod dtb;
+
+// Drivers module
+pub mod drivers;
+
+// Device init
+pub mod devices_info;
+pub mod platform;
+
 // Logging modules
-pub mod log;
+pub mod kprint;
+pub mod logs;
 pub mod print;
+
+// Module for kernel time
+pub mod ktime;
+
+// Memory management module
+pub mod mem;
+
+// Misc mod
+pub mod misc;
+
+// Early boot module
+pub mod boot;
 
 use core::panic::PanicInfo;
 
-use devices::init_devices;
+// Use from modules
+use logs::LogLevel;
 
-pub fn main(dtb_addr: usize) -> ! {
-    dtb::parse_dtb_file(dtb_addr);
-    init_devices();
-    print!("Hello from LrnRTOS!");
+#[unsafe(no_mangle)]
+unsafe extern "C" fn main() -> ! {
+    log!(LogLevel::Debug, "Successfully switch to new kernel stack.");
+    log!(LogLevel::Info, "LrnRTOS started!");
     loop {
+        log!(LogLevel::Debug, "Main loop uptime.");
         unsafe {
-            arch::interrupt::enable_and_halt();
+            arch::traps::interrupt::enable_and_halt();
         }
     }
 }
 
 #[panic_handler]
 fn panic_handler(panic: &PanicInfo) -> ! {
-    print!("PANIC {:?}", panic);
-    loop {
-        unsafe {
-            arch::interrupt::enable_and_halt();
-        }
-    }
+    kprint_fmt!("PANIC {:?}", panic);
+    loop {}
 }

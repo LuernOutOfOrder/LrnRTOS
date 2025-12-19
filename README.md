@@ -10,9 +10,11 @@ As this is my first real kernel, I want to make everything from scratch to reall
 
 Features that are currently working:
 
-- Parsing FDT.
-- Init drivers from parsed node in FDT.
-- Printing with format from core::fmt::Write using an initialized driver.
+- Platform layer using FDT or statically defined devices.
+- Init drivers from platform layer.
+- Sub-systems for each type of devices(serial, timer, etc).
+- Machine memory handling.
+- Traps handling(interruptions and exceptions handling).
 
 ### Current target:
 
@@ -25,13 +27,13 @@ Target where the kernel can build, boot, and run:
 To build the kernel, use the following command:
 
 ```bash
-make rbuild
+make build
 ```
 
 To run the kernel in qemu, use the following command:
 
 ```bash
-make run
+make
 ```
 
 ## Makefile commands
@@ -39,24 +41,39 @@ make run
 List of other makefile commands:
 
 ```bash
-# Clean the target folder and generate log files.
+# Run the kernel using config in makefile(qemu config and targeted binary)
+make run
+
+# Available flags for run commands:
+# DEBUG=1 -> run qemu with gdb flags, use to debug using gdb from `make debug` command.
+# DUMP_LOGS=1 -> dump logs from target binary into a out.log in logs/.
+# DUMP_DTB=1 -> dump the dtb from qemu, generate a .dtb file in logs/. Make it readable using the `make dtc` command
+
+# Build the kernel using cargo commands
+make build
+
+# Check all kernel source code, correctly formated files and no warnings
+make check
+
+# Clean the logs and target directories
 make clean
 
-# Build for debug
-make dbuild
-
-# Debug run collecting basic log from qemu
-make drun
-
-# Clean target folder and build for release
-make cbuild
-
-# Run gdb with debug target for debugging
+# Run gdb with target for debugging
 make debug
 
-# Run objdump and redirect output to a log.txt from debug binary
+# Run objdump and redirect output to a log.txt in logs/ dir from debug binary
 make objdump
+
+# Convert the dump DTB from qemu to a dts file
+make dtc
 ```
+
+## Documentation
+
+All architecture and design choices are documented here: `Documentation/`.
+
+A documentation for configuration and usage is coming soon.
+
 
 ## Resources
 

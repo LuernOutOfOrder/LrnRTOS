@@ -2,9 +2,6 @@
 build-std-features = ["compiler-builtins-mem"]
 build-std = ["core", "compiler_builtins"]
 
-[env]
-ESP_HAL_CONFIG_PLACE_ANON_IN_RAM = "true"
-
 [build]
 target = "arch/riscv32imc-unknown-none-elf.json"
 
@@ -12,26 +9,41 @@ target = "arch/riscv32imc-unknown-none-elf.json"
 rustflags = [
   # Give linker.ld file
   "-C",
-  "link-arg=linker.ld",
+  "link-arg=linkers/linker.ld",
   # Static compilation
   "-C",
   "link-arg=-static",
   "-C",
   "relocation-model=static",
-  # Keep debug sym
-  "-C",
-  "debuginfo=2",
-  "-C",
-  "panic=abort",
+  # Print memory usage 
   "-C",
   "link-arg=--print-memory-usage",
+  # "-C",
+  # "link-arg=-Map=memory.map",
 ]
 
 [profile.dev]
 opt-level = 0
-debug = true
+debug = 2
+debug-assertions = true 
 lto = false
+strip = false
 codegen-units = 1
+panic = "unwind"
+
+[profile.release]
+opt-level = 2
+lto = "fat"
+strip = true
+codegen-units = 1
+panic = "abort"
+debug = false
+debug-assertions = false 
 
 [alias]
+b = "build --profile=dev"
+rb = "build --profile=release"
+c = "clean"
 ft = "fmt --all -- --check"
+w = "clippy -- -D warnings"
+t = "test"

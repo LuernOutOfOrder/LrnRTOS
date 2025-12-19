@@ -1,7 +1,7 @@
 ENTRY(kstart)
 
 MEMORY {
-  RAM (rwx) : ORIGIN = 0x80200000, LENGTH = 128K
+  RAM (rwx) : ORIGIN = 0x80000000, LENGTH = 128K
 }
 
 SECTIONS {
@@ -27,7 +27,7 @@ SECTIONS {
   .stack (NOLOAD) : ALIGN(4)
 {
   stack_top = ORIGIN(RAM) + LENGTH(RAM);  /* stack starts at RAM top */
-  . = stack_top - 0x4000;                 /* 0x4000 = 16 KiB */
+  . = stack_top - 0x2000;                 /* 0x4000 = 16 KiB */
   stack_start = .;
 } > RAM
   

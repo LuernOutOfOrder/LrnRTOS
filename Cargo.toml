@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 arrayvec = {version = "0.7.6", default-features = false}
 
-[profile.dev]
-debug = true
-panic = "abort"
+[features]
+default = ["logs", "kprint"]
+logs = []
+kprint = []

@@ -41,11 +41,13 @@ jobs:
       run: rustup component add rust-src --toolchain ${{ matrix.toolchain }}
     - name: Add rustfmt
       run: rustup component add rustfmt --toolchain ${{ matrix.toolchain }}
+    - name: Add clippy
+      run: rustup component add clippy --toolchain  ${{ matrix.toolchain }}
     - name: Build for target
       run: cargo build --release --target ${{ matrix.target }}
     - name: Check formatting
       run: cargo fmt --all -- --check
+    - name: Lint
+      run: cargo clippy -- -D warnings
     # - name: Run tests
     #   run: cargo test --verbose
-    # - name: Lint
-    #   run: cargo clippy -- -D warnings

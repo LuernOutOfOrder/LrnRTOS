@@ -1,8 +1,7 @@
+# Build directory
 /target
-# debug log from qemu
-out.log
-# log from objdump
-log.txt
+# Debug logs
+/logs
 
-# dtb files (when dumping from qemu)
-qemu_dtb.*
+# Misc
+.DS_Store
