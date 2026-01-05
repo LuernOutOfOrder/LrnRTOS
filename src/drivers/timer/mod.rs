@@ -15,6 +15,7 @@ pub trait Timer {
 // All timers driver use this enum to tell what type the timer is, and the sub-system use it to
 // select specific driver for specific task.
 #[derive(Copy, Clone, PartialEq)]
+#[repr(u8)]
 pub enum TimerType {
     ArchitecturalTimer,
     SoCTimer,
@@ -27,8 +28,8 @@ enum TimerDeviceDriver {
 
 #[derive(Copy, Clone)]
 pub struct TimerDevice {
-    timer_type: TimerType,
     device: TimerDeviceDriver,
+    timer_type: TimerType,
 }
 
 impl TimerDevice {
@@ -50,10 +51,10 @@ impl TimerDevice {
 }
 
 pub struct TimerSubSystem {
-    // Timer for scheduling and global work on the kernel
-    pub primary_timer: UnsafeCell<Option<TimerDevice>>,
     // Timer pool where all timer initialized is store, waiting to be assigned at another field
     pub timer_pool: UnsafeCell<[Option<TimerDevice>; TIMER_MAX_SIZE]>,
+    // Timer for scheduling and global work on the kernel
+    pub primary_timer: UnsafeCell<Option<TimerDevice>>,
 }
 
 unsafe impl Sync for TimerSubSystem {}

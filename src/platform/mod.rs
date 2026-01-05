@@ -39,6 +39,8 @@ pub fn platform_init(dtb_addr: usize) {
 
 #[derive(Copy, Clone)]
 // Store the enum as an u8
+// Avoid Rust compilation optimization and can be useful in future if need access outside the
+// platform module, like in asm.
 #[repr(u8)]
 pub enum DeviceType {
     Serial,
