@@ -12,9 +12,9 @@ use super::{TIMER_SUBSYSTEM, Timer, TimerDevice, TimerType};
 
 #[derive(Copy, Clone)]
 pub struct Clint0 {
-    region: DriverRegion,
     #[allow(unused)]
     interrupt_extended: [InterruptExtended; 4],
+    region: DriverRegion,
 }
 
 impl Timer for Clint0 {
