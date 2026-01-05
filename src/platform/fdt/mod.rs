@@ -45,10 +45,10 @@ impl FdtHeader {
 #[derive(Copy, Clone)]
 pub struct FdtNode {
     // Name is max 31 bytes
+    pub parent_node_index: Option<usize>,
     pub nameoff: u32,
     pub first_prop_off: u32,
     pub prop_count: u16,
-    pub parent_node_index: Option<usize>,
 }
 
 #[repr(C)]

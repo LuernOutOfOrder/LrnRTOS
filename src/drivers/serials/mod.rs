@@ -26,9 +26,9 @@ enum SerialDeviceDriver {
 /// default_console: if it's the default console to use or not
 /// driver: enum unions with all serial driver structure
 pub struct SerialDevice {
+    driver: SerialDeviceDriver,
     _id: usize,
     default_console: bool,
-    driver: SerialDeviceDriver,
 }
 
 impl SerialDevice {

@@ -38,6 +38,10 @@ pub fn platform_init(dtb_addr: usize) {
 }
 
 #[derive(Copy, Clone)]
+// Store the enum as an u8
+// Avoid Rust compilation optimization and can be useful in future if need access outside the
+// platform module, like in asm.
+#[repr(u8)]
 pub enum DeviceType {
     Serial,
     Timer,
@@ -50,10 +54,11 @@ pub trait DeviceInfo {}
 /// Structure used to define a serial device.
 /// Only used in static SERIAL_DEVICES
 #[derive(Copy, Clone)]
+#[repr(C)]
 pub struct DevicesHeader<'a> {
-    pub device_type: DeviceType,
     pub compatible: &'a str,
     pub device_addr: DriverRegion,
+    pub device_type: DeviceType,
 }
 
 #[derive(Copy, Clone)]
@@ -153,12 +158,12 @@ pub struct TimerDevice {
 
 #[derive(Copy, Clone)]
 pub struct InterruptExtended {
+    // Array of all irq
+    pub irq_ids: [u32; 4],
     // CPU core id
     pub cpu_intc: u32,
     // Field to follow the len of the irq_ids array to avoid crushing valid data
     pub irq_len: usize,
-    // Array of all irq
-    pub irq_ids: [u32; 4],
 }
 
 impl TimerDevice {
