@@ -10,28 +10,30 @@ pub mod riscv_cpu_intc;
 pub trait CpuIntc {}
 
 #[derive(Copy, Clone)]
-enum CpuIntcDriverEnum {
+// Unions enum for CpuIntcDriver struct
+// avoid using &'static mut dyn CpuIntc
+enum CpuIntcDriver {
     #[allow(unused)]
     RiscVCpuIntc(RiscVCpuIntc),
 }
 
 #[derive(Copy, Clone)]
-pub struct CpuIntcDriver {
+pub struct CpuIntcHw {
     #[allow(unused)]
-    driver: CpuIntcDriverEnum,
+    driver: CpuIntcDriver,
 }
 
-impl CpuIntcDriver {
+impl CpuIntcHw {
     pub fn get_cpu_intc_core_id(&self) -> u32 {
         match self.driver {
-            CpuIntcDriverEnum::RiscVCpuIntc(riscv_cpu_intc) => riscv_cpu_intc.hart_id,
+            CpuIntcDriver::RiscVCpuIntc(riscv_cpu_intc) => riscv_cpu_intc.hart_id,
         }
     }
 }
 
 // Structure handling the cpu interrupt-controller initialized drivers
 pub struct CpuIntcSubSystem {
-    cpu_intc_pool: UnsafeCell<[Option<CpuIntcDriver>; CPU_INTC_MAX_SIZE]>,
+    cpu_intc_pool: UnsafeCell<[Option<CpuIntcHw>; CPU_INTC_MAX_SIZE]>,
 }
 
 unsafe impl Sync for CpuIntcSubSystem {}
@@ -47,11 +49,11 @@ impl CpuIntcSubSystem {
     ///
     /// Params:
     /// &self: the sub-system structure.
-    /// cpu_intc: static structure of a driver implementing the CpuIntc trait.
+    /// cpu_intc: structure of a CPU interrupt-controller "driver".
     /// index: used to represent the CPU interrupt-controller core id, also used as an index in
     /// the sub-system pool. Because there's only one CPU interrupt-controller per CPU core, no
     /// overlap possible.
-    pub fn add_cpu_intc(&self, cpu_intc: CpuIntcDriver, index: usize) {
+    pub fn add_cpu_intc(&self, cpu_intc: CpuIntcHw, index: usize) {
         let size = self.get_cpu_intc_array_size();
         if size == CPU_INTC_MAX_SIZE {
             panic!(
@@ -74,11 +76,9 @@ impl CpuIntcSubSystem {
         size
     }
 
-    pub fn get_cpu_intc(&self, index: usize) -> Option<&CpuIntcDriver> {
+    pub fn get_cpu_intc(&self, index: usize) -> Option<&CpuIntcHw> {
         let cpu_intc = unsafe { &(*self.cpu_intc_pool.get())[index] };
         if let Some(cpu_intc_driver) = cpu_intc {
-            // ptr was created from a &'static mut dyn CpuIntc in add_cpu_intc,
-            // converting the raw pointer back to a &'static mut is safe.
             Some(cpu_intc_driver)
         } else {
             None
@@ -90,9 +90,10 @@ impl CpuIntcSubSystem {
 pub static CPU_INTC_SUBSYSTEM: CpuIntcSubSystem = CpuIntcSubSystem::init();
 
 /// Initialize the CPU interrupt-controller sub-system with all drivers available.
-/// Call all cpu_intc driver init function, if the fn find a compatible node in the fdt, continue
-/// the init and auto register itself in the sub-system. Else, if the init function doesn't find a
-/// compatible node, it return to give the next driver init function the turn.
+/// Call all cpu_intc driver init function, if the fn find a compatible device in the platform
+/// layer, continue
+/// Init and register in the sub-system. Else, if the init function doesn't find a
+/// compatible device, it return to give the next driver init function the turn.
 /// Panic if after all drivers init the sub-system pool is empty.
 pub fn init_cpu_intc_subsystem() {
     let riscv_cpuintc = RiscVCpuIntc::init();
