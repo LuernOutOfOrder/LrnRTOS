@@ -9,32 +9,32 @@ use crate::config::SERIAL_MAX_SIZE;
 
 pub mod ns16550;
 
-/// Generic trait to implement in each uart driver
-pub trait UartDriver: Send + Sync + Write {
+/// Generic trait to implement in each serial driver
+pub trait SerialDriver: Send + Sync + Write {
     // Write char at address
     fn putchar(&self, c: u8);
     // Get char from address
     fn getchar(&self) -> u8;
 }
 
-enum UartDeviceDriver {
+enum SerialDeviceDriver {
     Ns16550(Ns16550),
 }
 
-/// Generic struct for each uart device
+/// Generic struct for each serial device
 /// id: the device id for faster access or identification
 /// default_console: if it's the default console to use or not
-/// driver: ptr to any struct implementing the UartDriver trait
-pub struct UartDevice {
+/// driver: enum unions with all serial driver structure
+pub struct SerialDevice {
     _id: usize,
     default_console: bool,
-    driver: UartDeviceDriver,
+    driver: SerialDeviceDriver,
 }
 
-impl UartDevice {
+impl SerialDevice {
     pub fn write_fmt(&mut self, s: core::fmt::Arguments) -> fmt::Result {
         match &mut self.driver {
-            UartDeviceDriver::Ns16550(ns16550) => ns16550.write_fmt(s),
+            SerialDeviceDriver::Ns16550(ns16550) => ns16550.write_fmt(s),
         }
     }
 }
@@ -43,7 +43,7 @@ impl UartDevice {
 /// Devices: use an UnsafeCell with an array of Option<UartDevice> used to store and retrieve all
 /// device initialized.
 pub struct SerialManager {
-    pub devices: UnsafeCell<[Option<UartDevice>; SERIAL_MAX_SIZE]>,
+    pub devices: UnsafeCell<[Option<SerialDevice>; SERIAL_MAX_SIZE]>,
 }
 
 unsafe impl Sync for SerialManager {}
@@ -58,7 +58,7 @@ impl SerialManager {
     /// Add a new serial to the device UnsafeCell array at index where there's no device
     /// By default if there's no device saved in devices, it'll set the first serial saved as
     /// default console
-    pub fn add_serial(&self, serial: UartDevice) {
+    pub fn add_serial(&self, serial: SerialDevice) {
         let mut index_none: usize = 0;
         for i in 0..4 {
             let device = unsafe { (&*self.devices.get())[i].as_ref() };
@@ -68,7 +68,7 @@ impl SerialManager {
             }
         }
         if index_none == 0 {
-            let update_serial = UartDevice {
+            let update_serial = SerialDevice {
                 _id: serial._id,
                 default_console: true,
                 driver: serial.driver,
@@ -79,8 +79,8 @@ impl SerialManager {
         }
     }
 
-    /// Return static reference static mutable of UartDevice default_console
-    pub fn get_default_console(&self) -> Option<&'static mut UartDevice> {
+    /// Return static reference static mutable of SerialDevice default_console
+    pub fn get_default_console(&self) -> Option<&'static mut SerialDevice> {
         let devices = unsafe { &mut *self.devices.get() };
         devices
             .iter_mut()
