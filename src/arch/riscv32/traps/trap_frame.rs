@@ -9,10 +9,10 @@ pub struct TrapFrame {
     pub gp_regs: [u32; 32], // x0..x31  - integer registers
     // Supervisor Address Translation and Protection Register (satp register only exist when supervisor mode is enabled)
     pub satp: u32, // Offset in struct 128
-    // Mutable ptr to a bytes buffer to save trap stack
-    pub trap_stack: *mut u8, // offset in struct 132
     // Current hart id
     pub hartid: u32, // offset in struct 136
+    // Mutable ptr to a bytes buffer to save trap stack
+    pub trap_stack: *mut u8, // offset in struct 132
 }
 
 impl TrapFrame {
@@ -21,8 +21,8 @@ impl TrapFrame {
         TrapFrame {
             gp_regs: [0; 32],
             satp: 0,
-            trap_stack: null_mut(),
             hartid: 0,
+            trap_stack: null_mut(),
         }
     }
 }
