@@ -89,12 +89,6 @@ impl CpuIntcSubSystem {
 // Init static CPU interrupt-controller sub-system
 pub static CPU_INTC_SUBSYSTEM: CpuIntcSubSystem = CpuIntcSubSystem::init();
 
-/// Initialize the CPU interrupt-controller sub-system with all drivers available.
-/// Call all cpu_intc driver init function, if the fn find a compatible device in the platform
-/// layer, continue
-/// Init and register in the sub-system. Else, if the init function doesn't find a
-/// compatible device, it return to give the next driver init function the turn.
-/// Panic if after all drivers init the sub-system pool is empty.
 pub fn init_cpu_intc_subsystem() {
     let riscv_cpuintc = RiscVCpuIntc::init();
     if let Some(r) = riscv_cpuintc {

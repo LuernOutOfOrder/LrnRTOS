@@ -140,11 +140,6 @@ impl TimerSubSystem {
 // Init static timer sub-system
 pub static TIMER_SUBSYSTEM: TimerSubSystem = TimerSubSystem::init();
 
-/// Initialize the timer sub-system with all drivers available.
-/// Call all timer driver init function, if the fn find a compatible node in the fdt, continue
-/// the init and auto register itself in the sub-system. Else, if the init function doesn't find a
-/// compatible node, it return to give the next driver init function the turn.
-/// Panic if after all drivers init the sub-system pool is empty.
 pub fn init_timer_subsystem() {
     let clint = Clint0::init();
     if let Some(c) = clint {
