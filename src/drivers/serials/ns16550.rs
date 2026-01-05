@@ -1,7 +1,7 @@
 use core::fmt::{self, Write};
 
 use crate::{
-    drivers::{DriverRegion, serials::SERIAL_DEVICES},
+    drivers::DriverRegion,
     platform::{DeviceType, platform_get_device_info},
 };
 
@@ -34,31 +34,19 @@ impl Write for Ns16550 {
     }
 }
 
-/// Static Ns16550 instance used when creating a new driver.
-static mut NS16550_INSTANCE: Ns16550 = Ns16550 {
-    region: DriverRegion { addr: 0, size: 0 },
-};
-
 /// Implementation of the Ns16550
 impl Ns16550 {
     /// Init a new Ns16550 from the given fdt node
-    pub fn init() {
-        let device_info = match platform_get_device_info("ns16550a", DeviceType::Serial) {
-            Some(d) => d,
-            None => return,
-        };
+    pub fn init() -> Option<UartDevice> {
+        let device_info = platform_get_device_info("ns16550a", DeviceType::Serial)?;
         let ns16550: Ns16550 = Ns16550 {
             region: device_info.header.device_addr,
         };
-        unsafe { NS16550_INSTANCE = ns16550 };
         let device = UartDevice {
             _id: 0,
             default_console: false,
-            // Allow static mut refs because it's only use on early boot and there's no concurrent
-            // access
-            #[allow(static_mut_refs)]
-            driver: unsafe { &mut NS16550_INSTANCE },
+            driver: super::UartDeviceDriverType::Ns16550(ns16550),
         };
-        SERIAL_DEVICES.add_serial(device);
+        Some(device)
     }
 }

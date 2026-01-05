@@ -3,7 +3,7 @@ use crate::drivers::serials::SERIAL_DEVICES;
 /// Get uart set with default console and pass arg to write_fmt function of the driver
 pub fn print(arg: core::fmt::Arguments) {
     if let Some(device) = SERIAL_DEVICES.get_default_console() {
-        let _ = device.driver.write_fmt(arg);
+        let _ = device.write_fmt(arg);
     } else {
         panic!("Default console not found");
     }

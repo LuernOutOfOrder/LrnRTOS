@@ -1,4 +1,7 @@
-use core::{cell::UnsafeCell, fmt::Write};
+use core::{
+    cell::UnsafeCell,
+    fmt::{self, Write},
+};
 
 use ns16550::Ns16550;
 
@@ -14,6 +17,10 @@ pub trait UartDriver: Send + Sync + Write {
     fn getchar(&self) -> u8;
 }
 
+enum UartDeviceDriverType {
+    Ns16550(Ns16550),
+}
+
 /// Generic struct for each uart device
 /// id: the device id for faster access or identification
 /// default_console: if it's the default console to use or not
@@ -21,7 +28,21 @@ pub trait UartDriver: Send + Sync + Write {
 pub struct UartDevice {
     _id: usize,
     default_console: bool,
-    pub driver: &'static mut dyn UartDriver,
+    driver: UartDeviceDriverType,
+}
+
+impl UartDevice {
+    pub fn putchar(&self, c: u8) {
+        match &self.driver {
+            UartDeviceDriverType::Ns16550(ns16550) => ns16550.putchar(c),
+        }
+    }
+
+    pub fn write_fmt(&mut self, s: core::fmt::Arguments) -> fmt::Result {
+        match &mut self.driver {
+            UartDeviceDriverType::Ns16550(ns16550) => ns16550.write_fmt(s),
+        }
+    }
 }
 
 /// Define and manage all serial devices.
@@ -94,7 +115,10 @@ impl SerialManager {
 pub static SERIAL_DEVICES: SerialManager = SerialManager::init();
 
 pub fn init_serial_subsystem() {
-    Ns16550::init();
+    let ns16550 = Ns16550::init();
+    if let Some(ns) = ns16550 {
+        SERIAL_DEVICES.add_serial(ns);
+    }
     let size = SERIAL_DEVICES.get_serial_array_size();
     if size == 0 {
         panic!("Error while initializing serial sub-system, pool is empty.");
