@@ -5,7 +5,7 @@ use crate::{
     platform::{DeviceType, platform_get_device_info},
 };
 
-use super::{SerialDevice, SerialDeviceDriver, SerialDriver, SERIAL_SUBSYSTEM};
+use super::{SERIAL_SUBSYSTEM, SerialDevice, SerialDeviceDriver, SerialDriver};
 
 /// Structure for Ns16550 driver
 /// region: DriverRegion struct to define address memory region to use with the driver and the address size
@@ -37,7 +37,7 @@ impl Write for Ns16550 {
 /// Implementation of the Ns16550
 impl Ns16550 {
     /// Init a new Ns16550 from the platform layer
-    pub fn init(){
+    pub fn init() {
         let device_info = match platform_get_device_info("ns16550a", DeviceType::Serial) {
             Some(d) => d,
             None => return,

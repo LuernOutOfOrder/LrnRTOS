@@ -1,9 +1,9 @@
 use crate::{
     misc::RawTraitObject,
-    platform::{PlatformCpuIntCDevice, DeviceType, platform_get_device_info},
+    platform::{DeviceType, PlatformCpuIntCDevice, platform_get_device_info},
 };
 
-use super::{CpuIntc, CpuIntcDriver, CpuIntcHw, CPU_INTC_SUBSYSTEM};
+use super::{CPU_INTC_SUBSYSTEM, CpuIntc, CpuIntcDriver, CpuIntcHw};
 
 #[derive(Clone, Copy)]
 pub struct RiscVCpuIntc {

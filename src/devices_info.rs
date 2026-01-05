@@ -3,8 +3,8 @@
 use crate::{
     drivers::DriverRegion,
     platform::{
-        PlatformCpuFreqDevice, PlatformCpuIntCDevice, DeviceInfo, DeviceType, Devices, DevicesHeader,
-        InterruptExtended, PlatformSerialDevice, TimerDevice, mem::MemoryProvider,
+        DeviceInfo, DeviceType, Devices, DevicesHeader, InterruptExtended, PlatformCpuFreqDevice,
+        PlatformCpuIntCDevice, PlatformSerialDevice, TimerDevice, mem::MemoryProvider,
     },
 };
 
