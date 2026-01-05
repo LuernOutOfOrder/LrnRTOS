@@ -90,10 +90,7 @@ impl CpuIntcSubSystem {
 pub static CPU_INTC_SUBSYSTEM: CpuIntcSubSystem = CpuIntcSubSystem::init();
 
 pub fn init_cpu_intc_subsystem() {
-    let riscv_cpuintc = RiscVCpuIntc::init();
-    if let Some(r) = riscv_cpuintc {
-        CPU_INTC_SUBSYSTEM.add_cpu_intc(r, r.get_cpu_intc_core_id() as usize);
-    }
+    RiscVCpuIntc::init();
     let size = CPU_INTC_SUBSYSTEM.get_cpu_intc_array_size();
     if size == 0 {
         panic!("Error while initializing CPU interrupt-controller sub-system, pool is empty.");
