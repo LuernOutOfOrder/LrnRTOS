@@ -45,7 +45,7 @@ impl Ns16550 {
         let device = UartDevice {
             _id: 0,
             default_console: false,
-            driver: super::UartDeviceDriverType::Ns16550(ns16550),
+            driver: super::UartDeviceDriver::Ns16550(ns16550),
         };
         Some(device)
     }

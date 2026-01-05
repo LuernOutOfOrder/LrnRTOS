@@ -17,7 +17,7 @@ pub trait UartDriver: Send + Sync + Write {
     fn getchar(&self) -> u8;
 }
 
-enum UartDeviceDriverType {
+enum UartDeviceDriver {
     Ns16550(Ns16550),
 }
 
@@ -28,19 +28,13 @@ enum UartDeviceDriverType {
 pub struct UartDevice {
     _id: usize,
     default_console: bool,
-    driver: UartDeviceDriverType,
+    driver: UartDeviceDriver,
 }
 
 impl UartDevice {
-    pub fn putchar(&self, c: u8) {
-        match &self.driver {
-            UartDeviceDriverType::Ns16550(ns16550) => ns16550.putchar(c),
-        }
-    }
-
     pub fn write_fmt(&mut self, s: core::fmt::Arguments) -> fmt::Result {
         match &mut self.driver {
-            UartDeviceDriverType::Ns16550(ns16550) => ns16550.write_fmt(s),
+            UartDeviceDriver::Ns16550(ns16550) => ns16550.write_fmt(s),
         }
     }
 }
