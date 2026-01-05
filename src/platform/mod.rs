@@ -95,21 +95,21 @@ impl Devices<'_> {
 
 unsafe impl<'a> Sync for Devices<'a> {}
 
-pub struct SerialDevice {}
+pub struct PlatformSerialDevice {}
 
-impl SerialDevice {
+impl PlatformSerialDevice {
     pub const fn init() -> Self {
-        SerialDevice {}
+        PlatformSerialDevice {}
     }
 }
 
-pub struct CpuIntCDevice {
+pub struct PlatformCpuIntCDevice {
     pub core_id: u32,
 }
 
-impl CpuIntCDevice {
+impl PlatformCpuIntCDevice {
     pub const fn init() -> Self {
-        CpuIntCDevice { core_id: 0 }
+        PlatformCpuIntCDevice { core_id: 0 }
     }
 
     pub fn init_fdt(compatible: &'_ str) -> Self {
@@ -124,17 +124,17 @@ impl CpuIntCDevice {
         let reg = fdt_get_node_prop(&parent_node, "reg")
             .expect("ERROR: riscv,cpu-intc parent has no reg property in fdt");
         let reg_value = u32::from_be(unsafe { ptr::read(reg.off_value as *const u32) });
-        CpuIntCDevice { core_id: reg_value }
+        PlatformCpuIntCDevice { core_id: reg_value }
     }
 }
 
-pub struct CpuFreqDevice {
+pub struct PlatformCpuFreqDevice {
     pub freq: u32,
 }
 
-impl CpuFreqDevice {
+impl PlatformCpuFreqDevice {
     pub const fn init() -> Self {
-        CpuFreqDevice { freq: 0 }
+        PlatformCpuFreqDevice { freq: 0 }
     }
 
     pub fn init_fdt() -> Self {
@@ -143,7 +143,7 @@ impl CpuFreqDevice {
             None => panic!("Error while creating new CPU freq generic structure"),
         };
         let freq_value = fdt_get_prop_u32_value(cpus_freq);
-        CpuFreqDevice { freq: freq_value }
+        PlatformCpuFreqDevice { freq: freq_value }
     }
 }
 
@@ -261,22 +261,22 @@ impl TimerDevice {
 }
 
 // Implement DeviceInfo trait to all Device type structure
-impl DeviceInfo for SerialDevice {}
+impl DeviceInfo for PlatformSerialDevice {}
 impl DeviceInfo for TimerDevice {}
-impl DeviceInfo for CpuIntCDevice {}
-impl DeviceInfo for CpuFreqDevice {}
+impl DeviceInfo for PlatformCpuIntCDevice {}
+impl DeviceInfo for PlatformCpuFreqDevice {}
 
 static mut TIMER_DEVICE_INSTANCE: TimerDevice = TimerDevice::init();
-static mut SERIAL_DEVICE_INSTANCE: SerialDevice = SerialDevice::init();
-static mut CPU_INTC_DEVICE_INSTANCE: CpuIntCDevice = CpuIntCDevice::init();
-static mut CPU_FREQ_INSTANCE: CpuFreqDevice = CpuFreqDevice::init();
+static mut SERIAL_DEVICE_INSTANCE: PlatformSerialDevice = PlatformSerialDevice::init();
+static mut CPU_INTC_DEVICE_INSTANCE: PlatformCpuIntCDevice = PlatformCpuIntCDevice::init();
+static mut CPU_FREQ_INSTANCE: PlatformCpuFreqDevice = PlatformCpuFreqDevice::init();
 
 fn init_fdt_device(compatible: &'_ str, device_type: DeviceType) -> Option<Devices<'_>> {
     let mut default_device: Devices = Devices::init();
     match device_type {
         #[allow(static_mut_refs)]
         DeviceType::Serial => {
-            let serial_device: SerialDevice = SerialDevice::init();
+            let serial_device: PlatformSerialDevice = PlatformSerialDevice::init();
             unsafe { SERIAL_DEVICE_INSTANCE = serial_device };
             let mut device: Devices = Devices::init_fdt(compatible, device_type);
             device.info = Some(unsafe { &mut SERIAL_DEVICE_INSTANCE });
@@ -292,13 +292,14 @@ fn init_fdt_device(compatible: &'_ str, device_type: DeviceType) -> Option<Devic
         }
         #[allow(static_mut_refs)]
         DeviceType::CpuIntC => {
-            let cpu_intc_device: CpuIntCDevice = CpuIntCDevice::init_fdt(compatible);
+            let cpu_intc_device: PlatformCpuIntCDevice =
+                PlatformCpuIntCDevice::init_fdt(compatible);
             unsafe { CPU_INTC_DEVICE_INSTANCE = cpu_intc_device };
             default_device.info = Some(unsafe { &mut CPU_INTC_DEVICE_INSTANCE });
         }
         #[allow(static_mut_refs)]
         DeviceType::CpuFreq => {
-            let cpu_freq_device: CpuFreqDevice = CpuFreqDevice::init_fdt();
+            let cpu_freq_device: PlatformCpuFreqDevice = PlatformCpuFreqDevice::init_fdt();
             unsafe { CPU_FREQ_INSTANCE = cpu_freq_device };
             default_device.info = Some(unsafe { &mut CPU_FREQ_INSTANCE });
         }

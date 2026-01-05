@@ -1,6 +1,6 @@
 use crate::{
     misc::RawTraitObject,
-    platform::{CpuFreqDevice, DeviceType, platform_get_device_info},
+    platform::{DeviceType, PlatformCpuFreqDevice, platform_get_device_info},
 };
 
 // Struct to handle the CPU frequency
@@ -16,7 +16,7 @@ impl CpuFreq {
         };
         let device_info_trait = device.info.unwrap();
         let raw: RawTraitObject = unsafe { core::mem::transmute(device_info_trait) };
-        let cpu_freq_device_ptr = raw.data as *const CpuFreqDevice;
+        let cpu_freq_device_ptr = raw.data as *const PlatformCpuFreqDevice;
         let cpu_freq_device_ref = unsafe { &*cpu_freq_device_ptr };
         let cpu_freq: CpuFreq = CpuFreq {
             frequency: cpu_freq_device_ref.freq,

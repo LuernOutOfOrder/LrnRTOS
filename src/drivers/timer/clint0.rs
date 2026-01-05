@@ -5,17 +5,16 @@ use core::ptr::{self};
 use crate::{
     drivers::DriverRegion,
     misc::RawTraitObject,
-    platform::{DeviceType, InterruptExtended, TimerDevice, platform_get_device_info},
+    platform::{self, DeviceType, InterruptExtended, platform_get_device_info},
 };
 
-use super::{TIMER_SUBSYSTEM, Timer, TimerType};
+use super::{TIMER_SUBSYSTEM, Timer, TimerDevice, TimerType};
 
 #[derive(Copy, Clone)]
 pub struct Clint0 {
     region: DriverRegion,
     #[allow(unused)]
     interrupt_extended: [InterruptExtended; 4],
-    timer_type: TimerType,
 }
 
 impl Timer for Clint0 {
@@ -26,21 +25,7 @@ impl Timer for Clint0 {
     fn set_delay(&self, core: usize, delay: u64) {
         self.set_mtimecmp(core, delay);
     }
-
-    fn timer_type(&self) -> TimerType {
-        self.timer_type
-    }
 }
-
-static mut CLINT0_INSTANCE: Clint0 = Clint0 {
-    region: DriverRegion { addr: 0, size: 0 },
-    interrupt_extended: [InterruptExtended {
-        cpu_intc: 0,
-        irq_len: 0,
-        irq_ids: [0u32; 4],
-    }; 4],
-    timer_type: TimerType::ArchitecturalTimer,
-};
 
 impl Clint0 {
     pub fn init() {
@@ -51,19 +36,18 @@ impl Clint0 {
         // Get struct behind trait
         let device_info_trait = device_info.info.unwrap();
         let raw: RawTraitObject = unsafe { core::mem::transmute(device_info_trait) };
-        let timer_device_ptr = raw.data as *const TimerDevice;
+        let timer_device_ptr = raw.data as *const platform::TimerDevice;
         let timer_device_ref = unsafe { &*timer_device_ptr };
         // Init Clint0 driver and update timer sub-system for global access.
         let clint0: Clint0 = Clint0 {
             region: device_info.header.device_addr,
             interrupt_extended: timer_device_ref.interrupt_extended,
-            timer_type: TimerType::ArchitecturalTimer,
         };
-        unsafe { CLINT0_INSTANCE = clint0 };
-        // Allow static mut refs because it's only used on driver init, so no data race or UB
-        // possible
-        #[allow(static_mut_refs)]
-        TIMER_SUBSYSTEM.add_timer(unsafe { &mut CLINT0_INSTANCE });
+        let device: TimerDevice = TimerDevice {
+            timer_type: TimerType::ArchitecturalTimer,
+            device: super::TimerDeviceDriver::Clint0(clint0),
+        };
+        TIMER_SUBSYSTEM.add_timer(device);
     }
 
     /// Read mtime from clint0 addr + offset from `https://chromitem-soc.readthedocs.io/en/latest/clint.html`

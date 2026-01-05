@@ -1,19 +1,16 @@
 use crate::{
     misc::RawTraitObject,
-    platform::{CpuIntCDevice, DeviceType, platform_get_device_info},
+    platform::{DeviceType, PlatformCpuIntCDevice, platform_get_device_info},
 };
 
-use super::{CPU_INTC_SUBSYSTEM, CpuIntc};
+use super::{CPU_INTC_SUBSYSTEM, CpuIntc, CpuIntcDriver, CpuIntcHw};
 
 #[derive(Clone, Copy)]
 pub struct RiscVCpuIntc {
-    #[allow(unused)]
-    hart_id: u32,
+    pub hart_id: u32,
 }
 
 impl CpuIntc for RiscVCpuIntc {}
-
-static mut RISCV_CPU_INTC_INSTANCE: RiscVCpuIntc = RiscVCpuIntc { hart_id: 0 };
 
 impl RiscVCpuIntc {
     pub fn init() {
@@ -23,17 +20,14 @@ impl RiscVCpuIntc {
         };
         let device_info_trait = device_info.info.unwrap();
         let raw: RawTraitObject = unsafe { core::mem::transmute(device_info_trait) };
-        let cpu_intc_device_ptr = raw.data as *const CpuIntCDevice;
+        let cpu_intc_device_ptr = raw.data as *const PlatformCpuIntCDevice;
         let cpu_intc_device_ref = unsafe { &*cpu_intc_device_ptr };
         let cpu_intc_pool: RiscVCpuIntc = RiscVCpuIntc {
             hart_id: cpu_intc_device_ref.core_id,
         };
-        unsafe { RISCV_CPU_INTC_INSTANCE = cpu_intc_pool };
-        // Update cpu-intc sub-system pool with new driver
-        #[allow(static_mut_refs)]
-        CPU_INTC_SUBSYSTEM.add_cpu_intc(
-            unsafe { &mut RISCV_CPU_INTC_INSTANCE },
-            cpu_intc_device_ref.core_id as usize,
-        );
+        let cpu_intc: CpuIntcHw = CpuIntcHw {
+            driver: CpuIntcDriver::RiscVCpuIntc(cpu_intc_pool),
+        };
+        CPU_INTC_SUBSYSTEM.add_cpu_intc(cpu_intc, cpu_intc.get_cpu_intc_core_id() as usize);
     }
 }
