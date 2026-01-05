@@ -3,10 +3,10 @@
 .set OFFSET_GP_BASE, 0
 # Supervisor Address Translation and Protection Register (satp register only exist when supervisor mode is enabled)
 .set OFFSET_SATP, 128
-# static array to use as a stack inside the trap
-.set OFFSET_TRAP_STACK, 132
 # current hart id 
-.set OFFSET_HARTID, 136
+.set OFFSET_HARTID, 132
+# static array to use as a stack inside the trap
+.set OFFSET_TRAP_STACK, 136
 
 .global trap_entry
 .type trap_entry, @function
