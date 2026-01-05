@@ -128,13 +128,13 @@ impl PlatformCpuIntCDevice {
     }
 }
 
-pub struct CpuFreqDevice {
+pub struct PlatformCpuFreqDevice {
     pub freq: u32,
 }
 
-impl CpuFreqDevice {
+impl PlatformCpuFreqDevice {
     pub const fn init() -> Self {
-        CpuFreqDevice { freq: 0 }
+        PlatformCpuFreqDevice { freq: 0 }
     }
 
     pub fn init_fdt() -> Self {
@@ -143,7 +143,7 @@ impl CpuFreqDevice {
             None => panic!("Error while creating new CPU freq generic structure"),
         };
         let freq_value = fdt_get_prop_u32_value(cpus_freq);
-        CpuFreqDevice { freq: freq_value }
+        PlatformCpuFreqDevice { freq: freq_value }
     }
 }
 
@@ -264,12 +264,12 @@ impl TimerDevice {
 impl DeviceInfo for PlatformSerialDevice {}
 impl DeviceInfo for TimerDevice {}
 impl DeviceInfo for PlatformCpuIntCDevice {}
-impl DeviceInfo for CpuFreqDevice {}
+impl DeviceInfo for PlatformCpuFreqDevice {}
 
 static mut TIMER_DEVICE_INSTANCE: TimerDevice = TimerDevice::init();
 static mut SERIAL_DEVICE_INSTANCE: PlatformSerialDevice = PlatformSerialDevice::init();
 static mut CPU_INTC_DEVICE_INSTANCE: PlatformCpuIntCDevice = PlatformCpuIntCDevice::init();
-static mut CPU_FREQ_INSTANCE: CpuFreqDevice = CpuFreqDevice::init();
+static mut CPU_FREQ_INSTANCE: PlatformCpuFreqDevice = PlatformCpuFreqDevice::init();
 
 fn init_fdt_device(compatible: &'_ str, device_type: DeviceType) -> Option<Devices<'_>> {
     let mut default_device: Devices = Devices::init();
@@ -292,13 +292,14 @@ fn init_fdt_device(compatible: &'_ str, device_type: DeviceType) -> Option<Devic
         }
         #[allow(static_mut_refs)]
         DeviceType::CpuIntC => {
-            let cpu_intc_device: PlatformCpuIntCDevice = PlatformCpuIntCDevice::init_fdt(compatible);
+            let cpu_intc_device: PlatformCpuIntCDevice =
+                PlatformCpuIntCDevice::init_fdt(compatible);
             unsafe { CPU_INTC_DEVICE_INSTANCE = cpu_intc_device };
             default_device.info = Some(unsafe { &mut CPU_INTC_DEVICE_INSTANCE });
         }
         #[allow(static_mut_refs)]
         DeviceType::CpuFreq => {
-            let cpu_freq_device: CpuFreqDevice = CpuFreqDevice::init_fdt();
+            let cpu_freq_device: PlatformCpuFreqDevice = PlatformCpuFreqDevice::init_fdt();
             unsafe { CPU_FREQ_INSTANCE = cpu_freq_device };
             default_device.info = Some(unsafe { &mut CPU_FREQ_INSTANCE });
         }
