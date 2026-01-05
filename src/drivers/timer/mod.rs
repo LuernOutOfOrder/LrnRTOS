@@ -70,7 +70,7 @@ impl TimerSubSystem {
     ///
     /// Params:
     /// &self: the sub-system structure.
-    /// new_timer: static structure of a driver implementing the Timer trait.
+    /// new_timer: structure of a timer driver.
     pub fn add_timer(&self, new_timer: TimerDevice) {
         let size = self.get_timer_array_size();
         if size == TIMER_MAX_SIZE {
