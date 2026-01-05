@@ -9,9 +9,29 @@ pub mod riscv_cpu_intc;
 // Trait to implement in all cpu interrupt-controller driver
 pub trait CpuIntc {}
 
+#[derive(Copy, Clone)]
+enum CpuIntcDriverEnum {
+    #[allow(unused)]
+    RiscVCpuIntc(RiscVCpuIntc),
+}
+
+#[derive(Copy, Clone)]
+pub struct CpuIntcDriver {
+    #[allow(unused)]
+    driver: CpuIntcDriverEnum,
+}
+
+impl CpuIntcDriver {
+    pub fn get_cpu_intc_core_id(&self) -> u32 {
+        match self.driver {
+            CpuIntcDriverEnum::RiscVCpuIntc(riscv_cpu_intc) => riscv_cpu_intc.hart_id,
+        }
+    }
+}
+
 // Structure handling the cpu interrupt-controller initialized drivers
 pub struct CpuIntcSubSystem {
-    cpu_intc_pool: UnsafeCell<[Option<*mut dyn CpuIntc>; CPU_INTC_MAX_SIZE]>,
+    cpu_intc_pool: UnsafeCell<[Option<CpuIntcDriver>; CPU_INTC_MAX_SIZE]>,
 }
 
 unsafe impl Sync for CpuIntcSubSystem {}
@@ -31,7 +51,7 @@ impl CpuIntcSubSystem {
     /// index: used to represent the CPU interrupt-controller core id, also used as an index in
     /// the sub-system pool. Because there's only one CPU interrupt-controller per CPU core, no
     /// overlap possible.
-    pub fn add_cpu_intc(&self, cpu_intc: &'static mut dyn CpuIntc, index: usize) {
+    pub fn add_cpu_intc(&self, cpu_intc: CpuIntcDriver, index: usize) {
         let size = self.get_cpu_intc_array_size();
         if size == CPU_INTC_MAX_SIZE {
             panic!(
@@ -39,7 +59,7 @@ impl CpuIntcSubSystem {
             )
         }
         unsafe {
-            (&mut *self.cpu_intc_pool.get())[index] = Some(cpu_intc as *mut dyn CpuIntc);
+            (&mut *self.cpu_intc_pool.get())[index] = Some(cpu_intc);
         }
     }
 
@@ -54,12 +74,12 @@ impl CpuIntcSubSystem {
         size
     }
 
-    pub fn get_cpu_intc(&self, index: usize) -> Option<*mut dyn CpuIntc> {
-        let cpu_intc_ptr = unsafe { (&*self.cpu_intc_pool.get())[index] };
-        if let Some(ptr) = cpu_intc_ptr {
+    pub fn get_cpu_intc(&self, index: usize) -> Option<&CpuIntcDriver> {
+        let cpu_intc = unsafe { &(*self.cpu_intc_pool.get())[index] };
+        if let Some(cpu_intc_driver) = cpu_intc {
             // ptr was created from a &'static mut dyn CpuIntc in add_cpu_intc,
             // converting the raw pointer back to a &'static mut is safe.
-            unsafe { Some(&mut *ptr) }
+            Some(cpu_intc_driver)
         } else {
             None
         }
@@ -75,7 +95,10 @@ pub static CPU_INTC_SUBSYSTEM: CpuIntcSubSystem = CpuIntcSubSystem::init();
 /// compatible node, it return to give the next driver init function the turn.
 /// Panic if after all drivers init the sub-system pool is empty.
 pub fn init_cpu_intc_subsystem() {
-    RiscVCpuIntc::init();
+    let riscv_cpuintc = RiscVCpuIntc::init();
+    if let Some(r) = riscv_cpuintc {
+        CPU_INTC_SUBSYSTEM.add_cpu_intc(r, r.get_cpu_intc_core_id() as usize);
+    }
     let size = CPU_INTC_SUBSYSTEM.get_cpu_intc_array_size();
     if size == 0 {
         panic!("Error while initializing CPU interrupt-controller sub-system, pool is empty.");
