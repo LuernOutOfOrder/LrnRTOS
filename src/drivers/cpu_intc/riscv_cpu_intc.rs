@@ -1,6 +1,6 @@
 use crate::{
     misc::RawTraitObject,
-    platform::{CpuIntCDevice, DeviceType, platform_get_device_info},
+    platform::{PlatformCpuIntCDevice, DeviceType, platform_get_device_info},
 };
 
 use super::{CpuIntc, CpuIntcDriver, CpuIntcHw};
@@ -17,7 +17,7 @@ impl RiscVCpuIntc {
         let device_info = platform_get_device_info("riscv,cpu-intc", DeviceType::CpuIntC)?;
         let device_info_trait = device_info.info.unwrap();
         let raw: RawTraitObject = unsafe { core::mem::transmute(device_info_trait) };
-        let cpu_intc_device_ptr = raw.data as *const CpuIntCDevice;
+        let cpu_intc_device_ptr = raw.data as *const PlatformCpuIntCDevice;
         let cpu_intc_device_ref = unsafe { &*cpu_intc_device_ptr };
         let cpu_intc_pool: RiscVCpuIntc = RiscVCpuIntc {
             hart_id: cpu_intc_device_ref.core_id,
