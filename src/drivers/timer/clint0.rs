@@ -8,7 +8,7 @@ use crate::{
     platform::{self, DeviceType, InterruptExtended, platform_get_device_info},
 };
 
-use super::{Timer, TimerDevice, TimerType};
+use super::{TIMER_SUBSYSTEM, Timer, TimerDevice, TimerType};
 
 #[derive(Copy, Clone)]
 pub struct Clint0 {
@@ -28,8 +28,11 @@ impl Timer for Clint0 {
 }
 
 impl Clint0 {
-    pub fn init() -> Option<TimerDevice> {
-        let device_info = platform_get_device_info("sifive,clint0", DeviceType::Timer)?;
+    pub fn init() {
+        let device_info = match platform_get_device_info("sifive,clint0", DeviceType::Timer) {
+            Some(d) => d,
+            None => return,
+        };
         // Get struct behind trait
         let device_info_trait = device_info.info.unwrap();
         let raw: RawTraitObject = unsafe { core::mem::transmute(device_info_trait) };
@@ -44,7 +47,7 @@ impl Clint0 {
             timer_type: TimerType::ArchitecturalTimer,
             device: super::TimerDeviceDriver::Clint0(clint0),
         };
-        Some(device)
+        TIMER_SUBSYSTEM.add_timer(device);
     }
 
     /// Read mtime from clint0 addr + offset from `https://chromitem-soc.readthedocs.io/en/latest/clint.html`

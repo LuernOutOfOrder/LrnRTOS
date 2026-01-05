@@ -141,9 +141,6 @@ impl TimerSubSystem {
 pub static TIMER_SUBSYSTEM: TimerSubSystem = TimerSubSystem::init();
 
 pub fn init_timer_subsystem() {
-    let clint = Clint0::init();
-    if let Some(c) = clint {
-        TIMER_SUBSYSTEM.add_timer(c);
-    }
+    Clint0::init();
     TIMER_SUBSYSTEM.select_primary_timer();
 }
