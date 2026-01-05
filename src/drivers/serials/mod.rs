@@ -106,14 +106,11 @@ impl SerialManager {
     }
 }
 
-pub static SERIAL_DEVICES: SerialManager = SerialManager::init();
+pub static SERIAL_SUBSYSTEM: SerialManager = SerialManager::init();
 
 pub fn init_serial_subsystem() {
-    let ns16550 = Ns16550::init();
-    if let Some(ns) = ns16550 {
-        SERIAL_DEVICES.add_serial(ns);
-    }
-    let size = SERIAL_DEVICES.get_serial_array_size();
+    Ns16550::init();
+    let size = SERIAL_SUBSYSTEM.get_serial_array_size();
     if size == 0 {
         panic!("Error while initializing serial sub-system, pool is empty.");
     }
