@@ -12,7 +12,7 @@
 
 ## Description
 
-A sub-systems inside the kernel is an HAL(Hardware Abstraction Layer). 
+A sub-systems inside the kernel is an HAL(Hardware Abstraction Layer).
 
 ## Sub-systems initialization
 
@@ -24,7 +24,7 @@ There's a sub-system for each specific purpose, like: Timer, Serial, etc. The go
 
 ## How it work
 
-Because a sub-system is a hardware abstraction, we don't want a sub-system that only work for a specific devices, or CPU arch. So we use Rust's traits. 
+Because a sub-system is a hardware abstraction, we don't want a sub-system that only work for a specific devices, or CPU arch. So we use Rust's traits.
 For each sub-system we define a trait that will be implemented for all this sub-system drivers. Example:
 
 ```rust
@@ -55,7 +55,7 @@ pub struct TimerSubSystem {
 
 ```
 
-By using trait, when we are writing new timer drivers, we just need to implement the trait and add a new variant with corresponding structure in the tagged union. 
+By using trait, when we are writing new timer drivers, we just need to implement the trait and add a new variant with corresponding structure in the tagged union.
 The driver will auto-register itself at the end of the driver init function and that's it, we don't need to modify the sub-system each time we add new drivers. Except for the TimerDevice implementation it's those functions that will make a match on the tagged union and redirect to correct driver.
 
 ## How they work together
