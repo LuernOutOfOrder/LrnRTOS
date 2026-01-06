@@ -6,7 +6,9 @@ use super::{
 };
 
 pub fn test_platform_init(dtb_addr: usize) {
-    let test_mode_fdt: bool = false;
+    let test_mode_fdt: bool = true;
+    // Disable warning on else if, this one is better than the collapsed one, I guess
+    #[allow(clippy::collapsible_else_if)]
     if test_mode_fdt {
         if fdt_present(dtb_addr) {
             test_kprint!("FDT is present");
@@ -25,7 +27,7 @@ pub fn test_platform_init(dtb_addr: usize) {
             test_kprint!("FDT is not present");
         }
     }
-        // Condition with just kprint for debug purpose
+    // Condition with just kprint for debug purpose
     #[allow(static_mut_refs)]
     if unsafe { PLATFORM_INFO.read_mode() } {
         kprint!("Platform mode set to FDT.\n");

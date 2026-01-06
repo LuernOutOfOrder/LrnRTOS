@@ -1,10 +1,13 @@
 use crate::kprint_fmt;
+mod fdt;
+
+include!("dtb.rs");
 
 #[cfg(feature = "test")]
 #[macro_export]
 macro_rules! test_kprint {
     ($msg:expr) => {
-        $crate::test::test_kprint($msg)
+        $crate::tests::test_kprint($msg)
     };
 }
 

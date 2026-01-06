@@ -33,7 +33,7 @@ pub mod boot;
 
 // Test module
 #[cfg(feature = "test")]
-pub mod test;
+pub mod tests;
 
 use core::panic::PanicInfo;
 
