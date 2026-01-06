@@ -34,4 +34,7 @@ pub fn test_platform_init(dtb_addr: usize) {
     } else {
         kprint!("Platform mode set to STATIC.\n");
     }
+    #[allow(static_mut_refs)]
+    let platform_mode = unsafe { PLATFORM_INFO.flags };
+    assert_eq!(platform_mode, 0o1);
 }

@@ -1,7 +1,4 @@
 use crate::kprint_fmt;
-mod fdt;
-
-include!("dtb.rs");
 
 #[cfg(feature = "test")]
 #[macro_export]
