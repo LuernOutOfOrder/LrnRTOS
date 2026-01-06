@@ -44,6 +44,9 @@ run:
 build:
 	cargo c && cargo b
 
+test_build:
+	cargo tb
+
 check:
 	cargo ft && cargo w
 
