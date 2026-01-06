@@ -93,11 +93,12 @@ static mut NODE_COUNT: usize = 0;
 static mut PROPS_COUNT: usize = 0;
 
 pub fn fdt_present(dtb: usize) -> bool {
-    if dtb != 0 && !dtb.is_multiple_of(8) {
+    if dtb == 0 || !dtb.is_multiple_of(8) {
         return false;
     }
-    let header: FdtHeader = unsafe { ptr::read(dtb as *const FdtHeader) };
-    if !header.valid_magic() {
+    // Read only first 4 bytes to check magic
+    let header_magic: u32 = unsafe { ptr::read(dtb as *const u32) };
+    if header_magic.swap_bytes() != 0xd00dfeed {
         return false;
     }
     true
