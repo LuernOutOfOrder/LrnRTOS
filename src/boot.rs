@@ -36,19 +36,3 @@ pub fn kernel_early_boot(core: usize, dtb_addr: usize) -> ! {
     #[allow(clippy::empty_loop)]
     loop {}
 }
-
-#[unsafe(no_mangle)]
-#[cfg(feature = "test")]
-pub fn test_kernel_early_boot(core: usize, dtb_addr: usize) -> ! {
-    use crate::{platform::test::{test_platform_get_device_info, test_platform_init}, test_kprint};
-
-    test_kprint!("Starting kernel in test mode.");
-    if core != 0 {
-        panic!("Booting on wrong CPU core");
-    }
-    test_kprint!("Start kernel booting on CPU Core: 0.");
-    test_platform_init(dtb_addr);
-    test_platform_get_device_info();
-    #[allow(clippy::empty_loop)]
-    loop {}
-}

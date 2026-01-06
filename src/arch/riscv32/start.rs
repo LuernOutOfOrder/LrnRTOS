@@ -10,7 +10,7 @@ global_asm!(include_str!("start.S"));
 unsafe extern "C" fn _start(hartid: usize, dtb: usize) -> ! {
     kprint!("Enter kernel RISC-V 32 bits entry point.\n");
     #[cfg(feature = "test")]
-    crate::boot::test_kernel_early_boot(hartid, dtb);
+    crate::tests::test_kernel_early_boot(hartid, dtb);
     #[cfg(not(feature = "test"))]
     crate::boot::kernel_early_boot(hartid, dtb);
 }
