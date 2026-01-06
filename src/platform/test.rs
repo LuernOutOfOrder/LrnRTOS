@@ -1,3 +1,4 @@
+#![cfg(feature = "test")]
 use crate::{kprint, test_kprint};
 
 use super::{
@@ -40,7 +41,8 @@ pub fn test_platform_init(dtb_addr: usize) {
     assert_eq!(platform_mode, 0o1);
 }
 
-pub fn test_platform_get_device_info() {
+/// Test getting device info from FDT.
+pub fn test_platform_get_device_info_fdt() {
     // Test to get None from an invalid device in the FDT.
     let none = platform_get_device_info("ns16550", DeviceType::Serial);
     if none.is_none() {
@@ -55,4 +57,12 @@ pub fn test_platform_get_device_info() {
     } else {
         panic!("test failed, should get Some from valid device asked.");
     }
+
+    // Check the device get from FDT, if correct or not.
+}
+
+/// Test getting device info from static
+pub fn test_platform_get_device_info_static() {
+    // Reset platform info to use static
+    unsafe { PLATFORM_INFO.flags = 0 };
 }
