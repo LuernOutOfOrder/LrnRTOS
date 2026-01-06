@@ -82,22 +82,20 @@ impl Devices<'_> {
         }
     }
 
-    pub fn init_fdt<'a>(compatible: &'a str, device_type: DeviceType) -> Devices<'a> {
+    pub fn init_fdt<'a>(compatible: &'a str, device_type: DeviceType) -> Option<Devices<'a>> {
         let node: &FdtNode = match fdt_get_node_by_compatible(compatible) {
             Some(n) => n,
-            None => {
-                panic!("Error while initialize generic device structure");
-            }
+            None => return None,
         };
         let device_addr: DriverRegion = DriverRegion::new(node);
-        Devices {
+        Some(Devices {
             header: DevicesHeader {
                 device_type,
                 compatible,
                 device_addr,
             },
             info: None,
-        }
+        })
     }
 }
 
@@ -286,7 +284,9 @@ fn init_fdt_device(compatible: &'_ str, device_type: DeviceType) -> Option<Devic
         DeviceType::Serial => {
             let serial_device: PlatformSerialDevice = PlatformSerialDevice::init();
             unsafe { SERIAL_DEVICE_INSTANCE = serial_device };
-            let mut device: Devices = Devices::init_fdt(compatible, device_type);
+            let get_device = Devices::init_fdt(compatible, device_type);
+            get_device?;
+            let mut device: Devices = get_device.unwrap();
             device.info = Some(unsafe { &mut SERIAL_DEVICE_INSTANCE });
             default_device = device;
         }
@@ -294,7 +294,9 @@ fn init_fdt_device(compatible: &'_ str, device_type: DeviceType) -> Option<Devic
         DeviceType::Timer => {
             let timer_device: TimerDevice = TimerDevice::init_fdt(compatible);
             unsafe { TIMER_DEVICE_INSTANCE = timer_device };
-            let mut device: Devices = Devices::init_fdt(compatible, device_type);
+            let get_device = Devices::init_fdt(compatible, device_type);
+            get_device?;
+            let mut device: Devices = get_device.unwrap();
             device.info = Some(unsafe { &mut TIMER_DEVICE_INSTANCE });
             default_device = device;
         }
@@ -321,7 +323,13 @@ pub fn platform_get_device_info(
 ) -> Option<Devices<'_>> {
     #[allow(static_mut_refs)]
     match unsafe { PLATFORM_INFO.read_mode() } {
-        true => init_fdt_device(compatible, device_type),
+        true => {
+            let get_device = init_fdt_device(compatible, device_type);
+            match get_device.is_none() {
+                true => None,
+                false => Some(get_device.unwrap()),
+            }
+        }
         false => {
             let mut device: &Devices = &Devices::init();
             for each in DEVICES {

@@ -1,8 +1,9 @@
 use crate::{kprint, test_kprint};
 
 use super::{
-    PLATFORM_INFO,
+    DeviceType, PLATFORM_INFO,
     fdt::{fdt_present, parse_dtb_file},
+    platform_get_device_info,
 };
 
 pub fn test_platform_init(dtb_addr: usize) {
@@ -37,4 +38,21 @@ pub fn test_platform_init(dtb_addr: usize) {
     #[allow(static_mut_refs)]
     let platform_mode = unsafe { PLATFORM_INFO.flags };
     assert_eq!(platform_mode, 0o1);
+}
+
+pub fn test_platform_get_device_info() {
+    // Test to get None from an invalid device in the FDT.
+    let none = platform_get_device_info("ns16550", DeviceType::Serial);
+    if none.is_none() {
+        test_kprint!("Correctly get None from invalid device asked.");
+    } else {
+        panic!("test failed, should get None from invalid device asked.");
+    }
+    // Test to get Some from a valid device in the FDT.
+    let some = platform_get_device_info("ns16550a", DeviceType::Serial);
+    if some.is_some() {
+        test_kprint!("Correctly get Some from valid device asked.");
+    } else {
+        panic!("test failed, should get Some from valid device asked.");
+    }
 }
