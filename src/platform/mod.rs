@@ -2,6 +2,9 @@ pub mod fdt;
 pub mod mem;
 pub mod platform_info;
 
+#[cfg(feature = "test")]
+pub mod test;
+
 use core::ptr;
 
 use arrayvec::ArrayVec;
