@@ -35,9 +35,9 @@ pub mod boot;
 #[cfg(feature = "test")]
 pub mod tests;
 
-use core::panic::PanicInfo;
-
 // Use from modules
+#[cfg(not(feature = "test"))]
+use core::panic::PanicInfo;
 use logs::LogLevel;
 
 #[unsafe(no_mangle)]

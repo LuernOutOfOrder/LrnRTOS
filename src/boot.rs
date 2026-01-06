@@ -48,5 +48,6 @@ pub fn test_kernel_early_boot(core: usize, dtb_addr: usize) -> ! {
     }
     test_kprint!("Start kernel booting on CPU Core: 0.");
     test_platform_init(dtb_addr);
+    #[allow(clippy::empty_loop)]
     loop {}
 }
