@@ -66,31 +66,41 @@ impl SerialManager {
     /// By default if there's no device saved in devices, it'll set the first serial saved as
     /// default console
     pub fn add_serial(&self, new_serial: SerialDevice) {
-        let mut index_none: usize = 0;
+        let mut index_none: Option<usize> = None;
         for i in 0..SERIAL_MAX_SIZE {
             let device = unsafe { (&*self.devices.get())[i].as_ref() };
             if let Some(serial) = device {
+                // Avoid duplication and log warning
                 if serial.driver == new_serial.driver {
                     log!(
                         LogLevel::Warn,
                         "Serial-subsystem: duplicate device detected, ignoring registration request"
                     );
-                    return
+                    return;
                 }
-            } else {
-                index_none = i;
+            } else if i == 0 && device.is_none() || device.is_none() {
+                index_none = Some(i);
                 break;
             }
         }
-        if index_none == 0 {
+        if index_none.is_none() {
+            log!(
+                LogLevel::Warn,
+                "Serial-subsystem: subsystem is full, ignoring registration request"
+            );
+            return;
+        }
+        // Set default console
+        if index_none.unwrap() == 0 {
             let update_serial = SerialDevice {
                 _id: new_serial._id,
                 default_console: true,
                 driver: new_serial.driver,
             };
-            unsafe { (&mut *self.devices.get())[index_none] = Some(update_serial) };
+            unsafe { (&mut *self.devices.get())[0] = Some(update_serial) };
         } else {
-            unsafe { (&mut *self.devices.get())[index_none] = Some(new_serial) };
+            // Just save the new device
+            unsafe { (&mut *self.devices.get())[index_none.unwrap()] = Some(new_serial) };
         }
     }
 
