@@ -1,28 +1,24 @@
-#![cfg(feature = "test")]
-use crate::{
-    kprint_fmt,
-    platform::test::{PLATFORM_TEST_SUITE, test_platform_get_device_info_static},
-};
+use crate::{kprint_fmt, platform::test::PLATFORM_TEST_SUITE};
 
 #[macro_export]
 macro_rules! test_kprint {
-    ($msg:expr) => {
-        $crate::tests::test_kprint($msg)
+    ($($arg:tt)*) => {
+        $crate::tests::test_kprint(format_args!($($arg)*))
     };
 }
 
-pub fn test_kprint(s: &str) {
+pub fn test_kprint(s: core::fmt::Arguments) {
     kprint_fmt!("\x1b[32;1m[TEST PASSED]\x1b[0m {}\n", s);
 }
 
 #[macro_export]
 macro_rules! test_info_kprint {
-    ($msg:expr) => {
-        $crate::tests::test_info_kprint($msg)
+    ($($arg:tt)*) => {
+        $crate::tests::test_info_kprint(format_args!($($arg)*))
     };
 }
 
-pub fn test_info_kprint(s: &str) {
+pub fn test_info_kprint(s: core::fmt::Arguments) {
     kprint_fmt!("\x1b[33;1m[TEST INFO]\x1b[0m {}\n", s);
 }
 
@@ -50,7 +46,9 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
 
     let platform_tests = PLATFORM_TEST_SUITE;
     for test in platform_tests {
-        (test.func)()
+        test_info_kprint!("Running test: {}", test.name);
+        (test.func)();
+        test_kprint!("{}", test.name);
     }
     #[allow(clippy::empty_loop)]
     loop {}

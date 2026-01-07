@@ -47,14 +47,12 @@ pub fn test_platform_get_device_info_fdt() {
     // Test to get None from an invalid device in the FDT.
     let none = platform_get_device_info("ns16550", DeviceType::Serial);
     if none.is_none() {
-        test_kprint!("Successfully get None from invalid device asked.");
     } else {
         panic!("should get None from invalid device asked.");
     }
     // Test to get Some from a valid device in the FDT.
     let some = platform_get_device_info("ns16550a", DeviceType::Serial);
     if some.is_some() {
-        test_kprint!("Successfully get Some from valid device asked.");
     } else {
         panic!("should get Some from valid device asked.");
     }
@@ -82,7 +80,6 @@ pub fn test_platform_get_device_info_fdt() {
             device.header.device_addr.size
         );
     }
-    test_kprint!("Successfully get device from platform in FDT mode");
 }
 
 /// Test getting device info from static
@@ -100,14 +97,12 @@ pub fn test_platform_get_device_info_static() {
     // Test to get None from an invalid device in the FDT.
     let none = platform_get_device_info("ns1655", DeviceType::Serial);
     if none.is_none() {
-        test_kprint!("Successfully get None from invalid device asked.");
     } else {
         panic!("should get None from invalid device asked.");
     }
     // Test to get Some from a valid device in the FDT.
     let some = platform_get_device_info("ns16550a", DeviceType::Serial);
     if some.is_some() {
-        test_kprint!("Successfully get Some from valid device asked.");
     } else {
         panic!("should get Some from valid device asked.");
     }
@@ -135,7 +130,6 @@ pub fn test_platform_get_device_info_static() {
             device.header.device_addr.size
         );
     }
-    test_kprint!("Successfully get device from platform in STATIC mode.");
 }
 
 pub static PLATFORM_TEST_SUITE: &[TestCase] = &[
