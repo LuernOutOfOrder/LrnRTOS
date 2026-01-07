@@ -5,7 +5,7 @@ use core::{
 
 use ns16550::Ns16550;
 
-use crate::config::SERIAL_MAX_SIZE;
+use crate::{config::SERIAL_MAX_SIZE, log, logs::LogLevel};
 
 pub mod ns16550;
 
@@ -21,6 +21,7 @@ pub trait SerialDriver: Send + Sync + Write {
 }
 
 #[cfg_attr(feature = "test", derive(Copy, Clone))]
+#[derive(PartialEq)]
 enum SerialDeviceDriver {
     Ns16550(Ns16550),
 }
@@ -30,6 +31,7 @@ enum SerialDeviceDriver {
 /// default_console: if it's the default console to use or not
 /// driver: enum unions with all serial driver structure
 #[cfg_attr(feature = "test", derive(Copy, Clone))]
+#[derive(PartialEq)]
 pub struct SerialDevice {
     driver: SerialDeviceDriver,
     _id: usize,
@@ -63,24 +65,32 @@ impl SerialManager {
     /// Add a new serial to the device UnsafeCell array at index where there's no device
     /// By default if there's no device saved in devices, it'll set the first serial saved as
     /// default console
-    pub fn add_serial(&self, serial: SerialDevice) {
+    pub fn add_serial(&self, new_serial: SerialDevice) {
         let mut index_none: usize = 0;
-        for i in 0..4 {
+        for i in 0..SERIAL_MAX_SIZE {
             let device = unsafe { (&*self.devices.get())[i].as_ref() };
-            if device.is_none() {
+            if let Some(serial) = device {
+                if serial.driver == new_serial.driver {
+                    log!(
+                        LogLevel::Warn,
+                        "Serial-subsystem: duplicate device detected, ignoring registration request"
+                    );
+                    return
+                }
+            } else {
                 index_none = i;
                 break;
             }
         }
         if index_none == 0 {
             let update_serial = SerialDevice {
-                _id: serial._id,
+                _id: new_serial._id,
                 default_console: true,
-                driver: serial.driver,
+                driver: new_serial.driver,
             };
             unsafe { (&mut *self.devices.get())[index_none] = Some(update_serial) };
         } else {
-            unsafe { (&mut *self.devices.get())[index_none] = Some(serial) };
+            unsafe { (&mut *self.devices.get())[index_none] = Some(new_serial) };
         }
     }
 
