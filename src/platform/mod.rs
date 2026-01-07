@@ -337,9 +337,10 @@ pub fn platform_get_device_info(
             for each in DEVICES {
                 if each.header.compatible == compatible {
                     device = each;
+                    return Some(*device);
                 }
             }
-            Some(*device)
+            None
         }
     }
 }
