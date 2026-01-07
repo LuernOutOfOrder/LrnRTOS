@@ -85,10 +85,7 @@ impl Devices<'_> {
     }
 
     pub fn init_fdt<'a>(compatible: &'a str, device_type: DeviceType) -> Option<Devices<'a>> {
-        let node: &FdtNode = match fdt_get_node_by_compatible(compatible) {
-            Some(n) => n,
-            None => return None,
-        };
+        let node: &FdtNode = fdt_get_node_by_compatible(compatible)?;
         let device_addr: DriverRegion = DriverRegion::new(node);
         Some(Devices {
             header: DevicesHeader {
@@ -333,11 +330,9 @@ pub fn platform_get_device_info(
             }
         }
         false => {
-            let mut device: &Devices = &Devices::init();
             for each in DEVICES {
                 if each.header.compatible == compatible {
-                    device = each;
-                    return Some(*device);
+                    return Some(*each);
                 }
             }
             None

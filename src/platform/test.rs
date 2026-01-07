@@ -1,5 +1,4 @@
-#![cfg(feature = "test")]
-use crate::{kprint, test_info_kprint, test_kprint, tests::TestCase};
+use crate::tests::TestCase;
 
 use super::{
     DeviceType, PLATFORM_INFO,
