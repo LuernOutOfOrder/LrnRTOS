@@ -136,8 +136,20 @@ pub fn test_serial_subsystem_overflow() {
     serial_subsystem.add_serial(device1);
     serial_subsystem.add_serial(device2);
     serial_subsystem.add_serial(device3);
+    // Save the state of the serial subsystem
+    // Allow clone on copy because we want to save a snapshot of the subsystem at this time
+    #[allow(clippy::clone_on_copy)]
+    let serial_subsystem_snapshot = unsafe { (*serial_subsystem.devices.get()).clone() };
     // This one should trigger a warning and not be registered to the sub-system
     serial_subsystem.add_serial(device4);
+    // Allow clone on copy because we want to save a snapshot of the subsystem at this time
+    #[allow(clippy::clone_on_copy)]
+    // Check if the subsystem has changed after the overflow aborted
+    if serial_subsystem_snapshot != unsafe { (*serial_subsystem.devices.get()).clone() } {
+        panic!(
+            "Serial sub-system state has changed after handling the overflow. This should not happened"
+        );
+    }
 
     // Check default console
     // Unwrap because we know that there's a device
@@ -172,7 +184,9 @@ pub fn test_serial_subsystem_overflow() {
         }
     };
     if last_device_region != device3_region {
-        panic!("Wrong last device registered. The last device should not be replaced when possible overflow happened.")
+        panic!(
+            "Wrong last device registered. The last device should not be replaced when possible overflow happened."
+        )
     }
 }
 
