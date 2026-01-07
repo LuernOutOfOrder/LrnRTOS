@@ -1,5 +1,5 @@
 #![cfg(feature = "test")]
-use crate::{kprint, test_kprint, test_info_kprint};
+use crate::{kprint, test_info_kprint, test_kprint, tests::TestCase};
 
 use super::{
     DeviceType, PLATFORM_INFO,
@@ -137,3 +137,14 @@ pub fn test_platform_get_device_info_static() {
     }
     test_kprint!("Successfully get device from platform in STATIC mode.");
 }
+
+pub static PLATFORM_TEST_SUITE: &[TestCase] = &[
+    TestCase {
+        name: "platform_device_info_fdt",
+        func: test_platform_get_device_info_fdt,
+    },
+    TestCase {
+        name: "platform_device_info_static",
+        func: test_platform_get_device_info_static,
+    },
+];
