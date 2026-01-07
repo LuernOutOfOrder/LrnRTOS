@@ -1,6 +1,5 @@
 use crate::{
-    platform::{DeviceType, platform_get_device_info},
-    tests::TestCase,
+    drivers::DriverRegion, kprint_fmt, platform::{platform_get_device_info, DeviceType}, tests::TestCase
 };
 
 use super::{SerialDevice, SerialDeviceDriver, SerialManager, ns16550::Ns16550};
@@ -64,6 +63,98 @@ pub fn test_serial_subsystem_same_device() {
     serial_subsystem.add_serial(device);
 }
 
+pub fn test_serial_subsystem_overflow() {
+    let serial_subsystem: SerialManager = SerialManager::init();
+    if serial_subsystem.get_serial_array_size() != 0 {
+        panic!("Serial sub-system should be initialized empty.")
+    }
+    // Build multiple serial to test how the subsystem handle overflow
+    // First Serial
+    let ns16550: Ns16550 = Ns16550 {
+        region: DriverRegion {
+            addr: 0x10000000,
+            size: 0x100,
+        },
+    };
+    let device = SerialDevice {
+        _id: 0,
+        default_console: false,
+        driver: SerialDeviceDriver::Ns16550(ns16550),
+    };
+    // Second Serial
+    let ns16551: Ns16550 = Ns16550 {
+        region: DriverRegion {
+            addr: 0x10000001,
+            size: 0x200,
+        },
+    };
+    let device1 = SerialDevice {
+        _id: 0,
+        default_console: false,
+        driver: SerialDeviceDriver::Ns16550(ns16551),
+    };
+    // Third Serial
+    let ns16552: Ns16550 = Ns16550 {
+        region: DriverRegion {
+            addr: 0x10000002,
+            size: 0x300,
+        },
+    };
+    let device2 = SerialDevice {
+        _id: 0,
+        default_console: false,
+        driver: SerialDeviceDriver::Ns16550(ns16552),
+    };
+    // Fourth serial
+    let ns16553: Ns16550 = Ns16550 {
+        region: DriverRegion {
+            addr: 0x10000003,
+            size: 0x400,
+        },
+    };
+    let device3 = SerialDevice {
+        _id: 0,
+        default_console: false,
+        driver: SerialDeviceDriver::Ns16550(ns16553),
+    };
+    // Last serial, cause the overflow
+    let ns16554: Ns16550 = Ns16550 {
+        region: DriverRegion {
+            addr: 0x10000004,
+            size: 0x500,
+        },
+    };
+    let device4 = SerialDevice {
+        _id: 0,
+        default_console: false,
+        driver: SerialDeviceDriver::Ns16550(ns16554),
+    };
+    // Register all devices
+    serial_subsystem.add_serial(device);
+    serial_subsystem.add_serial(device1);
+    serial_subsystem.add_serial(device2);
+    serial_subsystem.add_serial(device3);
+    // This one should trigger a warning and not be registered to the sub-system
+    serial_subsystem.add_serial(device4);
+    
+    // Check default console
+    // Unwrap because we know that there's a device
+    let default_console = serial_subsystem.get_default_console().unwrap();
+    let default_console_region = {
+        match default_console.driver {
+            SerialDeviceDriver::Ns16550(ns16550) => ns16550.region,
+        }
+    };
+    let device_region = {
+        match default_console.driver {
+            SerialDeviceDriver::Ns16550(ns16550) => ns16550.region,
+        }
+    };
+    if default_console_region != device_region {
+        panic!("Wrong default console. The default console should be the first device registered.")
+    }
+}
+
 pub static SERIAL_SUBSYSTEM_TEST_SUITE: &[TestCase] = &[
     TestCase {
         name: "SerialManager::init",
@@ -73,4 +164,8 @@ pub static SERIAL_SUBSYSTEM_TEST_SUITE: &[TestCase] = &[
         name: "Serial sub-system add same device",
         func: test_serial_subsystem_same_device,
     },
+    TestCase {
+        name: "Serial sub-system handling overflow",
+        func: test_serial_subsystem_overflow
+    }
 ];
