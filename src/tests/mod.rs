@@ -42,7 +42,9 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
         panic!("Booting on wrong CPU core");
     }
     test_kprint!("Successfully start kernel booting on CPU Core: 0.");
+    test_info_kprint!("Running test: platform_init");
     test_platform_init(dtb_addr);
+    test_kprint!("platform_init");
 
     let platform_tests = PLATFORM_TEST_SUITE;
     for test in platform_tests {

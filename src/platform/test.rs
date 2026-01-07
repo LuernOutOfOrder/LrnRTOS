@@ -13,7 +13,6 @@ pub fn test_platform_init(dtb_addr: usize) {
     #[allow(clippy::collapsible_else_if)]
     if test_mode_fdt {
         if fdt_present(dtb_addr) {
-            test_kprint!("FDT is present");
             parse_dtb_file(dtb_addr);
             #[allow(static_mut_refs)]
             unsafe {
@@ -25,8 +24,6 @@ pub fn test_platform_init(dtb_addr: usize) {
     } else {
         if fdt_present(dtb_addr) {
             panic!("FDT is not supposed to be present");
-        } else {
-            test_kprint!("FDT is not present");
         }
     }
     #[allow(static_mut_refs)]
@@ -36,14 +33,6 @@ pub fn test_platform_init(dtb_addr: usize) {
 
 /// Test getting device info from FDT.
 pub fn test_platform_get_device_info_fdt() {
-    // Print current platform mode
-    #[allow(static_mut_refs)]
-    if unsafe { PLATFORM_INFO.read_mode() } {
-        test_info_kprint!("Platform mode set to FDT.");
-    } else {
-        test_info_kprint!("Platform mode set to STATIC.");
-    }
-
     // Test to get None from an invalid device in the FDT.
     let none = platform_get_device_info("ns16550", DeviceType::Serial);
     if none.is_none() {
@@ -86,14 +75,6 @@ pub fn test_platform_get_device_info_fdt() {
 pub fn test_platform_get_device_info_static() {
     // Reset platform info to use static
     unsafe { PLATFORM_INFO.flags = 0 };
-    // Print current platform mode
-    #[allow(static_mut_refs)]
-    if unsafe { PLATFORM_INFO.read_mode() } {
-        test_info_kprint!("Platform mode set to FDT.");
-    } else {
-        test_info_kprint!("Platform mode set to STATIC.");
-    }
-
     // Test to get None from an invalid device in the FDT.
     let none = platform_get_device_info("ns1655", DeviceType::Serial);
     if none.is_none() {
