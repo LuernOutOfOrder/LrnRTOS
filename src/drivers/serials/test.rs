@@ -1,5 +1,8 @@
 use crate::{
-    drivers::DriverRegion, kprint_fmt, platform::{platform_get_device_info, DeviceType}, tests::TestCase
+    drivers::DriverRegion,
+    kprint_fmt,
+    platform::{DeviceType, platform_get_device_info},
+    tests::TestCase,
 };
 
 use super::{SerialDevice, SerialDeviceDriver, SerialManager, ns16550::Ns16550};
@@ -136,22 +139,41 @@ pub fn test_serial_subsystem_overflow() {
     serial_subsystem.add_serial(device3);
     // This one should trigger a warning and not be registered to the sub-system
     serial_subsystem.add_serial(device4);
-    
+
     // Check default console
     // Unwrap because we know that there's a device
+    // Get default console MMIO reg
     let default_console = serial_subsystem.get_default_console().unwrap();
     let default_console_region = {
         match default_console.driver {
             SerialDeviceDriver::Ns16550(ns16550) => ns16550.region,
         }
     };
+    // Get first device registered MMIO reg
     let device_region = {
-        match default_console.driver {
+        match device.driver {
             SerialDeviceDriver::Ns16550(ns16550) => ns16550.region,
         }
     };
+    // Compare default console with first device registered
     if default_console_region != device_region {
         panic!("Wrong default console. The default console should be the first device registered.")
+    }
+    // Check last device registered
+    let last_device = unsafe { (&*serial_subsystem.devices.get())[3] };
+    let last_device_region = {
+        // Unwrap because we know it's Some
+        match last_device.unwrap().driver {
+            SerialDeviceDriver::Ns16550(ns16550) => ns16550.region,
+        }
+    };
+    let device3_region = {
+        match device3.driver {
+            SerialDeviceDriver::Ns16550(ns16550) => ns16550.region,
+        }
+    };
+    if last_device_region != device3_region {
+        panic!("Wrong last device registered. The last device should not be replaced when possible overflow happened.")
     }
 }
 
@@ -166,6 +188,6 @@ pub static SERIAL_SUBSYSTEM_TEST_SUITE: &[TestCase] = &[
     },
     TestCase {
         name: "Serial sub-system handling overflow",
-        func: test_serial_subsystem_overflow
-    }
+        func: test_serial_subsystem_overflow,
+    },
 ];
