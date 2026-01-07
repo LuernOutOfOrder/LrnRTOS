@@ -33,7 +33,7 @@ pub static DEVICES: &[Devices] = &[
             compatible: "ns16550a",
             device_addr: DriverRegion {
                 addr: 0x1000_0000,
-                size: 0x1000,
+                size: 0x100,
             },
         },
         #[allow(static_mut_refs)]
