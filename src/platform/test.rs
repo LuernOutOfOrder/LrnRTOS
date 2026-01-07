@@ -1,5 +1,5 @@
 #![cfg(feature = "test")]
-use crate::{kprint, test_kprint};
+use crate::{kprint, test_kprint, test_info_kprint};
 
 use super::{
     DeviceType, PLATFORM_INFO,
@@ -29,13 +29,6 @@ pub fn test_platform_init(dtb_addr: usize) {
             test_kprint!("FDT is not present");
         }
     }
-    // Condition with just kprint for debug purpose
-    #[allow(static_mut_refs)]
-    if unsafe { PLATFORM_INFO.read_mode() } {
-        kprint!("Platform mode set to FDT.\n");
-    } else {
-        kprint!("Platform mode set to STATIC.\n");
-    }
     #[allow(static_mut_refs)]
     let platform_mode = unsafe { PLATFORM_INFO.flags };
     assert_eq!(platform_mode, 0o1);
@@ -43,26 +36,104 @@ pub fn test_platform_init(dtb_addr: usize) {
 
 /// Test getting device info from FDT.
 pub fn test_platform_get_device_info_fdt() {
+    // Print current platform mode
+    #[allow(static_mut_refs)]
+    if unsafe { PLATFORM_INFO.read_mode() } {
+        test_info_kprint!("Platform mode set to FDT.");
+    } else {
+        test_info_kprint!("Platform mode set to STATIC.");
+    }
+
     // Test to get None from an invalid device in the FDT.
     let none = platform_get_device_info("ns16550", DeviceType::Serial);
     if none.is_none() {
-        test_kprint!("Correctly get None from invalid device asked.");
+        test_kprint!("Successfully get None from invalid device asked.");
     } else {
-        panic!("test failed, should get None from invalid device asked.");
+        panic!("should get None from invalid device asked.");
     }
     // Test to get Some from a valid device in the FDT.
     let some = platform_get_device_info("ns16550a", DeviceType::Serial);
     if some.is_some() {
-        test_kprint!("Correctly get Some from valid device asked.");
+        test_kprint!("Successfully get Some from valid device asked.");
     } else {
-        panic!("test failed, should get Some from valid device asked.");
+        panic!("should get Some from valid device asked.");
     }
 
     // Check the device get from FDT, if correct or not.
+    let device = some.unwrap();
+    if device.header.compatible != "ns16550a" {
+        panic!(
+            "Device get from platform should have the compatible property: 'ns16550a', got: {}",
+            device.header.compatible
+        );
+    }
+    if device.header.device_type != DeviceType::Serial {
+        panic!("Device get from platform should have the device-type property: 'Serial'");
+    }
+    if device.header.device_addr.addr != 0x10000000 {
+        panic!(
+            "Device get from platform should have the MMIO address: '0x10000000', got: {}",
+            device.header.device_addr.addr
+        );
+    }
+    if device.header.device_addr.size != 0x100 {
+        panic!(
+            "Device get from platform should have the MMIO address size: '0x100', got: {:#x}",
+            device.header.device_addr.size
+        );
+    }
+    test_kprint!("Successfully get device from platform in FDT mode");
 }
 
 /// Test getting device info from static
 pub fn test_platform_get_device_info_static() {
     // Reset platform info to use static
     unsafe { PLATFORM_INFO.flags = 0 };
+    // Print current platform mode
+    #[allow(static_mut_refs)]
+    if unsafe { PLATFORM_INFO.read_mode() } {
+        test_info_kprint!("Platform mode set to FDT.");
+    } else {
+        test_info_kprint!("Platform mode set to STATIC.");
+    }
+
+    // Test to get None from an invalid device in the FDT.
+    let none = platform_get_device_info("ns1655", DeviceType::Serial);
+    if none.is_none() {
+        test_kprint!("Successfully get None from invalid device asked.");
+    } else {
+        panic!("should get None from invalid device asked.");
+    }
+    // Test to get Some from a valid device in the FDT.
+    let some = platform_get_device_info("ns16550a", DeviceType::Serial);
+    if some.is_some() {
+        test_kprint!("Successfully get Some from valid device asked.");
+    } else {
+        panic!("should get Some from valid device asked.");
+    }
+
+    // Check the device get from FDT, if correct or not.
+    let device = some.unwrap();
+    if device.header.compatible != "ns16550a" {
+        panic!(
+            "Device get from platform should have the compatible property: 'ns16550a', got: {}",
+            device.header.compatible
+        );
+    }
+    if device.header.device_type != DeviceType::Serial {
+        panic!("Device get from platform should have the device-type property: 'Serial'");
+    }
+    if device.header.device_addr.addr != 0x10000000 {
+        panic!(
+            "Device get from platform should have the MMIO address: '0x10000000', got: {}",
+            device.header.device_addr.addr
+        );
+    }
+    if device.header.device_addr.size != 0x100 {
+        panic!(
+            "Device get from platform should have the MMIO address size: '0x100', got: {:#x}",
+            device.header.device_addr.size
+        );
+    }
+    test_kprint!("Successfully get device from platform in STATIC mode.");
 }
