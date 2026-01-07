@@ -1,5 +1,5 @@
 #![cfg(feature = "test")]
-use crate::kprint_fmt;
+use crate::{kprint_fmt, platform::test::test_platform_get_device_info_static};
 
 #[macro_export]
 macro_rules! test_kprint {
@@ -29,6 +29,7 @@ pub fn test_kernel_early_boot(core: usize, dtb_addr: usize) -> ! {
     test_kprint!("Start kernel booting on CPU Core: 0.");
     test_platform_init(dtb_addr);
     test_platform_get_device_info_fdt();
+    test_platform_get_device_info_static();
     #[allow(clippy::empty_loop)]
     loop {}
 }
