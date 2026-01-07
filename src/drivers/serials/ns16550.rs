@@ -9,6 +9,7 @@ use super::{SERIAL_SUBSYSTEM, SerialDevice, SerialDeviceDriver, SerialDriver};
 
 /// Structure for Ns16550 driver
 /// region: DriverRegion struct to define address memory region to use with the driver and the address size
+#[cfg_attr(feature = "test", derive(Copy, Clone))]
 pub struct Ns16550 {
     pub region: DriverRegion,
 }

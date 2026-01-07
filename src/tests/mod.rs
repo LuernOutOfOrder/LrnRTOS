@@ -1,4 +1,7 @@
-use crate::{kprint_fmt, platform::test::PLATFORM_TEST_SUITE};
+use crate::{
+    drivers::serials::test::SERIAL_SUBSYSTEM_TEST_SUITE, kprint_fmt,
+    platform::test::PLATFORM_TEST_SUITE,
+};
 
 #[macro_export]
 macro_rules! test_kprint {
@@ -57,6 +60,11 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
     // Platform test suite
     let platform_tests = PLATFORM_TEST_SUITE;
     for test in platform_tests {
+        run_test!(test.name, test.func);
+    }
+    // Serial subsystem test suite
+    let serial_subsystem_tests = SERIAL_SUBSYSTEM_TEST_SUITE;
+    for test in serial_subsystem_tests {
         run_test!(test.name, test.func);
     }
     #[allow(clippy::empty_loop)]
