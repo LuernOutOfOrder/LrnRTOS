@@ -18,6 +18,14 @@ macro_rules! test_info_kprint {
     };
 }
 
+macro_rules! run_test {
+    ($test_name: expr, $fn: expr) => {
+        test_info_kprint!("Running test: {}", $test_name);
+        ($fn)();
+        test_kprint!("{}", $test_name);
+    };
+}
+
 pub fn test_info_kprint(s: core::fmt::Arguments) {
     kprint_fmt!("\x1b[33;1m[TEST INFO]\x1b[0m {}\n", s);
 }
@@ -46,11 +54,10 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
     test_platform_init(dtb_addr);
     test_kprint!("platform_init");
 
+    // Platform test suite
     let platform_tests = PLATFORM_TEST_SUITE;
     for test in platform_tests {
-        test_info_kprint!("Running test: {}", test.name);
-        (test.func)();
-        test_kprint!("{}", test.name);
+        run_test!(test.name, test.func);
     }
     #[allow(clippy::empty_loop)]
     loop {}
