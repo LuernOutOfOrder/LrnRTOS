@@ -1,6 +1,5 @@
 use crate::{
     drivers::DriverRegion,
-    kprint_fmt,
     platform::{DeviceType, platform_get_device_info},
     tests::TestCase,
 };
