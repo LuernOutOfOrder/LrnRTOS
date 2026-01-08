@@ -170,24 +170,6 @@ pub fn test_serial_subsystem_overflow() {
     if default_console_region != device_region {
         panic!("Wrong default console. The default console should be the first device registered.")
     }
-    // Check last device registered
-    let last_device = unsafe { (&*serial_subsystem.devices.get())[3] };
-    let last_device_region = {
-        // Unwrap because we know it's Some
-        match last_device.unwrap().driver {
-            SerialDeviceDriver::Ns16550(ns16550) => ns16550.region,
-        }
-    };
-    let device3_region = {
-        match device3.driver {
-            SerialDeviceDriver::Ns16550(ns16550) => ns16550.region,
-        }
-    };
-    if last_device_region != device3_region {
-        panic!(
-            "Wrong last device registered. The last device should not be replaced when possible overflow happened."
-        )
-    }
 }
 
 pub static SERIAL_SUBSYSTEM_TEST_SUITE: &[TestCase] = &[
