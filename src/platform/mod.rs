@@ -156,6 +156,7 @@ pub struct TimerDevice {
 }
 
 #[derive(Copy, Clone)]
+#[cfg_attr(feature = "test", derive(PartialEq))]
 pub struct InterruptExtended {
     // Array of all irq
     pub irq_ids: [u32; 4],

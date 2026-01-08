@@ -11,10 +11,11 @@ use crate::{
 use super::{TIMER_SUBSYSTEM, Timer, TimerDevice, TimerType};
 
 #[derive(Copy, Clone)]
+#[cfg_attr(feature = "test", derive(PartialEq))]
 pub struct Clint0 {
     #[allow(unused)]
-    interrupt_extended: [InterruptExtended; 4],
-    region: DriverRegion,
+    pub interrupt_extended: [InterruptExtended; 4],
+    pub region: DriverRegion,
 }
 
 impl Timer for Clint0 {
