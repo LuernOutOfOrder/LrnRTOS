@@ -80,7 +80,7 @@ impl TimerSubSystem {
         if size == TIMER_MAX_SIZE {
             log!(
                 LogLevel::Warn,
-                "Timer-subsystem: subsystem is full, ignoring registration request"
+                "Timer sub-system: subsystem is full, ignoring registration request"
             );
             return;
         }
@@ -91,7 +91,7 @@ impl TimerSubSystem {
                 if *timer == new_timer {
                     log!(
                         LogLevel::Warn,
-                        "Timer-subsystem: duplicate device detected, ignoring registration request"
+                        "Timer sub-system: duplicate device detected, ignoring registration request"
                     );
                     return;
                 }

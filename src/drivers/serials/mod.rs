@@ -74,7 +74,7 @@ impl SerialManager {
                 if serial.driver == new_serial.driver {
                     log!(
                         LogLevel::Warn,
-                        "Serial-subsystem: duplicate device detected, ignoring registration request"
+                        "Serial sub-system: duplicate device detected, ignoring registration request"
                     );
                     return;
                 }
@@ -86,7 +86,7 @@ impl SerialManager {
         if index_none.is_none() {
             log!(
                 LogLevel::Warn,
-                "Serial-subsystem: subsystem is full, ignoring registration request"
+                "Serial sub-system: subsystem is full, ignoring registration request"
             );
             return;
         }
