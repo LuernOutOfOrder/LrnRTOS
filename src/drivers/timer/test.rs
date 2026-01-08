@@ -1,6 +1,9 @@
 use crate::{
+    drivers::DriverRegion,
     misc::RawTraitObject,
-    platform::{self, DeviceType, platform_get_device_info},
+    platform::{
+        self, DeviceType, InterruptExtended, platform_get_device_info,
+    },
     tests::TestCase,
 };
 
@@ -17,7 +20,7 @@ pub fn test_timer_subsystem_impl() {
     // Get struct behind trait
     let device_info_trait = device_info.info.unwrap();
     let raw: RawTraitObject = unsafe { core::mem::transmute(device_info_trait) };
-    let timer_device_ptr = raw.data as *const platform::TimerDevice;
+    let timer_device_ptr = raw.data as *const platform::PlatformTimerDevice;
     let timer_device_ref = unsafe { &*timer_device_ptr };
     // Init timer driver
     let clint0: Clint0 = Clint0 {
@@ -49,16 +52,13 @@ pub fn test_timer_subsystem_impl() {
 
 pub fn test_timer_subsystem_same_device() {
     let timer_subsystem = TimerSubSystem::init();
-    if timer_subsystem.get_timer_array_size() != 0 {
-        panic!("Timer sub-system should be initialized empty.")
-    }
     // Add timer to sub-system
     // Just unwrap, being in test env we know that it will return Some.
     let device_info = platform_get_device_info("sifive,clint0", DeviceType::Timer).unwrap();
     // Get struct behind trait
     let device_info_trait = device_info.info.unwrap();
     let raw: RawTraitObject = unsafe { core::mem::transmute(device_info_trait) };
-    let timer_device_ptr = raw.data as *const platform::TimerDevice;
+    let timer_device_ptr = raw.data as *const platform::PlatformTimerDevice;
     let timer_device_ref = unsafe { &*timer_device_ptr };
     // Init timer driver
     let clint0: Clint0 = Clint0 {
@@ -78,6 +78,64 @@ pub fn test_timer_subsystem_same_device() {
     }
 }
 
+pub fn test_timer_subsystem_overflow() {
+    let timer_subsystem = TimerSubSystem::init();
+    // Build multiple timer to test how the subsystem handle overflow
+    let int_ext = [InterruptExtended {
+        cpu_intc: 0,
+        irq_len: 2,
+        irq_ids: [3, 7, 0, 0],
+    }; 4];
+    // First timer
+    let clint0: Clint0 = Clint0 {
+        region: DriverRegion {
+            addr: 0x2000000,
+            size: 0x10000,
+        },
+        interrupt_extended: int_ext,
+    };
+    let device: TimerDevice = TimerDevice {
+        timer_type: TimerType::ArchitecturalTimer,
+        device: super::TimerDeviceDriver::Clint0(clint0),
+    };
+    // Second timer
+    let clint1: Clint0 = Clint0 {
+        region: DriverRegion {
+            addr: 0x2000001,
+            size: 0x10001,
+        },
+        interrupt_extended: int_ext,
+    };
+    let device1: TimerDevice = TimerDevice {
+        timer_type: TimerType::ArchitecturalTimer,
+        device: super::TimerDeviceDriver::Clint0(clint1),
+    };
+    // Third timer
+    let clint2: Clint0 = Clint0 {
+        region: DriverRegion {
+            addr: 0x2000002,
+            size: 0x10002,
+        },
+        interrupt_extended: int_ext,
+    };
+    let device2: TimerDevice = TimerDevice {
+        timer_type: TimerType::ArchitecturalTimer,
+        device: super::TimerDeviceDriver::Clint0(clint2),
+    };
+    // Register all devices
+    timer_subsystem.add_timer(device);
+    timer_subsystem.add_timer(device1);
+    #[allow(clippy::clone_on_copy)]
+    let timer_subsystem_snapshot = unsafe { (*timer_subsystem.timer_pool.get()).clone() };
+    timer_subsystem.add_timer(device2);
+    #[allow(clippy::clone_on_copy)]
+    if timer_subsystem_snapshot != unsafe { (*timer_subsystem.timer_pool.get()).clone() } {
+        panic!(
+            "Timer sub-system state has changed after handling the overflow. This should not happened"
+        );
+    }
+}
+
 pub static TIMER_SUBSYSTEM_TEST_SUITE: &[TestCase] = &[
     TestCase {
         name: "Timer sub-system basic implementation",
@@ -86,5 +144,9 @@ pub static TIMER_SUBSYSTEM_TEST_SUITE: &[TestCase] = &[
     TestCase {
         name: "Timer sub-system add same device",
         func: test_timer_subsystem_same_device,
+    },
+    TestCase {
+        name: "Timer sub-system handling overflow",
+        func: test_timer_subsystem_overflow,
     },
 ];
