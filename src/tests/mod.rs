@@ -50,6 +50,14 @@ pub struct TestCase<'a> {
     pub func: fn(),
 }
 
+// Static containing all test suite
+static TEST_SUITE: &[&[TestCase]] = &[
+    PLATFORM_TEST_SUITE,
+    SERIAL_SUBSYSTEM_TEST_SUITE,
+    TIMER_SUBSYSTEM_TEST_SUITE,
+    CPU_INTC_SUBSYSTEM_TEST_SUITE,
+];
+
 #[unsafe(no_mangle)]
 pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
     use crate::platform::test::test_platform_init;
@@ -63,25 +71,11 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
     test_platform_init(dtb_addr);
     test_kprint!("platform_init");
 
-    // Platform test suite
-    let platform_tests = PLATFORM_TEST_SUITE;
-    for test in platform_tests {
-        run_test!(test.name, test.func);
-    }
-    // Serial subsystem test suite
-    let serial_subsystem_tests = SERIAL_SUBSYSTEM_TEST_SUITE;
-    for test in serial_subsystem_tests {
-        run_test!(test.name, test.func);
-    }
-    // Timer subsystem test suite
-    let timer_subsystem_tests = TIMER_SUBSYSTEM_TEST_SUITE;
-    for test in timer_subsystem_tests {
-        run_test!(test.name, test.func);
-    }
-    // CPU interrupt-controller subsystem test suite
-    let cpu_intc_tests = CPU_INTC_SUBSYSTEM_TEST_SUITE;
-    for test in cpu_intc_tests {
-        run_test!(test.name, test.func);
+    // Iterate over all test suite and run all test inside
+    for test_suite in TEST_SUITE {
+        for test in *test_suite {
+            run_test!(test.name, test.func);
+        }
     }
     // Exit Qemu at the end of the tests
     unsafe { ptr::write_volatile(0x100000 as *mut u32, 0x5555) };

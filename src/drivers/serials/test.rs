@@ -4,7 +4,7 @@ use crate::{
     tests::TestCase,
 };
 
-use super::{SerialDevice, SerialDeviceDriver, SerialManager, ns16550::Ns16550};
+use super::{init_serial_subsystem, ns16550::Ns16550, SerialDevice, SerialDeviceDriver, SerialManager};
 
 pub fn test_serial_subsystem_impl() {
     // Check init serial subsystem
@@ -42,6 +42,9 @@ pub fn test_serial_subsystem_impl() {
             "Error getting the default console, default console get is different than the one saved before."
         );
     }
+
+    // Initialize serial subsystem, don't know where to put it instead of here
+    init_serial_subsystem();
 }
 
 /// Test how the sub-system react when adding multiple time the same device.
@@ -61,8 +64,25 @@ pub fn test_serial_subsystem_same_device() {
         default_console: false,
         driver: SerialDeviceDriver::Ns16550(ns16550),
     };
-    Ns16550::init();
+    // Add second serial to subsystem
+    let device_info = platform_get_device_info("ns16550a", DeviceType::Serial).unwrap();
+    let ns16551: Ns16550 = Ns16550 {
+        region: device_info.header.device_addr,
+    };
+    let device1 = SerialDevice {
+        _id: 0,
+        default_console: false,
+        driver: SerialDeviceDriver::Ns16550(ns16551),
+    };
+    // All same devices
     serial_subsystem.add_serial(device);
+    // This one should trigger a warning
+    serial_subsystem.add_serial(device1);
+    if serial_subsystem.get_serial_array_size() != 1 {
+        panic!(
+            "Serial sub-system should contain only 1 device."
+        );
+    }
 }
 
 pub fn test_serial_subsystem_overflow() {
