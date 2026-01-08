@@ -59,21 +59,20 @@ impl CpuIntcSubSystem {
     pub fn add_cpu_intc(&self, new_cpu_intc: CpuIntcHw, index: usize) {
         let size = self.get_cpu_intc_array_size();
         if size == CPU_INTC_MAX_SIZE {
-            panic!(
-                "CPU interrupt-controller sub-system: subsystem is full, ignoring registration request"
-            )
+            log!(
+                LogLevel::Warn,
+                "CPU interrupt-controller sub-system: sub-system is full, ignoring registration request"
+            );
+            return;
         }
-        for i in 0..CPU_INTC_MAX_SIZE {
-            if self.get_cpu_intc(i).is_some() {
-                log!(
-                    LogLevel::Warn,
-                    "CPU interrupt-controller sub-system: duplicate device detected, ignoring registration request"
-                );
-                return;
-            } else {
-                unsafe {
-                    (&mut *self.cpu_intc_pool.get())[index] = Some(new_cpu_intc);
-                }
+        if self.get_cpu_intc(index).is_some() {
+            log!(
+                LogLevel::Warn,
+                "CPU interrupt-controller sub-system: duplicate device detected, ignoring registration request"
+            );
+        } else {
+            unsafe {
+                (&mut *self.cpu_intc_pool.get())[index] = Some(new_cpu_intc);
             }
         }
     }
