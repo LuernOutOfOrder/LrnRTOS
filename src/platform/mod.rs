@@ -151,7 +151,7 @@ impl PlatformCpuFreqDevice {
     }
 }
 
-pub struct TimerDevice {
+pub struct PlatformTimerDevice {
     pub interrupt_extended: [InterruptExtended; 4],
 }
 
@@ -166,10 +166,10 @@ pub struct InterruptExtended {
     pub irq_len: usize,
 }
 
-impl TimerDevice {
+impl PlatformTimerDevice {
     #[allow(clippy::new_without_default)]
     pub const fn init() -> Self {
-        TimerDevice {
+        PlatformTimerDevice {
             interrupt_extended: [InterruptExtended {
                 cpu_intc: 0,
                 irq_len: 0,
@@ -259,7 +259,7 @@ impl TimerDevice {
             // Update array with current interrupt
             intc_extended_array[i] = parsed_interrupt;
         }
-        TimerDevice {
+        PlatformTimerDevice {
             interrupt_extended: intc_extended_array,
         }
     }
@@ -267,11 +267,11 @@ impl TimerDevice {
 
 // Implement DeviceInfo trait to all Device type structure
 impl DeviceInfo for PlatformSerialDevice {}
-impl DeviceInfo for TimerDevice {}
+impl DeviceInfo for PlatformTimerDevice {}
 impl DeviceInfo for PlatformCpuIntCDevice {}
 impl DeviceInfo for PlatformCpuFreqDevice {}
 
-static mut TIMER_DEVICE_INSTANCE: TimerDevice = TimerDevice::init();
+static mut TIMER_DEVICE_INSTANCE: PlatformTimerDevice = PlatformTimerDevice::init();
 static mut SERIAL_DEVICE_INSTANCE: PlatformSerialDevice = PlatformSerialDevice::init();
 static mut CPU_INTC_DEVICE_INSTANCE: PlatformCpuIntCDevice = PlatformCpuIntCDevice::init();
 static mut CPU_FREQ_INSTANCE: PlatformCpuFreqDevice = PlatformCpuFreqDevice::init();
@@ -291,7 +291,7 @@ fn init_fdt_device(compatible: &'_ str, device_type: DeviceType) -> Option<Devic
         }
         #[allow(static_mut_refs)]
         DeviceType::Timer => {
-            let timer_device: TimerDevice = TimerDevice::init_fdt(compatible);
+            let timer_device: PlatformTimerDevice = PlatformTimerDevice::init_fdt(compatible);
             unsafe { TIMER_DEVICE_INSTANCE = timer_device };
             let get_device = Devices::init_fdt(compatible, device_type);
             get_device?;
