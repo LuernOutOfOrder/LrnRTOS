@@ -2,7 +2,7 @@ use core::cell::UnsafeCell;
 
 use clint0::Clint0;
 
-use crate::config::TIMER_MAX_SIZE;
+use crate::{config::TIMER_MAX_SIZE, log, logs::LogLevel};
 
 pub mod clint0;
 
@@ -80,13 +80,24 @@ impl TimerSubSystem {
     pub fn add_timer(&self, new_timer: TimerDevice) {
         let size = self.get_timer_array_size();
         if size == TIMER_MAX_SIZE {
-            panic!(
-                "Timer sub-system pool possible overflow. Consider increase size in config file."
-            )
+            log!(
+                LogLevel::Warn,
+                "Timer-subsystem: subsystem is full, ignoring registration request"
+            );
+            return;
         }
         for i in 0..TIMER_MAX_SIZE {
-            let timer = unsafe { (&*self.timer_pool.get())[i].as_ref() };
-            if timer.is_none() {
+            let device = unsafe { (&*self.timer_pool.get())[i].as_ref() };
+            if let Some(timer) = device {
+                // Check duplication
+                if *timer == new_timer {
+                    log!(
+                        LogLevel::Warn,
+                        "Timer-subsystem: duplicate device detected, ignoring registration request"
+                    );
+                    return;
+                }
+            } else {
                 unsafe {
                     (&mut *self.timer_pool.get())[i] = Some(new_timer);
                 }
