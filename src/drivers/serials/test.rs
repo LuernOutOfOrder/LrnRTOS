@@ -192,7 +192,7 @@ pub fn test_serial_subsystem_overflow() {
 
 pub static SERIAL_SUBSYSTEM_TEST_SUITE: &[TestCase] = &[
     TestCase {
-        name: "Serial sub-system init",
+        name: "Serial sub-system basic implementation",
         func: test_serial_subsystem_impl,
     },
     TestCase {
