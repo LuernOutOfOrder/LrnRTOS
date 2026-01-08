@@ -2,12 +2,15 @@ use core::cell::UnsafeCell;
 
 use riscv_cpu_intc::RiscVCpuIntc;
 
-use crate::config::CPU_INTC_MAX_SIZE;
+use crate::{config::CPU_INTC_MAX_SIZE, log, logs::LogLevel};
 
 pub mod riscv_cpu_intc;
 
 // Trait to implement in all cpu interrupt-controller driver
 pub trait CpuIntc {}
+
+#[cfg(feature = "test")]
+pub mod test;
 
 #[derive(Copy, Clone)]
 // Unions enum for CpuIntcDriver struct
@@ -53,15 +56,25 @@ impl CpuIntcSubSystem {
     /// index: used to represent the CPU interrupt-controller core id, also used as an index in
     /// the sub-system pool. Because there's only one CPU interrupt-controller per CPU core, no
     /// overlap possible.
-    pub fn add_cpu_intc(&self, cpu_intc: CpuIntcHw, index: usize) {
+    pub fn add_cpu_intc(&self, new_cpu_intc: CpuIntcHw, index: usize) {
         let size = self.get_cpu_intc_array_size();
         if size == CPU_INTC_MAX_SIZE {
             panic!(
-                "CPU interrupt-controller sub-system pool possible overflow. Consider increase size in config file."
+                "CPU interrupt-controller sub-system: subsystem is full, ignoring registration request"
             )
         }
-        unsafe {
-            (&mut *self.cpu_intc_pool.get())[index] = Some(cpu_intc);
+        for i in 0..CPU_INTC_MAX_SIZE {
+            if self.get_cpu_intc(i).is_some() {
+                log!(
+                    LogLevel::Warn,
+                    "CPU interrupt-controller sub-system: duplicate device detected, ignoring registration request"
+                );
+                return;
+            } else {
+                unsafe {
+                    (&mut *self.cpu_intc_pool.get())[index] = Some(new_cpu_intc);
+                }
+            }
         }
     }
 

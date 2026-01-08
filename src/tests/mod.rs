@@ -1,6 +1,9 @@
+use core::ptr;
+
 use crate::{
     drivers::{
-        serials::test::SERIAL_SUBSYSTEM_TEST_SUITE, timer::test::TIMER_SUBSYSTEM_TEST_SUITE,
+        cpu_intc::test::CPU_INTC_SUBSYSTEM_TEST_SUITE, serials::test::SERIAL_SUBSYSTEM_TEST_SUITE,
+        timer::test::TIMER_SUBSYSTEM_TEST_SUITE,
     },
     kprint_fmt,
     platform::test::PLATFORM_TEST_SUITE,
@@ -75,6 +78,13 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
     for test in timer_subsystem_tests {
         run_test!(test.name, test.func);
     }
+    // CPU interrupt-controller subsystem test suite
+    let cpu_intc_tests = CPU_INTC_SUBSYSTEM_TEST_SUITE;
+    for test in cpu_intc_tests {
+        run_test!(test.name, test.func);
+    }
+    // Exit Qemu at the end of the tests
+    unsafe { ptr::write_volatile(0x100000 as *mut u32, 0x5555) };
     #[allow(clippy::empty_loop)]
     loop {}
 }
