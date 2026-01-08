@@ -24,14 +24,12 @@ pub enum TimerType {
     SoCTimer,
 }
 
-#[derive(Copy, Clone)]
-#[cfg_attr(feature = "test", derive(PartialEq))]
+#[derive(Copy, Clone, PartialEq)]
 enum TimerDeviceDriver {
     Clint0(Clint0),
 }
 
-#[derive(Copy, Clone)]
-#[cfg_attr(feature = "test", derive(PartialEq))]
+#[derive(Copy, Clone, PartialEq)]
 pub struct TimerDevice {
     device: TimerDeviceDriver,
     timer_type: TimerType,

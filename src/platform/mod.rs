@@ -155,8 +155,7 @@ pub struct PlatformTimerDevice {
     pub interrupt_extended: [InterruptExtended; 4],
 }
 
-#[derive(Copy, Clone)]
-#[cfg_attr(feature = "test", derive(PartialEq))]
+#[derive(Copy, Clone, PartialEq)]
 pub struct InterruptExtended {
     // Array of all irq
     pub irq_ids: [u32; 4],
