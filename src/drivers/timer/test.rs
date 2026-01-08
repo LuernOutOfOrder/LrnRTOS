@@ -1,9 +1,7 @@
 use crate::{
     drivers::DriverRegion,
     misc::RawTraitObject,
-    platform::{
-        self, DeviceType, InterruptExtended, platform_get_device_info,
-    },
+    platform::{self, DeviceType, InterruptExtended, platform_get_device_info},
     tests::TestCase,
 };
 
@@ -95,7 +93,7 @@ pub fn test_timer_subsystem_overflow() {
         interrupt_extended: int_ext,
     };
     let device: TimerDevice = TimerDevice {
-        timer_type: TimerType::ArchitecturalTimer,
+        timer_type: TimerType::SoCTimer,
         device: super::TimerDeviceDriver::Clint0(clint0),
     };
     // Second timer
@@ -127,12 +125,57 @@ pub fn test_timer_subsystem_overflow() {
     timer_subsystem.add_timer(device1);
     #[allow(clippy::clone_on_copy)]
     let timer_subsystem_snapshot = unsafe { (*timer_subsystem.timer_pool.get()).clone() };
+    // This one should trigger a warning and not be registered to the sub-system
     timer_subsystem.add_timer(device2);
+    // Check if the subsystem has changed after the overflow aborted
     #[allow(clippy::clone_on_copy)]
     if timer_subsystem_snapshot != unsafe { (*timer_subsystem.timer_pool.get()).clone() } {
         panic!(
             "Timer sub-system state has changed after handling the overflow. This should not happened"
         );
+    }
+}
+
+pub fn test_timer_subsystem_primary_timer() {
+    let timer_subsystem = TimerSubSystem::init();
+    // Build multiple timer to test how the subsystem handle overflow
+    let int_ext = [InterruptExtended {
+        cpu_intc: 0,
+        irq_len: 2,
+        irq_ids: [3, 7, 0, 0],
+    }; 4];
+    // First timer
+    let clint0: Clint0 = Clint0 {
+        region: DriverRegion {
+            addr: 0x2000000,
+            size: 0x10000,
+        },
+        interrupt_extended: int_ext,
+    };
+    let device: TimerDevice = TimerDevice {
+        timer_type: TimerType::SoCTimer,
+        device: super::TimerDeviceDriver::Clint0(clint0),
+    };
+    // Second timer
+    let clint1: Clint0 = Clint0 {
+        region: DriverRegion {
+            addr: 0x2000001,
+            size: 0x10001,
+        },
+        interrupt_extended: int_ext,
+    };
+    let device1: TimerDevice = TimerDevice {
+        timer_type: TimerType::ArchitecturalTimer,
+        device: super::TimerDeviceDriver::Clint0(clint1),
+    };
+    // Register all devices
+    timer_subsystem.add_timer(device);
+    timer_subsystem.add_timer(device1);
+    // Check primary timer
+    timer_subsystem.select_primary_timer();
+    let primary_timer = timer_subsystem.get_primary_timer();
+    if primary_timer != device1 {
+        panic!("Timer sub-system primary timer should be the first ArchitecturalTimer registered");
     }
 }
 
@@ -148,5 +191,9 @@ pub static TIMER_SUBSYSTEM_TEST_SUITE: &[TestCase] = &[
     TestCase {
         name: "Timer sub-system handling overflow",
         func: test_timer_subsystem_overflow,
+    },
+    TestCase {
+        name: "Timer sub-system check primary timer",
+        func: test_timer_subsystem_primary_timer,
     },
 ];
