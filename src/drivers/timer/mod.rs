@@ -6,6 +6,9 @@ use crate::config::TIMER_MAX_SIZE;
 
 pub mod clint0;
 
+#[cfg(feature = "test")]
+pub mod test;
+
 pub trait Timer {
     fn read_time(&self) -> u64;
     fn set_delay(&self, core: usize, delay: u64);
@@ -22,11 +25,13 @@ pub enum TimerType {
 }
 
 #[derive(Copy, Clone)]
+#[cfg_attr(feature = "test", derive(PartialEq))]
 enum TimerDeviceDriver {
     Clint0(Clint0),
 }
 
 #[derive(Copy, Clone)]
+#[cfg_attr(feature = "test", derive(PartialEq))]
 pub struct TimerDevice {
     device: TimerDeviceDriver,
     timer_type: TimerType,
@@ -90,7 +95,7 @@ impl TimerSubSystem {
         }
     }
 
-    pub fn remove_timer(&self, index: usize) {
+    fn remove_timer(&self, index: usize) {
         unsafe { (&mut *self.timer_pool.get())[index] = None }
     }
 
@@ -105,7 +110,7 @@ impl TimerSubSystem {
         size
     }
 
-    pub fn get_timer(&self, index: usize) -> Option<&TimerDevice> {
+    fn get_timer(&self, index: usize) -> Option<&TimerDevice> {
         let timer = unsafe { &(*self.timer_pool.get())[index] };
         if let Some(t) = timer { Some(t) } else { None }
     }

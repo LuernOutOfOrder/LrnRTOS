@@ -1,5 +1,8 @@
 use crate::{
-    drivers::serials::test::SERIAL_SUBSYSTEM_TEST_SUITE, kprint_fmt,
+    drivers::{
+        serials::test::SERIAL_SUBSYSTEM_TEST_SUITE, timer::test::TIMER_SUBSYSTEM_TEST_SUITE,
+    },
+    kprint_fmt,
     platform::test::PLATFORM_TEST_SUITE,
 };
 
@@ -65,6 +68,11 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
     // Serial subsystem test suite
     let serial_subsystem_tests = SERIAL_SUBSYSTEM_TEST_SUITE;
     for test in serial_subsystem_tests {
+        run_test!(test.name, test.func);
+    }
+    // Timer subsystem test suite
+    let timer_subsystem_tests = TIMER_SUBSYSTEM_TEST_SUITE;
+    for test in timer_subsystem_tests {
         run_test!(test.name, test.func);
     }
     #[allow(clippy::empty_loop)]
