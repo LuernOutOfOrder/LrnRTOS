@@ -1,12 +1,11 @@
 use core::ptr;
 
+pub mod drivers;
+
+use drivers::{cpu_intc::subsystem::CPU_INTC_SUBSYSTEM_TEST_SUITE, serials::subsystem::SERIAL_SUBSYSTEM_TEST_SUITE, timer::subsystem::TIMER_SUBSYSTEM_TEST_SUITE};
+
 use crate::{
-    drivers::{
-        cpu_intc::test::CPU_INTC_SUBSYSTEM_TEST_SUITE, serials::test::SERIAL_SUBSYSTEM_TEST_SUITE,
-        timer::test::TIMER_SUBSYSTEM_TEST_SUITE,
-    },
-    kprint_fmt,
-    platform::test::PLATFORM_TEST_SUITE,
+    kprint_fmt, platform::test::PLATFORM_TEST_SUITE
 };
 
 #[macro_export]

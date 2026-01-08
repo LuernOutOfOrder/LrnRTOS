@@ -1,6 +1,4 @@
-use crate::{config::CPU_INTC_MAX_SIZE, tests::TestCase};
-
-use super::{CpuIntcDriver, CpuIntcHw, CpuIntcSubSystem, riscv_cpu_intc::RiscVCpuIntc};
+use crate::{config::CPU_INTC_MAX_SIZE, drivers::cpu_intc::{riscv_cpu_intc::RiscVCpuIntc, CpuIntcDriver, CpuIntcHw, CpuIntcSubSystem}, tests::TestCase};
 
 pub fn test_cpu_intc_subsystem_impl() {
     let cpu_intc_subsystem = CpuIntcSubSystem::init();

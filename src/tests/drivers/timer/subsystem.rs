@@ -1,11 +1,9 @@
 use crate::{
-    drivers::DriverRegion,
+    drivers::{timer::{clint0::Clint0, TimerDevice, TimerDeviceDriver, TimerSubSystem, TimerType}, DriverRegion},
     misc::RawTraitObject,
-    platform::{self, DeviceType, InterruptExtended, platform_get_device_info},
+    platform::{self, platform_get_device_info, DeviceType, InterruptExtended},
     tests::TestCase,
 };
-
-use super::{TimerDevice, TimerSubSystem, TimerType, clint0::Clint0};
 
 pub fn test_timer_subsystem_impl() {
     let timer_subsystem = TimerSubSystem::init();
@@ -27,7 +25,7 @@ pub fn test_timer_subsystem_impl() {
     };
     let device: TimerDevice = TimerDevice {
         timer_type: TimerType::ArchitecturalTimer,
-        device: super::TimerDeviceDriver::Clint0(clint0),
+        device: TimerDeviceDriver::Clint0(clint0),
     };
     timer_subsystem.add_timer(device);
     // Check if timer sub-system timer array has been updated
@@ -65,7 +63,7 @@ pub fn test_timer_subsystem_same_device() {
     };
     let device: TimerDevice = TimerDevice {
         timer_type: TimerType::ArchitecturalTimer,
-        device: super::TimerDeviceDriver::Clint0(clint0),
+        device: TimerDeviceDriver::Clint0(clint0),
     };
     timer_subsystem.add_timer(device);
     // This should trigger a warning and abort timer registration
@@ -94,7 +92,7 @@ pub fn test_timer_subsystem_overflow() {
     };
     let device: TimerDevice = TimerDevice {
         timer_type: TimerType::SoCTimer,
-        device: super::TimerDeviceDriver::Clint0(clint0),
+        device: TimerDeviceDriver::Clint0(clint0),
     };
     // Second timer
     let clint1: Clint0 = Clint0 {
@@ -106,7 +104,7 @@ pub fn test_timer_subsystem_overflow() {
     };
     let device1: TimerDevice = TimerDevice {
         timer_type: TimerType::ArchitecturalTimer,
-        device: super::TimerDeviceDriver::Clint0(clint1),
+        device: TimerDeviceDriver::Clint0(clint1),
     };
     // Third timer
     let clint2: Clint0 = Clint0 {
@@ -118,7 +116,7 @@ pub fn test_timer_subsystem_overflow() {
     };
     let device2: TimerDevice = TimerDevice {
         timer_type: TimerType::ArchitecturalTimer,
-        device: super::TimerDeviceDriver::Clint0(clint2),
+        device: TimerDeviceDriver::Clint0(clint2),
     };
     // Register all devices
     timer_subsystem.add_timer(device);
@@ -154,7 +152,7 @@ pub fn test_timer_subsystem_primary_timer() {
     };
     let device: TimerDevice = TimerDevice {
         timer_type: TimerType::SoCTimer,
-        device: super::TimerDeviceDriver::Clint0(clint0),
+        device: TimerDeviceDriver::Clint0(clint0),
     };
     // Second timer
     let clint1: Clint0 = Clint0 {
@@ -166,7 +164,7 @@ pub fn test_timer_subsystem_primary_timer() {
     };
     let device1: TimerDevice = TimerDevice {
         timer_type: TimerType::ArchitecturalTimer,
-        device: super::TimerDeviceDriver::Clint0(clint1),
+        device: TimerDeviceDriver::Clint0(clint1),
     };
     // Register all devices
     timer_subsystem.add_timer(device);

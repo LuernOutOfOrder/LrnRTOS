@@ -1,10 +1,8 @@
 use crate::{
-    drivers::DriverRegion,
-    platform::{DeviceType, platform_get_device_info},
+    drivers::{serials::{init_serial_subsystem, ns16550::Ns16550, SerialDevice, SerialDeviceDriver, SerialManager}, DriverRegion},
+    platform::{platform_get_device_info, DeviceType},
     tests::TestCase,
 };
-
-use super::{init_serial_subsystem, ns16550::Ns16550, SerialDevice, SerialDeviceDriver, SerialManager};
 
 pub fn test_serial_subsystem_impl() {
     // Check init serial subsystem

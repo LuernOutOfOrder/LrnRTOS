@@ -9,9 +9,6 @@ use crate::{config::SERIAL_MAX_SIZE, log, logs::LogLevel};
 
 pub mod ns16550;
 
-#[cfg(feature = "test")]
-pub mod test;
-
 /// Generic trait to implement in each serial driver
 pub trait SerialDriver: Send + Sync + Write {
     // Write char at address
@@ -22,7 +19,7 @@ pub trait SerialDriver: Send + Sync + Write {
 
 #[cfg_attr(feature = "test", derive(Copy, Clone))]
 #[derive(PartialEq)]
-enum SerialDeviceDriver {
+pub enum SerialDeviceDriver {
     Ns16550(Ns16550),
 }
 
@@ -33,9 +30,9 @@ enum SerialDeviceDriver {
 #[cfg_attr(feature = "test", derive(Copy, Clone))]
 #[derive(PartialEq)]
 pub struct SerialDevice {
-    driver: SerialDeviceDriver,
-    _id: usize,
-    default_console: bool,
+    pub driver: SerialDeviceDriver,
+    pub _id: usize,
+    pub default_console: bool,
 }
 
 impl SerialDevice {

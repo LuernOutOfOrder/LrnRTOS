@@ -6,9 +6,6 @@ use crate::{config::TIMER_MAX_SIZE, log, logs::LogLevel};
 
 pub mod clint0;
 
-#[cfg(feature = "test")]
-pub mod test;
-
 pub trait Timer {
     fn read_time(&self) -> u64;
     fn set_delay(&self, core: usize, delay: u64);
@@ -25,14 +22,14 @@ pub enum TimerType {
 }
 
 #[derive(Copy, Clone, PartialEq)]
-enum TimerDeviceDriver {
+pub enum TimerDeviceDriver {
     Clint0(Clint0),
 }
 
 #[derive(Copy, Clone, PartialEq)]
 pub struct TimerDevice {
-    device: TimerDeviceDriver,
-    timer_type: TimerType,
+    pub(crate) device: TimerDeviceDriver,
+    pub timer_type: TimerType,
 }
 
 impl TimerDevice {

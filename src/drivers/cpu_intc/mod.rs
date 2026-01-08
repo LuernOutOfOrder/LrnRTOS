@@ -9,13 +9,10 @@ pub mod riscv_cpu_intc;
 // Trait to implement in all cpu interrupt-controller driver
 pub trait CpuIntc {}
 
-#[cfg(feature = "test")]
-pub mod test;
-
 #[derive(Copy, Clone)]
 // Unions enum for CpuIntcDriver struct
 // avoid using &'static mut dyn CpuIntc
-enum CpuIntcDriver {
+pub enum CpuIntcDriver {
     #[allow(unused)]
     RiscVCpuIntc(RiscVCpuIntc),
 }
@@ -23,7 +20,7 @@ enum CpuIntcDriver {
 #[derive(Copy, Clone)]
 pub struct CpuIntcHw {
     #[allow(unused)]
-    driver: CpuIntcDriver,
+    pub driver: CpuIntcDriver,
 }
 
 impl CpuIntcHw {
