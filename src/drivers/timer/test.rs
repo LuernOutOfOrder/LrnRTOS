@@ -1,8 +1,10 @@
 use crate::{
-    misc::RawTraitObject, platform::{self, platform_get_device_info, DeviceType}, tests::TestCase
+    misc::RawTraitObject,
+    platform::{self, DeviceType, platform_get_device_info},
+    tests::TestCase,
 };
 
-use super::{clint0::Clint0, TimerDevice, TimerSubSystem, TimerType};
+use super::{TimerDevice, TimerSubSystem, TimerType, clint0::Clint0};
 
 pub fn test_timer_subsystem_impl() {
     let timer_subsystem = TimerSubSystem::init();
@@ -45,7 +47,44 @@ pub fn test_timer_subsystem_impl() {
     }
 }
 
-pub static TIMER_SUBSYSTEM_TEST_SUITE: &[TestCase] = &[TestCase {
-    name: "Timer sub-system basic implementation",
-    func: test_timer_subsystem_impl,
-}];
+pub fn test_timer_subsystem_same_device() {
+    let timer_subsystem = TimerSubSystem::init();
+    if timer_subsystem.get_timer_array_size() != 0 {
+        panic!("Timer sub-system should be initialized empty.")
+    }
+    // Add timer to sub-system
+    // Just unwrap, being in test env we know that it will return Some.
+    let device_info = platform_get_device_info("sifive,clint0", DeviceType::Timer).unwrap();
+    // Get struct behind trait
+    let device_info_trait = device_info.info.unwrap();
+    let raw: RawTraitObject = unsafe { core::mem::transmute(device_info_trait) };
+    let timer_device_ptr = raw.data as *const platform::TimerDevice;
+    let timer_device_ref = unsafe { &*timer_device_ptr };
+    // Init timer driver
+    let clint0: Clint0 = Clint0 {
+        region: device_info.header.device_addr,
+        interrupt_extended: timer_device_ref.interrupt_extended,
+    };
+    let device: TimerDevice = TimerDevice {
+        timer_type: TimerType::ArchitecturalTimer,
+        device: super::TimerDeviceDriver::Clint0(clint0),
+    };
+    timer_subsystem.add_timer(device);
+    // This should trigger a warning and abort timer registration
+    timer_subsystem.add_timer(device);
+    // Check if timer sub-system timer array has been updated
+    if timer_subsystem.get_timer_array_size() > 1 {
+        panic!("Timer sub-system should contain only 1 timer.")
+    }
+}
+
+pub static TIMER_SUBSYSTEM_TEST_SUITE: &[TestCase] = &[
+    TestCase {
+        name: "Timer sub-system basic implementation",
+        func: test_timer_subsystem_impl,
+    },
+    TestCase {
+        name: "Timer sub-system add same device",
+        func: test_timer_subsystem_same_device,
+    },
+];
