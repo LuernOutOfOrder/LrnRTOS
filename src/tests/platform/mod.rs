@@ -1,10 +1,4 @@
-use crate::tests::TestCase;
-
-use super::{
-    DeviceType, PLATFORM_INFO,
-    fdt::{fdt_present, parse_dtb_file},
-    platform_get_device_info,
-};
+use crate::{platform::{fdt::{fdt_present, parse_dtb_file}, platform_get_device_info, DeviceType, PLATFORM_INFO}, tests::TestCase};
 
 pub fn test_platform_init(dtb_addr: usize) {
     let test_mode_fdt: bool = true;

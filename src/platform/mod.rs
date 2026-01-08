@@ -2,9 +2,6 @@ pub mod fdt;
 pub mod mem;
 pub mod platform_info;
 
-#[cfg(feature = "test")]
-pub mod test;
-
 use core::ptr;
 
 use arrayvec::ArrayVec;
@@ -20,7 +17,7 @@ use fdt::{
     parse_dtb_file,
 };
 
-static mut PLATFORM_INFO: PlatformInfo = PlatformInfo::init();
+pub static mut PLATFORM_INFO: PlatformInfo = PlatformInfo::init();
 
 /// Initialize the FDT and the static devices. Choose the correct one to use.
 pub fn platform_init(dtb_addr: usize) {

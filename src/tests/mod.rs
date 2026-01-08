@@ -1,12 +1,12 @@
 use core::ptr;
 
 pub mod drivers;
+pub mod platform;
 
 use drivers::{cpu_intc::subsystem::CPU_INTC_SUBSYSTEM_TEST_SUITE, serials::subsystem::SERIAL_SUBSYSTEM_TEST_SUITE, timer::subsystem::TIMER_SUBSYSTEM_TEST_SUITE};
+use platform::{test_platform_init, PLATFORM_TEST_SUITE};
 
-use crate::{
-    kprint_fmt, platform::test::PLATFORM_TEST_SUITE
-};
+use crate::{kprint, kprint_fmt};
 
 #[macro_export]
 macro_rules! test_kprint {
@@ -59,9 +59,7 @@ static TEST_SUITE: &[&[TestCase]] = &[
 
 #[unsafe(no_mangle)]
 pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
-    use crate::platform::test::test_platform_init;
-
-    test_info_kprint!("Starting kernel in test mode.");
+    kprint!("Starting kernel in test mode.\n");
     if core != 0 {
         panic!("Booting on wrong CPU core");
     }
