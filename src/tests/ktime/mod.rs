@@ -1,6 +1,6 @@
-use crate::kprint_fmt;
-
 use super::TestCase;
+
+// Those tests sucks
 
 pub fn test_set_ktime_ms() {
     let cpu_freq = 10000000;
