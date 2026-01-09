@@ -44,6 +44,17 @@ impl Ns16550 {
             Some(d) => d,
             None => return,
         };
+        // Check MMIO reg
+        if device_info.header.device_addr.addr == 0 {
+            panic!(
+                "Encounter a wrong MMIO reg when initializing device. Check the device definition or hardware."
+            );
+        }
+        if device_info.header.device_addr.size == 0 {
+            panic!(
+                "Encounter a wrong MMIO reg size when initializing device. Check the device definition or hardware."
+            );
+        }
         let ns16550: Ns16550 = Ns16550 {
             region: device_info.header.device_addr,
         };
