@@ -3,6 +3,7 @@ use core::ptr;
 pub mod drivers;
 pub mod platform;
 pub mod arch;
+pub mod ktime;
 
 use arch::traps::trap_frame::TRAP_FRAME_TEST_SUITE;
 use drivers::{
@@ -10,6 +11,7 @@ use drivers::{
     serials::{ns16550::NS16550_TEST_SUITE, subsystem::SERIAL_SUBSYSTEM_TEST_SUITE},
     timer::subsystem::TIMER_SUBSYSTEM_TEST_SUITE,
 };
+use ktime::KTIME_TEST_SUITE;
 use platform::{PLATFORM_TEST_SUITE, test_platform_init};
 
 use crate::{kprint, kprint_fmt};
@@ -63,6 +65,8 @@ static TEST_SUITE: &[&[TestCase]] = &[
     SERIAL_SUBSYSTEM_TEST_SUITE,
     TIMER_SUBSYSTEM_TEST_SUITE,
     CPU_INTC_SUBSYSTEM_TEST_SUITE,
+    // Ktime test suite
+    KTIME_TEST_SUITE,
     // Drivers test suite
     NS16550_TEST_SUITE,
     TRAP_FRAME_TEST_SUITE,
