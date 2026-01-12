@@ -1,5 +1,5 @@
 use crate::{
-    drivers::{timer::{clint0::Clint0, TimerDevice, TimerDeviceDriver, TimerSubSystem, TimerType}, DriverRegion},
+    drivers::{timer::{clint0::Clint0, init_timer_subsystem, TimerDevice, TimerDeviceDriver, TimerSubSystem, TimerType}, DriverRegion},
     misc::RawTraitObject,
     platform::{self, platform_get_device_info, DeviceType, InterruptExtended},
     tests::TestCase,
@@ -44,6 +44,9 @@ pub fn test_timer_subsystem_impl() {
     if primary_timer != device {
         panic!("Timer sub-system doesn't have the correct primary timer. Selection is wrong.");
     }
+
+    // Initialize timer subsystem, don't know where to put it instead of here
+    init_timer_subsystem();
 }
 
 pub fn test_timer_subsystem_same_device() {
