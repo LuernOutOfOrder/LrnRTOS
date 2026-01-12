@@ -4,6 +4,7 @@ pub mod drivers;
 pub mod platform;
 pub mod arch;
 pub mod ktime;
+pub mod mem;
 
 use arch::traps::{handler::TRAP_HANDLER_RISCV32_TEST_SUITE, interrupt::INTERRUPTIONS_RISCV32_TEST_SUITE, trap_frame::TRAP_FRAME_TEST_SUITE};
 use drivers::{
@@ -12,6 +13,7 @@ use drivers::{
     timer::subsystem::TIMER_SUBSYSTEM_TEST_SUITE,
 };
 use ktime::KTIME_TEST_SUITE;
+use mem::KERNEL_MEMORY_TEST_SUITE;
 use platform::{PLATFORM_TEST_SUITE, test_platform_init};
 
 use crate::{kprint, kprint_fmt};
@@ -74,6 +76,8 @@ static TEST_SUITE: &[&[TestCase]] = &[
     TRAP_HANDLER_RISCV32_TEST_SUITE,
     // Interruptions
     INTERRUPTIONS_RISCV32_TEST_SUITE,
+    // Memory
+    KERNEL_MEMORY_TEST_SUITE,
 ];
 
 #[unsafe(no_mangle)]
