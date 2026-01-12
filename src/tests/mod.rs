@@ -61,6 +61,8 @@ pub struct TestManager<'a> {
     // Represent the next empty index to push new test suite, also used to know how many test suite
     // in test_pool by suite_nb - 1.
     pub suite_nb: Option<usize>,
+    pub suite_passed: usize,
+    pub suite_failed: usize,
     pub test_pool: [&'a [TestCase<'a>]; 20],
 }
 
@@ -68,6 +70,8 @@ impl<'a> TestManager<'a> {
     pub const fn init() -> Self {
         TestManager {
             suite_nb: None,
+            suite_passed: 0,
+            suite_failed: 0,
             test_pool: [&[]; 20],
         }
     }
@@ -98,17 +102,8 @@ impl<'a> TestCase<'a> {
 
 pub static mut TEST_MANAGER: TestManager = TestManager::init();
 
-#[unsafe(no_mangle)]
-pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
-    kprint!("Starting kernel in test mode.\n");
-    if core != 0 {
-        panic!("Booting on wrong CPU core");
-    }
-    test_kprint!("Successfully start kernel booting on CPU Core: 0.");
-    test_info_kprint!("Running test: platform_init");
-    test_platform_init(dtb_addr);
-    test_kprint!("platform_init");
-    // All test suite function to register the suite in the test manager.
+// Call all test suite function to auto register all suites in test manager.
+fn test_suites() {
     platform_test_suite();
     serial_subsystem_test_suite();
     timer_subsystem_test_suite();
@@ -119,6 +114,25 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
     interrupt_enabling_test_suite();
     trap_handler_test_suite();
     memory_test_suite();
+}
+
+#[unsafe(no_mangle)]
+pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
+    // Basic test before running all test suites
+    kprint!("Starting kernel in test mode.\n");
+    if core != 0 {
+        panic!("Booting on wrong CPU core");
+    }
+    test_kprint!("Successfully start kernel booting on CPU Core: 0.");
+    test_info_kprint!("Running test: platform_init");
+    test_platform_init(dtb_addr);
+    test_kprint!("platform_init");
+    // All test suites
+    test_suites();
+
+    kprint_fmt!("\nNumber of test suites to run: {}\n\n", unsafe {
+        TEST_MANAGER.suite_nb.unwrap()
+    });
 
     // Iterate over all test suite and run all test inside
     for test_suite in unsafe { TEST_MANAGER.test_pool } {

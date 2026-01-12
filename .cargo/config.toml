@@ -31,6 +31,16 @@ strip = false
 codegen-units = 1
 panic = "unwind"
 
+[profile.test]
+opt-level = 0
+debug = 2
+debug-assertions = true 
+lto = false
+strip = false
+codegen-units = 1
+panic = "unwind"
+
+
 [profile.release]
 opt-level = 2
 lto = "fat"
@@ -43,7 +53,7 @@ debug-assertions = false
 [alias]
 b = "build --profile=dev"
 rb = "build --profile=release"
-tb = "build --profile=dev --features=test"
+tb = "build --profile=test --features=test"
 c = "clean"
 ft = "fmt --all -- --check"
 w = "clippy -- -D warnings"
