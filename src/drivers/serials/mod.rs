@@ -1,3 +1,23 @@
+/*
+File info: Serial devices sub-system.
+
+Test coverage: All basic implementation and some edge cases.
+
+Tested:
+- All basic method from implementation.
+- Adding the same device.
+- Overflow in the sub-system pool.
+  
+Not tested:
+- ...
+  
+Reasons:
+- ...
+
+Tests files:
+- 'src/tests/drivers/serials/subsystem.rs'
+*/
+
 use core::{
     cell::UnsafeCell,
     fmt::{self, Write},

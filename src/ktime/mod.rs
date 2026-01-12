@@ -1,3 +1,23 @@
+/*
+File info: Kernel timer abstraction layer. Use the timer sub-system to set delay or get the time from primary timer.
+
+Test coverage: Only the set_ktime functions.
+
+Tested:
+- set_ktime_ms
+- set_ktime_ns
+- set_ktime_seconds
+  
+Not tested:
+- Read ktime and set_mtimecmp_delta
+  
+Reasons:
+- Hard to test those functions, even from a controlled environment like Qemu.
+
+Tests files:
+- 'src/tests/ktime/mod.rs'
+*/
+
 use crate::drivers::cpufreq::CPUFREQ;
 use crate::drivers::timer::TIMER_SUBSYSTEM;
 pub mod tick;

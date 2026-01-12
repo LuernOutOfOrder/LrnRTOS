@@ -1,3 +1,24 @@
+/*
+File info: Timer sub-system.
+
+Test coverage: All basic implementation and some edge case. 
+
+Tested:
+- Basic methods from implementation
+- Adding same devices
+- Overflow in the sub-system pools.
+- Selecting the primary timer.
+  
+Not tested:
+- ...
+  
+Reasons:
+- ...
+
+Tests files:
+- 'src/tests/drivers/timer/subsystem.rs'
+*/
+
 use core::cell::UnsafeCell;
 
 use clint0::Clint0;

@@ -1,3 +1,21 @@
+/*
+File info: RISC-V 32 bits trap frame structure
+
+Test coverage: All tested
+
+Tested:
+- Structure initialization with all field tested.
+  
+Not tested:
+- ...
+  
+Reasons:
+- ...
+
+Tests files:
+- 'src/tests/arch/riscv32/traps/trap_frame.rs'
+*/
+
 use core::{mem, ptr::null_mut};
 
 #[repr(C)]

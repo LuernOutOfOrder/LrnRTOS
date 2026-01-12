@@ -1,3 +1,23 @@
+/*
+File info: CPU interrupt-controller sub-system.
+
+Test coverage: Basic test and some edge case tested.
+
+Tested:
+- All basic method from implementation.
+- Adding the same CPU interrupt-controller.
+- Overflow in the sub-system pool.
+  
+Not tested:
+- ...
+  
+Reasons:
+- ...
+
+Tests files:
+- 'src/tests/drivers/cpu_intc/subsystem.rs'
+*/
+
 use core::cell::UnsafeCell;
 
 use riscv_cpu_intc::RiscVCpuIntc;
