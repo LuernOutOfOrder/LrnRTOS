@@ -1,14 +1,10 @@
 use crate::{
     arch::traps::{
         interrupt::{
-            enable_mie_msie, enable_mie_mtie, mscratch_read, mscratch_set_trap_frame,
-            mtvec_read_mode, mtvec_read_trap_entry, mtvec_set_trap_entry,
-            mtvec_switch_to_direct_mode, mtvec_switch_to_vectored_mode, read_mie_msie,
-            read_mie_mtie, trap_entry,
+            disable_mstatus_mie, enable_mie_msie, enable_mie_mtie, enable_mstatus_mie, mscratch_read, mscratch_set_trap_frame, mtvec_read_mode, mtvec_read_trap_entry, mtvec_set_trap_entry, mtvec_switch_to_direct_mode, mtvec_switch_to_vectored_mode, read_mie_msie, read_mie_mtie, read_mstatus_mie, trap_entry
         },
-        trap_frame::{KERNEL_TRAP_FRAME, init_trap_frame},
-    },
-    tests::TestCase,
+        trap_frame::{init_trap_frame, KERNEL_TRAP_FRAME},
+    }, config::TICK_SAFETY_DURATION, kprint, ktime::set_ktime_seconds, tests::TestCase
 };
 
 pub fn test_mtvec_set_direct_mode() {
@@ -76,6 +72,18 @@ pub fn test_mie_msie() {
     }
 }
 
+// pub fn test_mstatus_mie() {
+//     let current_mstatus_mie = read_mstatus_mie();
+//     // Set safety tick to not trigger timer interrupt after enabling it.
+//     set_ktime_seconds(TICK_SAFETY_DURATION);
+//     enable_mstatus_mie();
+//     let update_mstatus_mie = read_mstatus_mie();
+//     disable_mstatus_mie();
+//     if current_mstatus_mie == update_mstatus_mie {
+//         panic!("mstatus.mie should have been updated to enable global machine interrupt");
+//     }
+// }
+
 pub static INTERRUPTIONS_RISCV32_TEST_SUITE: &[TestCase] = &[
     TestCase {
         name: "RISC-V 32 bits mtvec set direct mode",
@@ -94,11 +102,15 @@ pub static INTERRUPTIONS_RISCV32_TEST_SUITE: &[TestCase] = &[
         func: test_mscratch_trap_frame,
     },
     TestCase {
-        name: "RISC-V 32 bits mie mtie",
+        name: "RISC-V 32 bits mie.mtie",
         func: test_mie_mtie,
     },
     TestCase {
-        name: "RISC-V 32 bits mie msie",
+        name: "RISC-V 32 bits mie.msie",
         func: test_mie_msie,
     },
+    // TestCase {
+    //     name: "RISC-V 32 bits mstatus.mie",
+    //     func: test_mstatus_mie,
+    // },
 ];

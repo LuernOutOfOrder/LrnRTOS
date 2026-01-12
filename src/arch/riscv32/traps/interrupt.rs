@@ -85,6 +85,13 @@ pub fn enable_mstatus_mie() {
     unsafe { asm!("csrrs zero, mstatus, {}", in(reg) MIE) };
 }
 
+pub fn read_mstatus_mie() -> u32 {
+    let value: u32;
+    let mask = 1 << 3;
+    unsafe { asm!("csrr {}, mstatus", out(reg) value) };
+    value & mask
+}
+
 pub fn disable_mstatus_mie() {
     // Set the 3 bit to 1
     const MIE: u32 = 1 << 3;
