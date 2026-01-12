@@ -1,10 +1,14 @@
 use crate::{
     arch::traps::{
         interrupt::{
-            disable_mstatus_mie, enable_mie_msie, enable_mie_mtie, enable_mstatus_mie, mscratch_read, mscratch_set_trap_frame, mtvec_read_mode, mtvec_read_trap_entry, mtvec_set_trap_entry, mtvec_switch_to_direct_mode, mtvec_switch_to_vectored_mode, read_mie_msie, read_mie_mtie, read_mstatus_mie, trap_entry
+            enable_mie_msie, enable_mie_mtie, mscratch_read, mscratch_set_trap_frame,
+            mtvec_read_mode, mtvec_read_trap_entry, mtvec_set_trap_entry,
+            mtvec_switch_to_direct_mode, mtvec_switch_to_vectored_mode, read_mie_msie,
+            read_mie_mtie, trap_entry,
         },
-        trap_frame::{init_trap_frame, KERNEL_TRAP_FRAME},
-    }, config::TICK_SAFETY_DURATION, kprint, ktime::set_ktime_seconds, tests::TestCase
+        trap_frame::{KERNEL_TRAP_FRAME, init_trap_frame},
+    },
+    tests::TestCase,
 };
 
 pub fn test_mtvec_set_direct_mode() {
