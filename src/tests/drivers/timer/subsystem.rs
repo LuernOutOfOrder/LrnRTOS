@@ -1,8 +1,12 @@
 use crate::{
-    drivers::{timer::{clint0::Clint0, init_timer_subsystem, TimerDevice, TimerDeviceDriver, TimerSubSystem, TimerType}, DriverRegion},
+    drivers::{
+        timer::{
+            clint0::Clint0, init_timer_subsystem, TimerDevice, TimerDeviceDriver, TimerSubSystem, TimerType
+        }, DriverRegion
+    },
     misc::RawTraitObject,
     platform::{self, platform_get_device_info, DeviceType, InterruptExtended},
-    tests::TestCase,
+    tests::{TestCase, TEST_MANAGER},
 };
 
 pub fn test_timer_subsystem_impl() {
@@ -180,21 +184,28 @@ pub fn test_timer_subsystem_primary_timer() {
     }
 }
 
-pub static TIMER_SUBSYSTEM_TEST_SUITE: &[TestCase] = &[
-    TestCase {
-        name: "Timer sub-system basic implementation",
-        func: test_timer_subsystem_impl,
-    },
-    TestCase {
-        name: "Timer sub-system add same device",
-        func: test_timer_subsystem_same_device,
-    },
-    TestCase {
-        name: "Timer sub-system handling overflow",
-        func: test_timer_subsystem_overflow,
-    },
-    TestCase {
-        name: "Timer sub-system check primary timer",
-        func: test_timer_subsystem_primary_timer,
-    },
-];
+pub fn timer_subsystem_test_suite() {
+    let timer_subsystem_test_suite: &[TestCase] = &[
+        TestCase {
+            name: "Timer sub-system basic implementation",
+            func: test_timer_subsystem_impl,
+        },
+        TestCase {
+            name: "Timer sub-system add same device",
+            func: test_timer_subsystem_same_device,
+        },
+        TestCase {
+            name: "Timer sub-system handling overflow",
+            func: test_timer_subsystem_overflow,
+        },
+        TestCase {
+            name: "Timer sub-system check primary timer",
+            func: test_timer_subsystem_primary_timer,
+        },
+    ];
+
+    #[allow(static_mut_refs)]
+    unsafe {
+        TEST_MANAGER.add_suite(timer_subsystem_test_suite)
+    };
+}

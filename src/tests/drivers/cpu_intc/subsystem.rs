@@ -1,4 +1,8 @@
-use crate::{config::CPU_INTC_MAX_SIZE, drivers::cpu_intc::{riscv_cpu_intc::RiscVCpuIntc, CpuIntcDriver, CpuIntcHw, CpuIntcSubSystem}, tests::TestCase};
+use crate::{
+    config::CPU_INTC_MAX_SIZE,
+    drivers::cpu_intc::{riscv_cpu_intc::RiscVCpuIntc, CpuIntcDriver, CpuIntcHw, CpuIntcSubSystem},
+    tests::{TestCase, TEST_MANAGER},
+};
 
 pub fn test_cpu_intc_subsystem_impl() {
     let cpu_intc_subsystem = CpuIntcSubSystem::init();
@@ -80,9 +84,7 @@ pub fn test_cpu_intc_subsystem_overflow() {
     cpu_intc_subsystem.add_cpu_intc(cpu_intc2, cpu_intc2.get_cpu_intc_core_id() as usize);
     // Check CPU intc subsystem size
     if cpu_intc_subsystem.get_cpu_intc_array_size() > CPU_INTC_MAX_SIZE {
-        panic!(
-            "CPU interrupt-controller sub-system should not exceed max size."
-        );
+        panic!("CPU interrupt-controller sub-system should not exceed max size.");
     }
 
     // Check getting CPU intc
@@ -92,17 +94,23 @@ pub fn test_cpu_intc_subsystem_overflow() {
     }
 }
 
-pub static CPU_INTC_SUBSYSTEM_TEST_SUITE: &[TestCase] = &[
-    TestCase {
-        name: "CPU interrupt-controller sub-system basic implementation",
-        func: test_cpu_intc_subsystem_impl,
-    },
-    TestCase {
-        name: "CPU interrupt-controller sub-system add same CPU interrupt-controller",
-        func: test_cpu_intc_subsystem_same_device,
-    },
-    TestCase {
-        name: "CPU interrupt-controller sub-system handling overflow",
-        func: test_cpu_intc_subsystem_overflow,
-    },
-];
+pub fn cpu_intc_subsystem_test_suite() {
+    let cpu_intc_subsystem_test_suite: &[TestCase] = &[
+        TestCase {
+            name: "CPU interrupt-controller sub-system basic implementation",
+            func: test_cpu_intc_subsystem_impl,
+        },
+        TestCase {
+            name: "CPU interrupt-controller sub-system add same CPU interrupt-controller",
+            func: test_cpu_intc_subsystem_same_device,
+        },
+        TestCase {
+            name: "CPU interrupt-controller sub-system handling overflow",
+            func: test_cpu_intc_subsystem_overflow,
+        },
+    ];
+    #[allow(static_mut_refs)]
+    unsafe {
+        TEST_MANAGER.add_suite(cpu_intc_subsystem_test_suite)
+    };
+}

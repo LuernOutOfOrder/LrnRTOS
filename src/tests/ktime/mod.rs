@@ -1,3 +1,5 @@
+use crate::tests::TEST_MANAGER;
+
 use super::TestCase;
 
 // Those tests sucks
@@ -41,17 +43,23 @@ pub fn test_set_ktime_seconds() {
     }
 }
 
-pub static KTIME_TEST_SUITE: &[TestCase] = &[
-    TestCase {
-        name: "set_ktime_ms",
-        func: test_set_ktime_ms,
-    },
-    TestCase {
-        name: "set_ktime_ns",
-        func: test_set_ktime_ns,
-    },
-    TestCase {
-        name: "set_ktime_seconds",
-        func: test_set_ktime_seconds,
-    },
-];
+pub fn ktime_test_suite() {
+    let ktime_test_suite: &[TestCase] = &[
+        TestCase {
+            name: "set_ktime_ms",
+            func: test_set_ktime_ms,
+        },
+        TestCase {
+            name: "set_ktime_ns",
+            func: test_set_ktime_ns,
+        },
+        TestCase {
+            name: "set_ktime_seconds",
+            func: test_set_ktime_seconds,
+        },
+    ];
+    #[allow(static_mut_refs)]
+    unsafe {
+        TEST_MANAGER.add_suite(ktime_test_suite)
+    };
+}

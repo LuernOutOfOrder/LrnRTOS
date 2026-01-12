@@ -1,20 +1,23 @@
 use core::ptr;
 
-pub mod drivers;
-pub mod platform;
 pub mod arch;
+pub mod drivers;
 pub mod ktime;
 pub mod mem;
+pub mod platform;
 
-use arch::traps::{handler::TRAP_HANDLER_RISCV32_TEST_SUITE, interrupt::INTERRUPTIONS_RISCV32_TEST_SUITE, trap_frame::TRAP_FRAME_TEST_SUITE};
-use drivers::{
-    cpu_intc::subsystem::CPU_INTC_SUBSYSTEM_TEST_SUITE,
-    serials::{ns16550::NS16550_TEST_SUITE, subsystem::SERIAL_SUBSYSTEM_TEST_SUITE},
-    timer::subsystem::TIMER_SUBSYSTEM_TEST_SUITE,
+use arch::traps::{
+    handler::trap_handler_test_suite, interrupt::interrupt_enabling_test_suite,
+    trap_frame::trap_frame_test_suite,
 };
-use ktime::KTIME_TEST_SUITE;
-use mem::KERNEL_MEMORY_TEST_SUITE;
-use platform::{PLATFORM_TEST_SUITE, test_platform_init};
+use drivers::{
+    cpu_intc::subsystem::cpu_intc_subsystem_test_suite,
+    serials::{ns16550::ns16550_test_suite, subsystem::serial_subsystem_test_suite},
+    timer::subsystem::timer_subsystem_test_suite,
+};
+use ktime::ktime_test_suite;
+use mem::memory_test_suite;
+use platform::{platform_test_suite, test_platform_init};
 
 use crate::{kprint, kprint_fmt};
 
@@ -54,31 +57,46 @@ pub fn test_panic(s: &core::panic::PanicInfo) -> ! {
     loop {}
 }
 
+pub struct TestManager<'a> {
+    // Represent the next empty index to push new test suite, also used to know how many test suite
+    // in test_pool by suite_nb - 1.
+    pub suite_nb: Option<usize>,
+    pub test_pool: [&'a [TestCase<'a>]; 20],
+}
+
+impl<'a> TestManager<'a> {
+    pub const fn init() -> Self {
+        TestManager {
+            suite_nb: None,
+            test_pool: [&[]; 20],
+        }
+    }
+
+    pub fn add_suite(&'a mut self, new_test_suite: &'a [TestCase]) {
+        if self.suite_nb.is_none() {
+            self.test_pool[0] = new_test_suite;
+            self.suite_nb = Some(1)
+        } else {
+            self.test_pool[self.suite_nb.unwrap()] = new_test_suite;
+            if let Some(nb) = self.suite_nb.as_mut() {
+                *nb += 1;
+            }
+        }
+    }
+}
+
 pub struct TestCase<'a> {
     pub name: &'a str,
     pub func: fn(),
 }
 
-// Static containing all test suite
-static TEST_SUITE: &[&[TestCase]] = &[
-    // Platform test suite
-    PLATFORM_TEST_SUITE,
-    // Sub-system test suite
-    SERIAL_SUBSYSTEM_TEST_SUITE,
-    TIMER_SUBSYSTEM_TEST_SUITE,
-    CPU_INTC_SUBSYSTEM_TEST_SUITE,
-    // Ktime test suite
-    KTIME_TEST_SUITE,
-    // Drivers test suite
-    NS16550_TEST_SUITE,
-    TRAP_FRAME_TEST_SUITE,
-    // Trap handling
-    TRAP_HANDLER_RISCV32_TEST_SUITE,
-    // Interruptions
-    INTERRUPTIONS_RISCV32_TEST_SUITE,
-    // Memory
-    KERNEL_MEMORY_TEST_SUITE,
-];
+impl<'a> TestCase<'a> {
+    pub fn init(name: &'a str, func: fn()) -> Self {
+        TestCase { name, func }
+    }
+}
+
+pub static mut TEST_MANAGER: TestManager = TestManager::init();
 
 #[unsafe(no_mangle)]
 pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
@@ -90,10 +108,21 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
     test_info_kprint!("Running test: platform_init");
     test_platform_init(dtb_addr);
     test_kprint!("platform_init");
+    // All test suite function to register the suite in the test manager.
+    platform_test_suite();
+    serial_subsystem_test_suite();
+    timer_subsystem_test_suite();
+    cpu_intc_subsystem_test_suite();
+    ktime_test_suite();
+    ns16550_test_suite();
+    trap_frame_test_suite();
+    interrupt_enabling_test_suite();
+    trap_handler_test_suite();
+    memory_test_suite();
 
     // Iterate over all test suite and run all test inside
-    for test_suite in TEST_SUITE {
-        for test in *test_suite {
+    for test_suite in unsafe { TEST_MANAGER.test_pool } {
+        for test in test_suite {
             run_test!(test.name, test.func);
         }
     }

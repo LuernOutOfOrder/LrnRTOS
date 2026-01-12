@@ -1,4 +1,4 @@
-use crate::mem::Memory;
+use crate::{mem::Memory, tests::TEST_MANAGER};
 
 use super::TestCase;
 
@@ -13,7 +13,13 @@ pub fn test_memory_impl() {
     }
 }
 
-pub static KERNEL_MEMORY_TEST_SUITE: &[TestCase] = &[TestCase {
-    name: "Memory basic implementation",
-    func: test_memory_impl,
-}];
+pub fn memory_test_suite() {
+    let kernel_memory_test_suite: &[TestCase] = &[TestCase {
+        name: "Memory basic implementation",
+        func: test_memory_impl,
+    }];
+    #[allow(static_mut_refs)]
+    unsafe {
+        TEST_MANAGER.add_suite(kernel_memory_test_suite)
+    };
+}

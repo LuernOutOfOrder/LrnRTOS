@@ -1,7 +1,7 @@
 use crate::{
     arch::traps::{handler::trap_handler, trap_frame::TrapFrame},
     ktime::tick::get_tick,
-    tests::TestCase,
+    tests::{TEST_MANAGER, TestCase},
 };
 
 pub fn test_trap_handler_timer_interrupt() {
@@ -20,7 +20,13 @@ pub fn test_trap_handler_timer_interrupt() {
     }
 }
 
-pub static TRAP_HANDLER_RISCV32_TEST_SUITE: &[TestCase] = &[TestCase {
-    name: "RISC-V 32 bits trap handler timer interrupt",
-    func: test_trap_handler_timer_interrupt,
-}];
+pub fn trap_handler_test_suite() {
+    let trap_handler_riscv32_test_suite: &[TestCase] = &[TestCase {
+        name: "RISC-V 32 bits trap handler timer interrupt",
+        func: test_trap_handler_timer_interrupt,
+    }];
+    #[allow(static_mut_refs)]
+    unsafe {
+        TEST_MANAGER.add_suite(trap_handler_riscv32_test_suite)
+    };
+}

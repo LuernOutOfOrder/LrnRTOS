@@ -6,9 +6,9 @@ use crate::{
             mtvec_switch_to_direct_mode, mtvec_switch_to_vectored_mode, read_mie_msie,
             read_mie_mtie, trap_entry,
         },
-        trap_frame::{KERNEL_TRAP_FRAME, init_trap_frame},
+        trap_frame::{init_trap_frame, KERNEL_TRAP_FRAME},
     },
-    tests::TestCase,
+    tests::{TestCase, TEST_MANAGER},
 };
 
 pub fn test_mtvec_set_direct_mode() {
@@ -87,34 +87,40 @@ pub fn test_mie_msie() {
 //         panic!("mstatus.mie should have been updated to enable global machine interrupt");
 //     }
 // }
-
-pub static INTERRUPTIONS_RISCV32_TEST_SUITE: &[TestCase] = &[
-    TestCase {
-        name: "RISC-V 32 bits mtvec set direct mode",
-        func: test_mtvec_set_direct_mode,
-    },
-    TestCase {
-        name: "RISC-V 32 bits mtvec set vectored mode",
-        func: test_mtvec_set_vectored_mode,
-    },
-    TestCase {
-        name: "RISC-V 32 bits mtvec trap_entry",
-        func: test_mtvec_trap_entry,
-    },
-    TestCase {
-        name: "RISC-V 32 bits mscratch trap_frame",
-        func: test_mscratch_trap_frame,
-    },
-    TestCase {
-        name: "RISC-V 32 bits mie.mtie",
-        func: test_mie_mtie,
-    },
-    TestCase {
-        name: "RISC-V 32 bits mie.msie",
-        func: test_mie_msie,
-    },
-    // TestCase {
-    //     name: "RISC-V 32 bits mstatus.mie",
-    //     func: test_mstatus_mie,
-    // },
-];
+//
+pub fn interrupt_enabling_test_suite() {
+    let interruptions_riscv32_test_suite: &[TestCase] = &[
+        TestCase {
+            name: "RISC-V 32 bits mtvec set direct mode",
+            func: test_mtvec_set_direct_mode,
+        },
+        TestCase {
+            name: "RISC-V 32 bits mtvec set vectored mode",
+            func: test_mtvec_set_vectored_mode,
+        },
+        TestCase {
+            name: "RISC-V 32 bits mtvec trap_entry",
+            func: test_mtvec_trap_entry,
+        },
+        TestCase {
+            name: "RISC-V 32 bits mscratch trap_frame",
+            func: test_mscratch_trap_frame,
+        },
+        TestCase {
+            name: "RISC-V 32 bits mie.mtie",
+            func: test_mie_mtie,
+        },
+        TestCase {
+            name: "RISC-V 32 bits mie.msie",
+            func: test_mie_msie,
+        },
+        // TestCase {
+        //     name: "RISC-V 32 bits mstatus.mie",
+        //     func: test_mstatus_mie,
+        // },
+    ];
+    #[allow(static_mut_refs)]
+    unsafe {
+        TEST_MANAGER.add_suite(interruptions_riscv32_test_suite)
+    };
+}

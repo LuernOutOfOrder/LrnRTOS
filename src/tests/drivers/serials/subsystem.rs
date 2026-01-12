@@ -1,7 +1,13 @@
 use crate::{
-    drivers::{serials::{init_serial_subsystem, ns16550::Ns16550, SerialDevice, SerialDeviceDriver, SerialManager}, DriverRegion},
-    platform::{platform_get_device_info, DeviceType},
-    tests::TestCase,
+    drivers::{
+        DriverRegion,
+        serials::{
+            SerialDevice, SerialDeviceDriver, SerialManager, init_serial_subsystem,
+            ns16550::Ns16550,
+        },
+    },
+    platform::{DeviceType, platform_get_device_info},
+    tests::{TEST_MANAGER, TestCase},
 };
 
 pub fn test_serial_subsystem_impl() {
@@ -77,9 +83,7 @@ pub fn test_serial_subsystem_same_device() {
     // This one should trigger a warning
     serial_subsystem.add_serial(device1);
     if serial_subsystem.get_serial_array_size() != 1 {
-        panic!(
-            "Serial sub-system should contain only 1 device."
-        );
+        panic!("Serial sub-system should contain only 1 device.");
     }
 }
 
@@ -190,17 +194,23 @@ pub fn test_serial_subsystem_overflow() {
     }
 }
 
-pub static SERIAL_SUBSYSTEM_TEST_SUITE: &[TestCase] = &[
-    TestCase {
-        name: "Serial sub-system basic implementation",
-        func: test_serial_subsystem_impl,
-    },
-    TestCase {
-        name: "Serial sub-system add same device",
-        func: test_serial_subsystem_same_device,
-    },
-    TestCase {
-        name: "Serial sub-system handling overflow",
-        func: test_serial_subsystem_overflow,
-    },
-];
+pub fn serial_subsystem_test_suite() {
+    let serial_subsystem_test_suite: &[TestCase] = &[
+        TestCase {
+            name: "Serial sub-system basic implementation",
+            func: test_serial_subsystem_impl,
+        },
+        TestCase {
+            name: "Serial sub-system add same device",
+            func: test_serial_subsystem_same_device,
+        },
+        TestCase {
+            name: "Serial sub-system handling overflow",
+            func: test_serial_subsystem_overflow,
+        },
+    ];
+    #[allow(static_mut_refs)]
+    unsafe {
+        TEST_MANAGER.add_suite(serial_subsystem_test_suite)
+    };
+}

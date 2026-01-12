@@ -1,4 +1,7 @@
-use crate::{arch::traps::trap_frame::{init_trap_frame, TrapFrame, KERNEL_TRAP_FRAME, TRAP_STACK_BUFF}, tests::TestCase};
+use crate::{
+    arch::traps::trap_frame::{init_trap_frame, TrapFrame, KERNEL_TRAP_FRAME, TRAP_STACK_BUFF},
+    tests::{TestCase, TEST_MANAGER},
+};
 
 pub fn test_trap_frame_init_zeroed() {
     // Init trap frame using struct method
@@ -34,13 +37,19 @@ pub fn test_trap_frame_init() {
     }
 }
 
-pub static TRAP_FRAME_TEST_SUITE: &[TestCase] = &[
-    TestCase {
-        name: "Trap frame empty initialization",
-        func: test_trap_frame_init_zeroed,
-    },
-    TestCase {
-        name: "Trap frame initialization",
-        func: test_trap_frame_init,
-    },
-];
+pub fn trap_frame_test_suite() {
+    let trap_frame_test_suite: &[TestCase] = &[
+        TestCase {
+            name: "Trap frame empty initialization",
+            func: test_trap_frame_init_zeroed,
+        },
+        TestCase {
+            name: "Trap frame initialization",
+            func: test_trap_frame_init,
+        },
+    ];
+    #[allow(static_mut_refs)]
+    unsafe {
+        TEST_MANAGER.add_suite(trap_frame_test_suite)
+    };
+}

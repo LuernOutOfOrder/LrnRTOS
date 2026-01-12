@@ -3,7 +3,7 @@ use crate::{
         DriverRegion,
         serials::{SerialDevice, SerialDeviceDriver, SerialDriver, ns16550::Ns16550},
     },
-    tests::TestCase,
+    tests::{TEST_MANAGER, TestCase},
 };
 
 pub fn test_ns16550_qemu_putchar() {
@@ -24,7 +24,13 @@ pub fn test_ns16550_qemu_putchar() {
     }
 }
 
-pub static NS16550_TEST_SUITE: &[TestCase] = &[TestCase {
-    name: "Ns16550 driver qemu putchar",
-    func: test_ns16550_qemu_putchar,
-}];
+pub fn ns16550_test_suite() {
+    let ns16550_test_suite: &[TestCase] = &[TestCase {
+        name: "Ns16550 driver qemu putchar",
+        func: test_ns16550_qemu_putchar,
+    }];
+    #[allow(static_mut_refs)]
+    unsafe {
+        TEST_MANAGER.add_suite(ns16550_test_suite)
+    };
+}
