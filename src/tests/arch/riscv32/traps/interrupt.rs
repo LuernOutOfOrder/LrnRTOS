@@ -1,7 +1,11 @@
 use crate::{
-    arch::traps::interrupt::{
-        mtvec_read_mode, mtvec_read_trap_entry, mtvec_set_trap_entry, mtvec_switch_to_direct_mode,
-        mtvec_switch_to_vectored_mode, trap_entry,
+    arch::traps::{
+        interrupt::{
+            mscratch_read, mscratch_set_trap_frame, mtvec_read_mode, mtvec_read_trap_entry,
+            mtvec_set_trap_entry, mtvec_switch_to_direct_mode, mtvec_switch_to_vectored_mode,
+            trap_entry,
+        },
+        trap_frame::{KERNEL_TRAP_FRAME, init_trap_frame},
     },
     tests::TestCase,
 };
@@ -36,6 +40,23 @@ pub fn test_mtvec_trap_entry() {
     }
 }
 
+pub fn test_mscratch_trap_frame() {
+    // Init trap_frame and declare ptr to it
+    init_trap_frame();
+    #[allow(static_mut_refs)]
+    // Ptr to KERNEL_TRAP_FRAME static
+    let ptr = unsafe { &mut KERNEL_TRAP_FRAME } as *mut _ as u32;
+    let current_mscratch = mscratch_read();
+    mscratch_set_trap_frame();
+    let update_mscratch = mscratch_read();
+    if current_mscratch == update_mscratch {
+        panic!("mscratch hasn't been updated to use the KERNEL_TRAP_FRAME structure.")
+    }
+    if update_mscratch != ptr {
+        panic!("mscratch isn't using the KERNEL_TRAP_FRAME structure.")
+    }
+}
+
 pub static INTERRUPTIONS_RISCV32_TEST_SUITE: &[TestCase] = &[
     TestCase {
         name: "RISC-V 32 bits mtvec set direct mode",
@@ -48,5 +69,9 @@ pub static INTERRUPTIONS_RISCV32_TEST_SUITE: &[TestCase] = &[
     TestCase {
         name: "RISC-V 32 bits mtvec trap_entry",
         func: test_mtvec_trap_entry,
+    },
+    TestCase {
+        name: "RISC-V 32 bits mscratch trap_frame",
+        func: test_mscratch_trap_frame,
     },
 ];
