@@ -92,10 +92,10 @@ pub fn mtvec_switch_to_direct_mode() {
 }
 
 pub fn mtvec_read_mode() -> u32 {
-    let value: u32; 
+    let value: u32;
     unsafe {
         asm!("csrr {}, mtvec", out(reg) value);
-    } 
+    }
     // Shift to keep only the bit 1:0
     value & 0b11
 }
@@ -110,6 +110,15 @@ pub fn mtvec_set_trap_entry() {
     // trap_entry address
     let handler_ptr: unsafe extern "C" fn() = trap_entry;
     unsafe { asm!("csrw mtvec, {}", in(reg) handler_ptr) }
+}
+
+pub fn mtvec_read_trap_entry() -> u32 {
+    let value: u32;
+    unsafe {
+        asm!("csrr {}, mtvec", out(reg) value);
+    }
+    let mask: u32 = !0b11;
+    value & mask 
 }
 
 // Mscratch CSR
