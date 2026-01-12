@@ -1,3 +1,23 @@
+/*
+File info: Platform layer(HAL).
+
+Test coverage: Platform init and getting device information.
+
+Tested:
+- Initialize platform layer.
+- Getting device information(from FDT & static).
+  
+Not tested:
+- All the platform device structure.
+- Functions used to get device information.
+  
+Reasons:
+- Long to test, and not the priority.
+
+Tests files:
+- 'src/tests/platform/mod.rs'
+*/
+
 pub mod fdt;
 pub mod mem;
 pub mod platform_info;
