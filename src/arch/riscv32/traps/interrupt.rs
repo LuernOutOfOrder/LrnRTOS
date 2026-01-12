@@ -91,6 +91,15 @@ pub fn mtvec_switch_to_direct_mode() {
     unsafe { asm!("csrrc zero, mtvec, {}", in(reg) MODE) };
 }
 
+pub fn mtvec_read_mode() -> u32 {
+    let value: u32; 
+    unsafe {
+        asm!("csrr {}, mtvec", out(reg) value);
+    } 
+    // Shift to keep only the bit 1:0
+    value & 0b11
+}
+
 // Extern symbol for trap_entry function, this function is wrote in asm so it need to be extern
 unsafe extern "C" {
     pub fn trap_entry();
