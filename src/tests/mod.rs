@@ -5,7 +5,7 @@ pub mod platform;
 pub mod arch;
 pub mod ktime;
 
-use arch::traps::trap_frame::TRAP_FRAME_TEST_SUITE;
+use arch::traps::{handler::TRAP_HANDLER_RISCV32_TEST_SUITE, trap_frame::TRAP_FRAME_TEST_SUITE};
 use drivers::{
     cpu_intc::subsystem::CPU_INTC_SUBSYSTEM_TEST_SUITE,
     serials::{ns16550::NS16550_TEST_SUITE, subsystem::SERIAL_SUBSYSTEM_TEST_SUITE},
@@ -70,6 +70,8 @@ static TEST_SUITE: &[&[TestCase]] = &[
     // Drivers test suite
     NS16550_TEST_SUITE,
     TRAP_FRAME_TEST_SUITE,
+    // Trap handling
+    TRAP_HANDLER_RISCV32_TEST_SUITE
 ];
 
 #[unsafe(no_mangle)]

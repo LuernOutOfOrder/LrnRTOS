@@ -1,6 +1,25 @@
 // See RISC-V documentation at: `Documentation/kernel/arch/riscv/traps.md`
 // See general documentation at: `Documentation/kernel/traps.md`
 
+/*
+File info: RISC-V 32 bits trap handler. Handle trap after trap_entry asm function. Dispatch the interrupt or exception to correct handler.
+
+Test coverage: Just the timer interrupt handling.
+
+Tested:
+- Timer interrupt handling.
+  
+Not tested:
+- all exceptions currently handled.
+  
+Reasons:
+- The way current exceptions handled is handled cannot be tested because they just panic.
+
+Tests files:
+- 'src/tests/arch/riscv32/traps/handler.rs'
+*/
+
+
 use core::arch::global_asm;
 
 use crate::{
@@ -18,8 +37,10 @@ global_asm!(include_str!("trap_entry.S"));
 /// Trap routines
 /// Enter this function from trap_entry caller
 /// Handle all exceptions and interrupts
+/// # Safety 
+/// Public to only use in test mode, this function is called from trap_entry asm function
 #[unsafe(no_mangle)]
-unsafe extern "C" fn trap_handler(
+pub unsafe extern "C" fn trap_handler(
     mepc: usize,
     mtval: usize,
     mcause: usize,
@@ -29,7 +50,7 @@ unsafe extern "C" fn trap_handler(
 ) -> usize {
     let return_pc = mepc;
     // mcause -> u32 -> 31 bit = interrupt or exception.
-    // if 31 bit is 1 -> interrupt, else 31 bit is 0 -> exception.
+    // If 31 bit is 1 -> interrupt, else 31 bit is 0 -> exception.
     // The remaining 30..0 bits is the interrupt or exception cause.
     // 31 bit[(interrupt or exception)] 30..0 bits[interrupt or exception cause]
     // Move all bits from mcause to 31 bits to the right to keep only the last bit
@@ -64,7 +85,7 @@ fn exception_handler(mcause: usize, hart: usize, mtval: usize) {
     }
 }
 
-/// Handle all interrupts, machine or software interrupt.
+/// Handle all interrupts, machine, or software interrupt.
 fn interrupt_handler(mcause: usize, hart: usize) {
     match mcause {
         7 => timer_interrupt(hart),
