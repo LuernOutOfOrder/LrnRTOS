@@ -45,6 +45,13 @@ pub fn enable_mie_mtie() {
     unsafe { asm!("csrrs zero, mie, {}", in(reg) MTIE) };
 }
 
+pub fn read_mie_mtie() -> u32 {
+    let value: u32;
+    let mask = 1 << 7;
+    unsafe { asm!("csrr {}, mie", out(reg) value) };
+    value & mask
+}
+
 pub fn disable_mie_mtie() {
     // Clear the seven bit to 0
     const MTIE: u32 = 1 << 7;
@@ -118,7 +125,7 @@ pub fn mtvec_read_trap_entry() -> u32 {
         asm!("csrr {}, mtvec", out(reg) value);
     }
     let mask: u32 = !0b11;
-    value & mask 
+    value & mask
 }
 
 // Mscratch CSR

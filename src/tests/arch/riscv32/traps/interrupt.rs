@@ -1,12 +1,13 @@
 use crate::{
     arch::traps::{
         interrupt::{
-            mscratch_read, mscratch_set_trap_frame, mtvec_read_mode, mtvec_read_trap_entry,
-            mtvec_set_trap_entry, mtvec_switch_to_direct_mode, mtvec_switch_to_vectored_mode,
-            trap_entry,
+            enable_mie_mtie, mscratch_read, mscratch_set_trap_frame, mtvec_read_mode,
+            mtvec_read_trap_entry, mtvec_set_trap_entry, mtvec_switch_to_direct_mode,
+            mtvec_switch_to_vectored_mode, read_mie_mtie, trap_entry,
         },
         trap_frame::{KERNEL_TRAP_FRAME, init_trap_frame},
     },
+    kprint_fmt,
     tests::TestCase,
 };
 
@@ -57,6 +58,15 @@ pub fn test_mscratch_trap_frame() {
     }
 }
 
+pub fn test_mie_mtie() {
+    let current_mie_mtie = read_mie_mtie();
+    enable_mie_mtie();
+    let update_mie_mtie = read_mie_mtie();
+    if current_mie_mtie == update_mie_mtie {
+        panic!("mie.mtie should have been updated to enable machine timer interrupt");
+    }
+}
+
 pub static INTERRUPTIONS_RISCV32_TEST_SUITE: &[TestCase] = &[
     TestCase {
         name: "RISC-V 32 bits mtvec set direct mode",
@@ -73,5 +83,9 @@ pub static INTERRUPTIONS_RISCV32_TEST_SUITE: &[TestCase] = &[
     TestCase {
         name: "RISC-V 32 bits mscratch trap_frame",
         func: test_mscratch_trap_frame,
+    },
+    TestCase {
+        name: "RISC-V 32 bits mie mtie",
+        func: test_mie_mtie,
     },
 ];
