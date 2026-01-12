@@ -1,13 +1,13 @@
 use crate::{
     arch::traps::{
         interrupt::{
-            enable_mie_mtie, mscratch_read, mscratch_set_trap_frame, mtvec_read_mode,
-            mtvec_read_trap_entry, mtvec_set_trap_entry, mtvec_switch_to_direct_mode,
-            mtvec_switch_to_vectored_mode, read_mie_mtie, trap_entry,
+            enable_mie_msie, enable_mie_mtie, mscratch_read, mscratch_set_trap_frame,
+            mtvec_read_mode, mtvec_read_trap_entry, mtvec_set_trap_entry,
+            mtvec_switch_to_direct_mode, mtvec_switch_to_vectored_mode, read_mie_msie,
+            read_mie_mtie, trap_entry,
         },
         trap_frame::{KERNEL_TRAP_FRAME, init_trap_frame},
     },
-    kprint_fmt,
     tests::TestCase,
 };
 
@@ -67,6 +67,15 @@ pub fn test_mie_mtie() {
     }
 }
 
+pub fn test_mie_msie() {
+    let current_mie_msie = read_mie_msie();
+    enable_mie_msie();
+    let update_mie_msie = read_mie_msie();
+    if current_mie_msie == update_mie_msie {
+        panic!("mie.msie should have been updated to enable machine software interrupt");
+    }
+}
+
 pub static INTERRUPTIONS_RISCV32_TEST_SUITE: &[TestCase] = &[
     TestCase {
         name: "RISC-V 32 bits mtvec set direct mode",
@@ -87,5 +96,9 @@ pub static INTERRUPTIONS_RISCV32_TEST_SUITE: &[TestCase] = &[
     TestCase {
         name: "RISC-V 32 bits mie mtie",
         func: test_mie_mtie,
+    },
+    TestCase {
+        name: "RISC-V 32 bits mie msie",
+        func: test_mie_msie,
     },
 ];

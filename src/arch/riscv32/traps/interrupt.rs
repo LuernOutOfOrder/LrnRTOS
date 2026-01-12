@@ -64,6 +64,13 @@ pub fn enable_mie_msie() {
     unsafe { asm!("csrrs zero, mie, {}", in(reg) MSIE) };
 }
 
+pub fn read_mie_msie() -> u32 {
+    let value: u32;
+    let mask = 1 << 3;
+    unsafe { asm!("csrr {}, mie", out(reg) value) };
+    value & mask
+}
+
 pub fn disable_mie_msie() {
     // Clear the 3 bit to 0
     const MSIE: u32 = 1 << 3;
