@@ -1,7 +1,7 @@
 use crate::{
     drivers::{
         DriverRegion,
-        serials::{SerialDevice, SerialDeviceDriver, SerialDriver, ns16550::Ns16550},
+        serials::{SerialDevice, SerialDeviceDriver, SerialDriver, ns16550a::Ns16550},
     },
     tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
 };

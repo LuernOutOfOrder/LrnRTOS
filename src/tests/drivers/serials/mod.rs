@@ -1,2 +1,2 @@
-pub mod ns16550;
+pub mod ns16550a;
 pub mod subsystem;

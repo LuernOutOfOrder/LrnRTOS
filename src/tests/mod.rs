@@ -12,7 +12,7 @@ use arch::traps::{
 };
 use drivers::{
     cpu_intc::subsystem::cpu_intc_subsystem_test_suite,
-    serials::{ns16550::ns16550_test_suite, subsystem::serial_subsystem_test_suite},
+    serials::{ns16550a::ns16550_test_suite, subsystem::serial_subsystem_test_suite},
     timer::subsystem::timer_subsystem_test_suite,
 };
 use ktime::ktime_test_suite;

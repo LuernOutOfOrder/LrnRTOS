@@ -3,7 +3,7 @@ use crate::{
         DriverRegion,
         serials::{
             SerialDevice, SerialDeviceDriver, SerialManager, init_serial_subsystem,
-            ns16550::Ns16550,
+            ns16550a::Ns16550,
         },
     },
     platform::{DeviceType, platform_get_device_info},

@@ -1,4 +1,20 @@
 // See documentation in `Documentation/hardware/soc/riscv/clint.md`
+/*
+File info: Clint0 driver.
+
+Test coverage: None.
+
+Tested:
+  
+Not tested:
+- Everything.
+  
+Reasons:
+- Testing a timer driver need to have an MMIO emulation.
+
+Tests files:
+- 'src/tests/...'
+*/
 
 use core::ptr::{self};
 

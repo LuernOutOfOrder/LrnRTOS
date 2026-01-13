@@ -23,11 +23,9 @@ use core::{
     fmt::{self, Write},
 };
 
-use ns16550::Ns16550;
-
 use crate::{config::SERIAL_MAX_SIZE, log, logs::LogLevel};
 
-pub mod ns16550;
+pub mod ns16550a;
 
 /// Generic trait to implement in each serial driver
 pub trait SerialDriver: Send + Sync + Write {
@@ -40,7 +38,7 @@ pub trait SerialDriver: Send + Sync + Write {
 #[cfg_attr(feature = "test", derive(Copy, Clone))]
 #[derive(PartialEq)]
 pub enum SerialDeviceDriver {
-    Ns16550(Ns16550),
+    Ns16550(ns16550a::Ns16550),
 }
 
 /// Generic struct for each serial device
@@ -151,7 +149,7 @@ impl SerialManager {
 pub static SERIAL_SUBSYSTEM: SerialManager = SerialManager::init();
 
 pub fn init_serial_subsystem() {
-    Ns16550::init();
+    ns16550a::Ns16550::init();
     let size = SERIAL_SUBSYSTEM.get_serial_array_size();
     if size == 0 {
         panic!("Error while initializing serial sub-system, pool is empty.");
