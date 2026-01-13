@@ -46,14 +46,6 @@ macro_rules! test_failed {
     };
 }
 
-macro_rules! run_test {
-    ($test_name: expr, $fn: expr) => {
-        test_info!("Running test: {}", $test_name);
-        ($fn)();
-        test_kprint!("{}", $test_name);
-    };
-}
-
 pub fn test_info_kprint(s: core::fmt::Arguments) {
     kprint_fmt!("\x1b[33;1m[TEST INFO]\x1b[0m {}\n", s);
 }
@@ -178,10 +170,15 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
     // All test suites
     test_suites();
 
-    kprint_fmt!("\nNumber of test suites to run: {}\n\n", unsafe {
-        TEST_MANAGER.suite_nb.unwrap()
-    });
+    let test_suites_nb = unsafe { TEST_MANAGER.suite_nb.unwrap() };
+    kprint_fmt!("\nNumber of test suites to run: {}\n\n", test_suites_nb);
 
+    // Tests
+    let mut tests_run: usize = 0;
+    let mut tests_sucess: usize = 0;
+    let mut tests_failed: usize = 0;
+    // Tests suites
+    let mut test_suites_failed: usize = 0;
     // Iterate over all test suite and run all test inside
     for test_suite in unsafe { TEST_MANAGER.test_pool } {
         if test_suite.tests_nb == 0 {
@@ -192,11 +189,40 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
             test_suite.tests_nb,
             test_suite.name
         );
+        let test_to_pass = test_suite.tests_nb;
+        let mut test_passed: usize = 0;
+        let mut test_failed: usize = 0;
         for test in test_suite.tests {
-            run_test!(test.name, test.func);
+            test_info!("Running test: {}", test.name);
+            let pass = (test.func)();
+            if pass == 1 {
+                test_failed += 1;
+                test_suites_failed += 1;
+                break;
+            }
+            test_kprint!("{}", test.name);
+            test_passed += 1;
         }
+        tests_run += test_to_pass as usize;
+        tests_sucess += test_passed;
+        tests_failed += test_failed;
         kprint!("Test suite passed successfully\n");
     }
+    kprint_fmt!(
+        "\nTests ran: {}\ttests passed: {}/{}\ttests failed: {}\n",
+        tests_run,
+        tests_sucess,
+        tests_run,
+        tests_failed
+    );
+    let test_suites_passed = test_suites_nb - test_suites_failed;
+    kprint_fmt!(
+        "Test suites ran: {}\ttest suites passed: {}/{}\ttest suites failed: {}\n",
+        test_suites_nb,
+        test_suites_passed,
+        test_suites_nb,
+        test_suites_failed
+    );
     // Exit Qemu at the end of the tests
     unsafe { ptr::write_volatile(0x100000 as *mut u32, 0x5555) };
     #[allow(clippy::empty_loop)]

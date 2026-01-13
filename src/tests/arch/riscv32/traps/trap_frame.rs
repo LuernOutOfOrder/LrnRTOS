@@ -14,7 +14,7 @@ pub fn test_trap_frame_init_zeroed() -> u8 {
             gp_regs_size += 1;
         }
     }
-    if gp_regs_size != 0 {
+    if gp_regs_size == 0 {
         test_failed!("Trap frame gp_regs field should be initialized empty.");
         return 1;
     }
