@@ -1,12 +1,14 @@
 use crate::{
     drivers::{
+        DriverRegion,
         timer::{
-            clint0::Clint0, init_timer_subsystem, TimerDevice, TimerDeviceDriver, TimerSubSystem, TimerType
-        }, DriverRegion
+            TimerDevice, TimerDeviceDriver, TimerSubSystem, TimerType, clint0::Clint0,
+            init_timer_subsystem,
+        },
     },
     misc::RawTraitObject,
-    platform::{self, platform_get_device_info, DeviceType, InterruptExtended},
-    tests::{TestCase, TEST_MANAGER},
+    platform::{self, DeviceType, InterruptExtended, platform_get_device_info},
+    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
 };
 
 pub fn test_timer_subsystem_impl() {
@@ -185,27 +187,35 @@ pub fn test_timer_subsystem_primary_timer() {
 }
 
 pub fn timer_subsystem_test_suite() {
-    let timer_subsystem_test_suite: &[TestCase] = &[
-        TestCase {
-            name: "Timer sub-system basic implementation",
-            func: test_timer_subsystem_impl,
-        },
-        TestCase {
-            name: "Timer sub-system add same device",
-            func: test_timer_subsystem_same_device,
-        },
-        TestCase {
-            name: "Timer sub-system handling overflow",
-            func: test_timer_subsystem_overflow,
-        },
-        TestCase {
-            name: "Timer sub-system check primary timer",
-            func: test_timer_subsystem_primary_timer,
-        },
-    ];
+    const TIMER_SUB_SYSTEM_TEST_SUITE: TestSuite = TestSuite {
+        tests: &[
+            TestCase::init(
+                "Timer sub-system basic implementation",
+                test_timer_subsystem_impl,
+                TestBehavior::Default,
+            ),
+            TestCase::init(
+                "Timer sub-system add same device",
+                test_timer_subsystem_same_device,
+                TestBehavior::Default,
+            ),
+            TestCase::init(
+                "Timer sub-system handling overflow",
+                test_timer_subsystem_overflow,
+                TestBehavior::Default,
+            ),
+            TestCase::init(
+                "Timer sub-system check primary timer",
+                test_timer_subsystem_primary_timer,
+                TestBehavior::Default,
+            ),
+        ],
+        name: "Timer sub-system",
+        tests_nb: 4,
+    };
 
     #[allow(static_mut_refs)]
     unsafe {
-        TEST_MANAGER.add_suite(timer_subsystem_test_suite)
+        TEST_MANAGER.add_suite(&TIMER_SUB_SYSTEM_TEST_SUITE)
     };
 }

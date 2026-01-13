@@ -1,7 +1,7 @@
 use crate::{
     config::CPU_INTC_MAX_SIZE,
-    drivers::cpu_intc::{riscv_cpu_intc::RiscVCpuIntc, CpuIntcDriver, CpuIntcHw, CpuIntcSubSystem},
-    tests::{TestCase, TEST_MANAGER},
+    drivers::cpu_intc::{CpuIntcDriver, CpuIntcHw, CpuIntcSubSystem, riscv_cpu_intc::RiscVCpuIntc},
+    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
 };
 
 pub fn test_cpu_intc_subsystem_impl() {
@@ -95,22 +95,29 @@ pub fn test_cpu_intc_subsystem_overflow() {
 }
 
 pub fn cpu_intc_subsystem_test_suite() {
-    let cpu_intc_subsystem_test_suite: &[TestCase] = &[
-        TestCase {
-            name: "CPU interrupt-controller sub-system basic implementation",
-            func: test_cpu_intc_subsystem_impl,
-        },
-        TestCase {
-            name: "CPU interrupt-controller sub-system add same CPU interrupt-controller",
-            func: test_cpu_intc_subsystem_same_device,
-        },
-        TestCase {
-            name: "CPU interrupt-controller sub-system handling overflow",
-            func: test_cpu_intc_subsystem_overflow,
-        },
-    ];
+    const CPU_INTC_TEST_SUITE: TestSuite = TestSuite {
+        tests: &[
+            TestCase::init(
+                "CPU interrupt-controller sub-system basic implementation",
+                test_cpu_intc_subsystem_impl,
+                TestBehavior::Default,
+            ),
+            TestCase::init(
+                "CPU interrupt-controller sub-system add same CPU interrupt-controller",
+                test_cpu_intc_subsystem_same_device,
+                TestBehavior::Default,
+            ),
+            TestCase::init(
+                "CPU interrupt-controller sub-system handling overflow",
+                test_cpu_intc_subsystem_overflow,
+                TestBehavior::Default,
+            ),
+        ],
+        name: "CPU interrupt-controller",
+        tests_nb: 3,
+    };
     #[allow(static_mut_refs)]
     unsafe {
-        TEST_MANAGER.add_suite(cpu_intc_subsystem_test_suite)
+        TEST_MANAGER.add_suite(&CPU_INTC_TEST_SUITE)
     };
 }

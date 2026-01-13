@@ -1,6 +1,9 @@
-use crate::{mem::Memory, tests::TEST_MANAGER};
+use crate::{
+    mem::Memory,
+    tests::{TEST_MANAGER, TestBehavior},
+};
 
-use super::TestCase;
+use super::{TestCase, TestSuite};
 
 pub fn test_memory_impl() {
     let default_mem = Memory::init_default();
@@ -14,12 +17,17 @@ pub fn test_memory_impl() {
 }
 
 pub fn memory_test_suite() {
-    let kernel_memory_test_suite: &[TestCase] = &[TestCase {
-        name: "Memory basic implementation",
-        func: test_memory_impl,
-    }];
+    const KERNEL_MEMORY_TEST_SUITE: TestSuite = TestSuite {
+        tests: &[TestCase::init(
+            "Memory basic implementation",
+            test_memory_impl,
+            TestBehavior::Default,
+        )],
+        name: "Kernel memory",
+        tests_nb: 1,
+    };
     #[allow(static_mut_refs)]
     unsafe {
-        TEST_MANAGER.add_suite(kernel_memory_test_suite)
+        TEST_MANAGER.add_suite(&KERNEL_MEMORY_TEST_SUITE)
     };
 }

@@ -7,7 +7,7 @@ use crate::{
         },
     },
     platform::{DeviceType, platform_get_device_info},
-    tests::{TEST_MANAGER, TestCase},
+    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
 };
 
 pub fn test_serial_subsystem_impl() {
@@ -195,22 +195,29 @@ pub fn test_serial_subsystem_overflow() {
 }
 
 pub fn serial_subsystem_test_suite() {
-    let serial_subsystem_test_suite: &[TestCase] = &[
-        TestCase {
-            name: "Serial sub-system basic implementation",
-            func: test_serial_subsystem_impl,
-        },
-        TestCase {
-            name: "Serial sub-system add same device",
-            func: test_serial_subsystem_same_device,
-        },
-        TestCase {
-            name: "Serial sub-system handling overflow",
-            func: test_serial_subsystem_overflow,
-        },
-    ];
+    const SERIAL_SUBSYSTEM_TEST_SUITE: TestSuite = TestSuite {
+        tests: &[
+            TestCase::init(
+                "Serial sub-system basic implementation",
+                test_serial_subsystem_impl,
+                TestBehavior::Default,
+            ),
+            TestCase::init(
+                "Serial sub-system add same device",
+                test_serial_subsystem_same_device,
+                TestBehavior::Default,
+            ),
+            TestCase::init(
+                "Serial sub-system handling overflow",
+                test_serial_subsystem_overflow,
+                TestBehavior::Default,
+            ),
+        ],
+        name: "Serial sub-system",
+        tests_nb: 3,
+    };
     #[allow(static_mut_refs)]
     unsafe {
-        TEST_MANAGER.add_suite(serial_subsystem_test_suite)
+        TEST_MANAGER.add_suite(&SERIAL_SUBSYSTEM_TEST_SUITE)
     };
 }

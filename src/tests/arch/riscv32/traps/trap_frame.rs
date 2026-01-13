@@ -1,6 +1,6 @@
 use crate::{
-    arch::traps::trap_frame::{init_trap_frame, TrapFrame, KERNEL_TRAP_FRAME, TRAP_STACK_BUFF},
-    tests::{TestCase, TEST_MANAGER},
+    arch::traps::trap_frame::{KERNEL_TRAP_FRAME, TRAP_STACK_BUFF, TrapFrame, init_trap_frame},
+    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
 };
 
 pub fn test_trap_frame_init_zeroed() {
@@ -38,18 +38,24 @@ pub fn test_trap_frame_init() {
 }
 
 pub fn trap_frame_test_suite() {
-    let trap_frame_test_suite: &[TestCase] = &[
-        TestCase {
-            name: "Trap frame empty initialization",
-            func: test_trap_frame_init_zeroed,
-        },
-        TestCase {
-            name: "Trap frame initialization",
-            func: test_trap_frame_init,
-        },
-    ];
+    const TRAP_FRAME_TEST_SUITE: TestSuite = TestSuite {
+        tests: &[
+            TestCase::init(
+                "Trap frame empty initialization",
+                test_trap_frame_init_zeroed,
+                TestBehavior::Default,
+            ),
+            TestCase::init(
+                "Trap frame initialization",
+                test_trap_frame_init,
+                TestBehavior::Default,
+            ),
+        ],
+        name: "Trap frame",
+        tests_nb: 2,
+    };
     #[allow(static_mut_refs)]
     unsafe {
-        TEST_MANAGER.add_suite(trap_frame_test_suite)
+        TEST_MANAGER.add_suite(&TRAP_FRAME_TEST_SUITE)
     };
 }

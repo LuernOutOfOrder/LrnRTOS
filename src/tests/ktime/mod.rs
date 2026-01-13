@@ -1,4 +1,4 @@
-use crate::tests::TEST_MANAGER;
+use crate::tests::{TEST_MANAGER, TestBehavior, TestSuite};
 
 use super::TestCase;
 
@@ -44,22 +44,21 @@ pub fn test_set_ktime_seconds() {
 }
 
 pub fn ktime_test_suite() {
-    let ktime_test_suite: &[TestCase] = &[
-        TestCase {
-            name: "set_ktime_ms",
-            func: test_set_ktime_ms,
-        },
-        TestCase {
-            name: "set_ktime_ns",
-            func: test_set_ktime_ns,
-        },
-        TestCase {
-            name: "set_ktime_seconds",
-            func: test_set_ktime_seconds,
-        },
-    ];
+    const KTIME_TEST_SUITE: TestSuite = TestSuite {
+        tests: &[
+            TestCase::init("set_ktime_ms", test_set_ktime_ms, TestBehavior::Default),
+            TestCase::init("set_ktime_ns", test_set_ktime_ns, TestBehavior::Default),
+            TestCase::init(
+                "set_ktime_seconds",
+                test_set_ktime_seconds,
+                TestBehavior::Default,
+            ),
+        ],
+        name: "Ktime",
+        tests_nb: 3,
+    };
     #[allow(static_mut_refs)]
     unsafe {
-        TEST_MANAGER.add_suite(ktime_test_suite)
+        TEST_MANAGER.add_suite(&KTIME_TEST_SUITE)
     };
 }

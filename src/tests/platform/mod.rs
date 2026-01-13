@@ -4,7 +4,7 @@ use crate::{
         fdt::{fdt_present, parse_dtb_file},
         platform_get_device_info,
     },
-    tests::TestCase,
+    tests::{TestBehavior, TestCase, TestSuite},
 };
 
 use super::TEST_MANAGER;
@@ -116,16 +116,24 @@ pub fn test_platform_get_device_info_static() {
 }
 
 pub fn platform_test_suite() {
-    let platform_test_suite: &[TestCase] = &[
-        TestCase {
-            name: "platform_device_info_fdt",
-            func: test_platform_get_device_info_fdt,
-        },
-        TestCase {
-            name: "platform_device_info_static",
-            func: test_platform_get_device_info_static,
-        },
-    ];
+    const PLATFORM_TEST_SUITE: TestSuite = TestSuite {
+        tests: &[
+            TestCase::init(
+                "platform_device_info_fdt",
+                test_platform_get_device_info_fdt,
+                TestBehavior::Default,
+            ),
+            TestCase::init(
+                "platform_device_info_static",
+                test_platform_get_device_info_static,
+                TestBehavior::Default,
+            ),
+        ],
+        name: "Platform",
+        tests_nb: 2,
+    };
     #[allow(static_mut_refs)]
-    unsafe { TEST_MANAGER.add_suite(platform_test_suite) };
+    unsafe {
+        TEST_MANAGER.add_suite(&PLATFORM_TEST_SUITE)
+    };
 }

@@ -60,28 +60,28 @@ pub fn test_panic(s: &core::panic::PanicInfo) -> ! {
 pub struct TestManager<'a> {
     // Represent the next empty index to push new test suite, also used to know how many test suite
     // in test_pool by suite_nb - 1.
+    pub test_pool: [TestSuite<'a>; 20],
     pub suite_nb: Option<usize>,
     pub suite_passed: usize,
     pub suite_failed: usize,
-    pub test_pool: [&'a [TestCase<'a>]; 20],
 }
 
 impl<'a> TestManager<'a> {
     pub const fn init() -> Self {
         TestManager {
+            test_pool: [TestSuite::init_default(); 20],
             suite_nb: None,
             suite_passed: 0,
             suite_failed: 0,
-            test_pool: [&[]; 20],
         }
     }
 
-    pub fn add_suite(&'a mut self, new_test_suite: &'a [TestCase]) {
+    pub fn add_suite(&'a mut self, new_test_suite: &'a TestSuite) {
         if self.suite_nb.is_none() {
-            self.test_pool[0] = new_test_suite;
+            self.test_pool[0] = *new_test_suite;
             self.suite_nb = Some(1)
         } else {
-            self.test_pool[self.suite_nb.unwrap()] = new_test_suite;
+            self.test_pool[self.suite_nb.unwrap()] = *new_test_suite;
             if let Some(nb) = self.suite_nb.as_mut() {
                 *nb += 1;
             }
@@ -89,14 +89,47 @@ impl<'a> TestManager<'a> {
     }
 }
 
+#[derive(Copy, Clone)]
+pub struct TestSuite<'a> {
+    pub tests: &'a [TestCase<'a>],
+    pub name: &'a str,
+    pub tests_nb: u32,
+}
+
+impl<'a> TestSuite<'a> {
+    pub const fn init_default() -> Self {
+        TestSuite {
+            tests: &[],
+            name: "",
+            tests_nb: 0,
+        }
+    }
+
+    pub fn init(tests: &'a [TestCase], name: &'a str, tests_nb: u32) -> Self {
+        TestSuite {
+            tests,
+            name,
+            tests_nb,
+        }
+    }
+}
+
+#[derive(Copy, Clone)]
+pub enum TestBehavior {
+    Default,
+    ShouldFailed,
+}
+
+#[derive(Copy, Clone)]
 pub struct TestCase<'a> {
     pub name: &'a str,
     pub func: fn(),
+    pub behavior: TestBehavior,
 }
 
 impl<'a> TestCase<'a> {
-    pub fn init(name: &'a str, func: fn()) -> Self {
-        TestCase { name, func }
+    const fn init(name: &'a str, func: fn(), behavior: TestBehavior) -> Self {
+        TestCase { name, func, behavior }
     }
 }
 
@@ -136,7 +169,7 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
 
     // Iterate over all test suite and run all test inside
     for test_suite in unsafe { TEST_MANAGER.test_pool } {
-        for test in test_suite {
+        for test in test_suite.tests {
             run_test!(test.name, test.func);
         }
     }
