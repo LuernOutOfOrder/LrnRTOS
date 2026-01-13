@@ -5,10 +5,10 @@ Test coverage: All tested
 
 Tested:
 - Structure initialization with all field tested.
-  
+
 Not tested:
 - ...
-  
+
 Reasons:
 - ...
 

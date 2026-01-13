@@ -6,11 +6,11 @@ Test coverage: Platform init and getting device information.
 Tested:
 - Initialize platform layer.
 - Getting device information(from FDT & static).
-  
+
 Not tested:
 - All the platform device structure.
 - Functions used to get device information.
-  
+
 Reasons:
 - Long to test, and not the priority.
 

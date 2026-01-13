@@ -4,10 +4,10 @@ File info: Ns16550a driver.
 Test coverage: None.
 
 Tested:
-  
+
 Not tested:
 - Everything.
-  
+
 Reasons:
 - Testing a serial driver need to have an MMIO emulation.
 

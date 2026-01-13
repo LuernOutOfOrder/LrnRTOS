@@ -1,17 +1,17 @@
 /*
 File info: Timer sub-system.
 
-Test coverage: All basic implementation and some edge case. 
+Test coverage: All basic implementation and some edge case.
 
 Tested:
 - Basic methods from implementation
 - Adding same devices
 - Overflow in the sub-system pools.
 - Selecting the primary timer.
-  
+
 Not tested:
 - ...
-  
+
 Reasons:
 - ...
 

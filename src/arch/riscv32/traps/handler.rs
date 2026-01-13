@@ -8,17 +8,16 @@ Test coverage: Just the timer interrupt handling.
 
 Tested:
 - Timer interrupt handling.
-  
+
 Not tested:
 - all exceptions currently handled.
-  
+
 Reasons:
 - The way current exceptions handled is handled cannot be tested because they just panic.
 
 Tests files:
 - 'src/tests/arch/riscv32/traps/handler.rs'
 */
-
 
 use core::arch::global_asm;
 
@@ -37,7 +36,7 @@ global_asm!(include_str!("trap_entry.S"));
 /// Trap routines
 /// Enter this function from trap_entry caller
 /// Handle all exceptions and interrupts
-/// # Safety 
+/// # Safety
 /// Public to only use in test mode, this function is called from trap_entry asm function
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn trap_handler(

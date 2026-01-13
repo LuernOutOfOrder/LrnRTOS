@@ -7,10 +7,10 @@ Tested:
 - All basic method from implementation.
 - Adding the same CPU interrupt-controller.
 - Overflow in the sub-system pool.
-  
+
 Not tested:
 - ...
-  
+
 Reasons:
 - ...
 

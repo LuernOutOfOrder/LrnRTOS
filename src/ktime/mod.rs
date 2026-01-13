@@ -7,10 +7,10 @@ Tested:
 - set_ktime_ms
 - set_ktime_ns
 - set_ktime_seconds
-  
+
 Not tested:
 - Read ktime and set_mtimecmp_delta
-  
+
 Reasons:
 - Hard to test those functions, even from a controlled environment like Qemu.
 

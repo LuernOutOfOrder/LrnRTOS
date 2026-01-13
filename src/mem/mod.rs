@@ -5,10 +5,10 @@ Test coverage: All basic implementation and check correct value compared to Qemu
 
 Tested:
 - Memory structure methods.
-  
+
 Not tested:
 - The switch from the early boot stack, and final kernel stack.
-  
+
 Reasons:
 - Hard to unit test, so just need to check the invariant during the test flow to see if the stack is correctly updated.
 

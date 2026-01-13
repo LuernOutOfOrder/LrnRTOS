@@ -4,11 +4,11 @@ File info: Enable all needed interruptions in RISC-V 32 bits CPU.
 Test coverage: All enable_interrupts fn.
 
 Tested:
-- All the functions used in enable_interrupts fn. 
-  
+- All the functions used in enable_interrupts fn.
+
 Not tested:
 - The disable_interrupts fn
-  
+
 Reasons:
 - Not even used yet so I'm not bothering myself to write a test on that.
 

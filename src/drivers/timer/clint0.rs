@@ -5,10 +5,10 @@ File info: Clint0 driver.
 Test coverage: None.
 
 Tested:
-  
+
 Not tested:
 - Everything.
-  
+
 Reasons:
 - Testing a timer driver need to have an MMIO emulation.
 
