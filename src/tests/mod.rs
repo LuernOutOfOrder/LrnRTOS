@@ -129,7 +129,11 @@ pub struct TestCase<'a> {
 
 impl<'a> TestCase<'a> {
     const fn init(name: &'a str, func: fn(), behavior: TestBehavior) -> Self {
-        TestCase { name, func, behavior }
+        TestCase {
+            name,
+            func,
+            behavior,
+        }
     }
 }
 
@@ -169,9 +173,18 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
 
     // Iterate over all test suite and run all test inside
     for test_suite in unsafe { TEST_MANAGER.test_pool } {
+        if test_suite.tests_nb == 0 {
+            break;
+        }
+        kprint_fmt!(
+            "\nRunning {} tests from test suite: {}\n",
+            test_suite.tests_nb,
+            test_suite.name
+        );
         for test in test_suite.tests {
             run_test!(test.name, test.func);
         }
+        kprint!("Test suite passed successfully\n");
     }
     // Exit Qemu at the end of the tests
     unsafe { ptr::write_volatile(0x100000 as *mut u32, 0x5555) };
