@@ -9,6 +9,7 @@ QEMU_MACHINE = virt
 QEMU_BIOS = none
 # Debugger(like gdb)
 DEBUGGER = riscv64-elf-gdb
+# RUSTFLAGS (mainly used for test mode)
 
 # Check bin in $PATH
 RUNNER_EXISTS := $(shell which $(RUNNER))
@@ -43,6 +44,9 @@ run:
 
 build:
 	cargo c && cargo b
+
+test_build:
+	RUSTFLAGS="-C link-arg=linkers/linker_test_mode.ld" cargo tb
 
 check:
 	cargo ft && cargo w

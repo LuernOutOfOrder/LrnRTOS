@@ -1,8 +1,28 @@
+/*
+File info: CPU interrupt-controller sub-system.
+
+Test coverage: Basic test and some edge case tested.
+
+Tested:
+- All basic method from implementation.
+- Adding the same CPU interrupt-controller.
+- Overflow in the sub-system pool.
+
+Not tested:
+- ...
+
+Reasons:
+- ...
+
+Tests files:
+- 'src/tests/drivers/cpu_intc/subsystem.rs'
+*/
+
 use core::cell::UnsafeCell;
 
 use riscv_cpu_intc::RiscVCpuIntc;
 
-use crate::config::CPU_INTC_MAX_SIZE;
+use crate::{config::CPU_INTC_MAX_SIZE, log, logs::LogLevel};
 
 pub mod riscv_cpu_intc;
 
@@ -12,7 +32,7 @@ pub trait CpuIntc {}
 #[derive(Copy, Clone)]
 // Unions enum for CpuIntcDriver struct
 // avoid using &'static mut dyn CpuIntc
-enum CpuIntcDriver {
+pub enum CpuIntcDriver {
     #[allow(unused)]
     RiscVCpuIntc(RiscVCpuIntc),
 }
@@ -20,7 +40,7 @@ enum CpuIntcDriver {
 #[derive(Copy, Clone)]
 pub struct CpuIntcHw {
     #[allow(unused)]
-    driver: CpuIntcDriver,
+    pub driver: CpuIntcDriver,
 }
 
 impl CpuIntcHw {
@@ -53,15 +73,24 @@ impl CpuIntcSubSystem {
     /// index: used to represent the CPU interrupt-controller core id, also used as an index in
     /// the sub-system pool. Because there's only one CPU interrupt-controller per CPU core, no
     /// overlap possible.
-    pub fn add_cpu_intc(&self, cpu_intc: CpuIntcHw, index: usize) {
+    pub fn add_cpu_intc(&self, new_cpu_intc: CpuIntcHw, index: usize) {
         let size = self.get_cpu_intc_array_size();
         if size == CPU_INTC_MAX_SIZE {
-            panic!(
-                "CPU interrupt-controller sub-system pool possible overflow. Consider increase size in config file."
-            )
+            log!(
+                LogLevel::Warn,
+                "CPU interrupt-controller sub-system: sub-system is full, ignoring registration request"
+            );
+            return;
         }
-        unsafe {
-            (&mut *self.cpu_intc_pool.get())[index] = Some(cpu_intc);
+        if self.get_cpu_intc(index).is_some() {
+            log!(
+                LogLevel::Warn,
+                "CPU interrupt-controller sub-system: duplicate device detected, ignoring registration request"
+            );
+        } else {
+            unsafe {
+                (&mut *self.cpu_intc_pool.get())[index] = Some(new_cpu_intc);
+            }
         }
     }
 

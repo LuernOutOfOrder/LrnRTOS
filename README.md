@@ -1,12 +1,13 @@
 # LrnRTOS
+
 A hybrid RTOS
 
-## Project goal 
+## Project goal
 
 The goal of this project is to explore a new way to create a kernel using a hybrid architecture based on a monolithic and a microkernel, to see if it's possible to develop a kernel for an RTOS with some features of a GPOS, with real-time constraints and security from user-space and kernel-space.
 As this is my first real kernel, I want to make everything from scratch to really learn how a kernel works and take every chance to create something new. This includes parsing the FDT, IPC, and implementing a filesystem.
 
-### Actual features:
+### Actual features
 
 Features that are currently working:
 
@@ -16,7 +17,7 @@ Features that are currently working:
 - Machine memory handling.
 - Traps handling(interruptions and exceptions handling).
 
-### Current target:
+### Current target
 
 Target where the kernel can build, boot, and run:
 
@@ -52,6 +53,9 @@ make run
 # Build the kernel using cargo commands
 make build
 
+# Build the kernel for testing env
+make test_build
+
 # Check all kernel source code, correctly formated files and no warnings
 make check
 
@@ -74,7 +78,6 @@ All architecture and design choices are documented here: `Documentation/`.
 
 A documentation for configuration and usage is coming soon.
 
-
 ## Resources
 
-- Device tree specification: https://devicetree-specification.readthedocs.io/en/stable/
+- Device tree specification: <https://devicetree-specification.readthedocs.io/en/stable/>

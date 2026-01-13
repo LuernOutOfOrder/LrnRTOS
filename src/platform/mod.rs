@@ -1,3 +1,23 @@
+/*
+File info: Platform layer(HAL).
+
+Test coverage: Platform init and getting device information.
+
+Tested:
+- Initialize platform layer.
+- Getting device information(from FDT & static).
+
+Not tested:
+- All the platform device structure.
+- Functions used to get device information.
+
+Reasons:
+- Long to test, and not the priority.
+
+Tests files:
+- 'src/tests/platform/mod.rs'
+*/
+
 pub mod fdt;
 pub mod mem;
 pub mod platform_info;
@@ -17,7 +37,7 @@ use fdt::{
     parse_dtb_file,
 };
 
-static mut PLATFORM_INFO: PlatformInfo = PlatformInfo::init();
+pub static mut PLATFORM_INFO: PlatformInfo = PlatformInfo::init();
 
 /// Initialize the FDT and the static devices. Choose the correct one to use.
 pub fn platform_init(dtb_addr: usize) {
@@ -37,6 +57,7 @@ pub fn platform_init(dtb_addr: usize) {
     }
 }
 
+#[cfg_attr(feature = "test", derive(PartialEq))]
 #[derive(Copy, Clone)]
 // Store the enum as an u8
 // Avoid Rust compilation optimization and can be useful in future if need access outside the
@@ -79,22 +100,17 @@ impl Devices<'_> {
         }
     }
 
-    pub fn init_fdt<'a>(compatible: &'a str, device_type: DeviceType) -> Devices<'a> {
-        let node: &FdtNode = match fdt_get_node_by_compatible(compatible) {
-            Some(n) => n,
-            None => {
-                panic!("Error while initialize generic device structure");
-            }
-        };
+    pub fn init_fdt<'a>(compatible: &'a str, device_type: DeviceType) -> Option<Devices<'a>> {
+        let node: &FdtNode = fdt_get_node_by_compatible(compatible)?;
         let device_addr: DriverRegion = DriverRegion::new(node);
-        Devices {
+        Some(Devices {
             header: DevicesHeader {
                 device_type,
                 compatible,
                 device_addr,
             },
             info: None,
-        }
+        })
     }
 }
 
@@ -152,11 +168,11 @@ impl PlatformCpuFreqDevice {
     }
 }
 
-pub struct TimerDevice {
+pub struct PlatformTimerDevice {
     pub interrupt_extended: [InterruptExtended; 4],
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub struct InterruptExtended {
     // Array of all irq
     pub irq_ids: [u32; 4],
@@ -166,10 +182,10 @@ pub struct InterruptExtended {
     pub irq_len: usize,
 }
 
-impl TimerDevice {
+impl PlatformTimerDevice {
     #[allow(clippy::new_without_default)]
     pub const fn init() -> Self {
-        TimerDevice {
+        PlatformTimerDevice {
             interrupt_extended: [InterruptExtended {
                 cpu_intc: 0,
                 irq_len: 0,
@@ -259,7 +275,7 @@ impl TimerDevice {
             // Update array with current interrupt
             intc_extended_array[i] = parsed_interrupt;
         }
-        TimerDevice {
+        PlatformTimerDevice {
             interrupt_extended: intc_extended_array,
         }
     }
@@ -267,11 +283,11 @@ impl TimerDevice {
 
 // Implement DeviceInfo trait to all Device type structure
 impl DeviceInfo for PlatformSerialDevice {}
-impl DeviceInfo for TimerDevice {}
+impl DeviceInfo for PlatformTimerDevice {}
 impl DeviceInfo for PlatformCpuIntCDevice {}
 impl DeviceInfo for PlatformCpuFreqDevice {}
 
-static mut TIMER_DEVICE_INSTANCE: TimerDevice = TimerDevice::init();
+static mut TIMER_DEVICE_INSTANCE: PlatformTimerDevice = PlatformTimerDevice::init();
 static mut SERIAL_DEVICE_INSTANCE: PlatformSerialDevice = PlatformSerialDevice::init();
 static mut CPU_INTC_DEVICE_INSTANCE: PlatformCpuIntCDevice = PlatformCpuIntCDevice::init();
 static mut CPU_FREQ_INSTANCE: PlatformCpuFreqDevice = PlatformCpuFreqDevice::init();
@@ -283,15 +299,19 @@ fn init_fdt_device(compatible: &'_ str, device_type: DeviceType) -> Option<Devic
         DeviceType::Serial => {
             let serial_device: PlatformSerialDevice = PlatformSerialDevice::init();
             unsafe { SERIAL_DEVICE_INSTANCE = serial_device };
-            let mut device: Devices = Devices::init_fdt(compatible, device_type);
+            let get_device = Devices::init_fdt(compatible, device_type);
+            get_device?;
+            let mut device: Devices = get_device.unwrap();
             device.info = Some(unsafe { &mut SERIAL_DEVICE_INSTANCE });
             default_device = device;
         }
         #[allow(static_mut_refs)]
         DeviceType::Timer => {
-            let timer_device: TimerDevice = TimerDevice::init_fdt(compatible);
+            let timer_device: PlatformTimerDevice = PlatformTimerDevice::init_fdt(compatible);
             unsafe { TIMER_DEVICE_INSTANCE = timer_device };
-            let mut device: Devices = Devices::init_fdt(compatible, device_type);
+            let get_device = Devices::init_fdt(compatible, device_type);
+            get_device?;
+            let mut device: Devices = get_device.unwrap();
             device.info = Some(unsafe { &mut TIMER_DEVICE_INSTANCE });
             default_device = device;
         }
@@ -318,15 +338,20 @@ pub fn platform_get_device_info(
 ) -> Option<Devices<'_>> {
     #[allow(static_mut_refs)]
     match unsafe { PLATFORM_INFO.read_mode() } {
-        true => init_fdt_device(compatible, device_type),
+        true => {
+            let get_device = init_fdt_device(compatible, device_type);
+            match get_device.is_none() {
+                true => None,
+                false => Some(get_device.unwrap()),
+            }
+        }
         false => {
-            let mut device: &Devices = &Devices::init();
             for each in DEVICES {
                 if each.header.compatible == compatible {
-                    device = each;
+                    return Some(*each);
                 }
             }
-            Some(*device)
+            None
         }
     }
 }

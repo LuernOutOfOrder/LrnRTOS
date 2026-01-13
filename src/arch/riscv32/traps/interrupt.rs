@@ -45,6 +45,13 @@ pub fn enable_mie_mtie() {
     unsafe { asm!("csrrs zero, mie, {}", in(reg) MTIE) };
 }
 
+pub fn read_mie_mtie() -> u32 {
+    let value: u32;
+    let mask = 1 << 7;
+    unsafe { asm!("csrr {}, mie", out(reg) value) };
+    value & mask
+}
+
 pub fn disable_mie_mtie() {
     // Clear the seven bit to 0
     const MTIE: u32 = 1 << 7;
@@ -55,6 +62,13 @@ pub fn enable_mie_msie() {
     // Set the 3 bit to 1
     const MSIE: u32 = 1 << 3;
     unsafe { asm!("csrrs zero, mie, {}", in(reg) MSIE) };
+}
+
+pub fn read_mie_msie() -> u32 {
+    let value: u32;
+    let mask = 1 << 3;
+    unsafe { asm!("csrr {}, mie", out(reg) value) };
+    value & mask
 }
 
 pub fn disable_mie_msie() {
@@ -69,6 +83,13 @@ pub fn enable_mstatus_mie() {
     // Set the 3 bit to 1
     const MIE: u32 = 1 << 3;
     unsafe { asm!("csrrs zero, mstatus, {}", in(reg) MIE) };
+}
+
+pub fn read_mstatus_mie() -> u32 {
+    let value: u32;
+    let mask = 1 << 3;
+    unsafe { asm!("csrr {}, mstatus", out(reg) value) };
+    value & mask
 }
 
 pub fn disable_mstatus_mie() {
@@ -91,6 +112,15 @@ pub fn mtvec_switch_to_direct_mode() {
     unsafe { asm!("csrrc zero, mtvec, {}", in(reg) MODE) };
 }
 
+pub fn mtvec_read_mode() -> u32 {
+    let value: u32;
+    unsafe {
+        asm!("csrr {}, mtvec", out(reg) value);
+    }
+    // Shift to keep only the bit 1:0
+    value & 0b11
+}
+
 // Extern symbol for trap_entry function, this function is wrote in asm so it need to be extern
 unsafe extern "C" {
     pub fn trap_entry();
@@ -101,6 +131,15 @@ pub fn mtvec_set_trap_entry() {
     // trap_entry address
     let handler_ptr: unsafe extern "C" fn() = trap_entry;
     unsafe { asm!("csrw mtvec, {}", in(reg) handler_ptr) }
+}
+
+pub fn mtvec_read_trap_entry() -> u32 {
+    let value: u32;
+    unsafe {
+        asm!("csrr {}, mtvec", out(reg) value);
+    }
+    let mask: u32 = !0b11;
+    value & mask
 }
 
 // Mscratch CSR

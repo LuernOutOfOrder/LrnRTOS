@@ -1,8 +1,29 @@
+/*
+File info: Timer sub-system.
+
+Test coverage: All basic implementation and some edge case.
+
+Tested:
+- Basic methods from implementation
+- Adding same devices
+- Overflow in the sub-system pools.
+- Selecting the primary timer.
+
+Not tested:
+- ...
+
+Reasons:
+- ...
+
+Tests files:
+- 'src/tests/drivers/timer/subsystem.rs'
+*/
+
 use core::cell::UnsafeCell;
 
 use clint0::Clint0;
 
-use crate::config::TIMER_MAX_SIZE;
+use crate::{config::TIMER_MAX_SIZE, log, logs::LogLevel};
 
 pub mod clint0;
 
@@ -21,15 +42,15 @@ pub enum TimerType {
     SoCTimer,
 }
 
-#[derive(Copy, Clone)]
-enum TimerDeviceDriver {
+#[derive(Copy, Clone, PartialEq)]
+pub enum TimerDeviceDriver {
     Clint0(Clint0),
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub struct TimerDevice {
-    device: TimerDeviceDriver,
-    timer_type: TimerType,
+    pub(crate) device: TimerDeviceDriver,
+    pub timer_type: TimerType,
 }
 
 impl TimerDevice {
@@ -75,13 +96,24 @@ impl TimerSubSystem {
     pub fn add_timer(&self, new_timer: TimerDevice) {
         let size = self.get_timer_array_size();
         if size == TIMER_MAX_SIZE {
-            panic!(
-                "Timer sub-system pool possible overflow. Consider increase size in config file."
-            )
+            log!(
+                LogLevel::Warn,
+                "Timer sub-system: subsystem is full, ignoring registration request"
+            );
+            return;
         }
         for i in 0..TIMER_MAX_SIZE {
-            let timer = unsafe { (&*self.timer_pool.get())[i].as_ref() };
-            if timer.is_none() {
+            let device = unsafe { (&*self.timer_pool.get())[i].as_ref() };
+            if let Some(timer) = device {
+                // Check duplication
+                if *timer == new_timer {
+                    log!(
+                        LogLevel::Warn,
+                        "Timer sub-system: duplicate device detected, ignoring registration request"
+                    );
+                    return;
+                }
+            } else {
                 unsafe {
                     (&mut *self.timer_pool.get())[i] = Some(new_timer);
                 }
@@ -90,7 +122,7 @@ impl TimerSubSystem {
         }
     }
 
-    pub fn remove_timer(&self, index: usize) {
+    fn remove_timer(&self, index: usize) {
         unsafe { (&mut *self.timer_pool.get())[index] = None }
     }
 
@@ -105,7 +137,7 @@ impl TimerSubSystem {
         size
     }
 
-    pub fn get_timer(&self, index: usize) -> Option<&TimerDevice> {
+    fn get_timer(&self, index: usize) -> Option<&TimerDevice> {
         let timer = unsafe { &(*self.timer_pool.get())[index] };
         if let Some(t) = timer { Some(t) } else { None }
     }

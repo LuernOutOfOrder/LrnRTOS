@@ -1,4 +1,20 @@
 // See documentation in `Documentation/hardware/soc/riscv/clint.md`
+/*
+File info: Clint0 driver.
+
+Test coverage: None.
+
+Tested:
+
+Not tested:
+- Everything.
+
+Reasons:
+- Testing a timer driver need to have an MMIO emulation.
+
+Tests files:
+- 'src/tests/...'
+*/
 
 use core::ptr::{self};
 
@@ -10,11 +26,11 @@ use crate::{
 
 use super::{TIMER_SUBSYSTEM, Timer, TimerDevice, TimerType};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub struct Clint0 {
     #[allow(unused)]
-    interrupt_extended: [InterruptExtended; 4],
-    region: DriverRegion,
+    pub interrupt_extended: [InterruptExtended; 4],
+    pub region: DriverRegion,
 }
 
 impl Timer for Clint0 {
@@ -36,7 +52,7 @@ impl Clint0 {
         // Get struct behind trait
         let device_info_trait = device_info.info.unwrap();
         let raw: RawTraitObject = unsafe { core::mem::transmute(device_info_trait) };
-        let timer_device_ptr = raw.data as *const platform::TimerDevice;
+        let timer_device_ptr = raw.data as *const platform::PlatformTimerDevice;
         let timer_device_ref = unsafe { &*timer_device_ptr };
         // Init Clint0 driver and update timer sub-system for global access.
         let clint0: Clint0 = Clint0 {

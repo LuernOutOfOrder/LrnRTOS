@@ -31,9 +31,13 @@ pub mod misc;
 // Early boot module
 pub mod boot;
 
-use core::panic::PanicInfo;
+// Test module
+#[cfg(feature = "test")]
+pub mod tests;
 
 // Use from modules
+#[cfg(not(feature = "test"))]
+use core::panic::PanicInfo;
 use logs::LogLevel;
 
 #[unsafe(no_mangle)]
@@ -49,6 +53,7 @@ unsafe extern "C" fn main() -> ! {
 }
 
 #[panic_handler]
+#[cfg(not(feature = "test"))]
 fn panic_handler(panic: &PanicInfo) -> ! {
     kprint_fmt!("PANIC {:?}", panic);
     loop {}

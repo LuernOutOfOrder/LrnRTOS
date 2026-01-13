@@ -1,3 +1,21 @@
+/*
+File info: RISC-V 32 bits trap frame structure
+
+Test coverage: All tested
+
+Tested:
+- Structure initialization with all field tested.
+
+Not tested:
+- ...
+
+Reasons:
+- ...
+
+Tests files:
+- 'src/tests/arch/riscv32/traps/trap_frame.rs'
+*/
+
 use core::{mem, ptr::null_mut};
 
 #[repr(C)]
@@ -17,7 +35,7 @@ pub struct TrapFrame {
 
 impl TrapFrame {
     // Initialized TrapFrame with field set to 0
-    pub const fn zero() -> Self {
+    pub const fn init() -> Self {
         TrapFrame {
             gp_regs: [0; 32],
             satp: 0,
@@ -28,7 +46,7 @@ impl TrapFrame {
 }
 
 // Static buffer used as a stack for trap handling
-static mut TRAP_STACK_BUFF: [u8; 1024] = [0u8; 1024];
+pub static mut TRAP_STACK_BUFF: [u8; 1024] = [0u8; 1024];
 
 // Init TrapFrame with 0 in mem
 pub static mut KERNEL_TRAP_FRAME: TrapFrame = unsafe { mem::zeroed() };

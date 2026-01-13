@@ -4,12 +4,12 @@ use crate::{
     drivers::DriverRegion,
     platform::{
         DeviceInfo, DeviceType, Devices, DevicesHeader, InterruptExtended, PlatformCpuFreqDevice,
-        PlatformCpuIntCDevice, PlatformSerialDevice, TimerDevice, mem::MemoryProvider,
+        PlatformCpuIntCDevice, PlatformSerialDevice, PlatformTimerDevice, mem::MemoryProvider,
     },
 };
 
 static mut SERIAL_DEVICE: PlatformSerialDevice = PlatformSerialDevice {};
-static mut CLINT_DEVICE: TimerDevice = TimerDevice {
+static mut CLINT_DEVICE: PlatformTimerDevice = PlatformTimerDevice {
     interrupt_extended: [InterruptExtended {
         cpu_intc: 0,
         irq_len: 2,
@@ -33,7 +33,7 @@ pub static DEVICES: &[Devices] = &[
             compatible: "ns16550a",
             device_addr: DriverRegion {
                 addr: 0x1000_0000,
-                size: 0x1000,
+                size: 0x100,
             },
         },
         #[allow(static_mut_refs)]

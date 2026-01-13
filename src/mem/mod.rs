@@ -1,3 +1,21 @@
+/*
+File info: Kernel memory management.
+
+Test coverage: All basic implementation and check correct value compared to Qemu memory.
+
+Tested:
+- Memory structure methods.
+
+Not tested:
+- The switch from the early boot stack, and final kernel stack.
+
+Reasons:
+- Hard to unit test, so just need to check the invariant during the test flow to see if the stack is correctly updated.
+
+Tests files:
+- 'src/tests/mem/mod.rs'
+*/
+
 mod kernel;
 
 use core::{arch::asm, mem};

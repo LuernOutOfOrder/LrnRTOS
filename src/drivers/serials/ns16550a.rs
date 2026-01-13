@@ -1,3 +1,20 @@
+/*
+File info: Ns16550a driver.
+
+Test coverage: None.
+
+Tested:
+
+Not tested:
+- Everything.
+
+Reasons:
+- Testing a serial driver need to have an MMIO emulation.
+
+Tests files:
+- 'src/tests/drivers/serials/ns16550a.rs'
+*/
+
 use core::fmt::{self, Write};
 
 use crate::{
@@ -9,6 +26,8 @@ use super::{SERIAL_SUBSYSTEM, SerialDevice, SerialDeviceDriver, SerialDriver};
 
 /// Structure for Ns16550 driver
 /// region: DriverRegion struct to define address memory region to use with the driver and the address size
+#[cfg_attr(feature = "test", derive(Copy, Clone))]
+#[derive(PartialEq)]
 pub struct Ns16550 {
     pub region: DriverRegion,
 }
@@ -42,6 +61,17 @@ impl Ns16550 {
             Some(d) => d,
             None => return,
         };
+        // Check MMIO reg
+        if device_info.header.device_addr.addr == 0 {
+            panic!(
+                "Encounter a wrong MMIO reg when initializing device. Check the device definition or hardware."
+            );
+        }
+        if device_info.header.device_addr.size == 0 {
+            panic!(
+                "Encounter a wrong MMIO reg size when initializing device. Check the device definition or hardware."
+            );
+        }
         let ns16550: Ns16550 = Ns16550 {
             region: device_info.header.device_addr,
         };
