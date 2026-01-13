@@ -4,7 +4,7 @@ use super::TestCase;
 
 // Those tests sucks
 
-pub fn test_set_ktime_ms() {
+pub fn test_set_ktime_ms() -> u8 {
     let cpu_freq = 10000000;
     // 1 for only 1ms
     let duration = 1;
@@ -15,9 +15,10 @@ pub fn test_set_ktime_ms() {
             delta_ticks
         );
     }
+    0
 }
 
-pub fn test_set_ktime_ns() {
+pub fn test_set_ktime_ns() -> u8 {
     let cpu_freq = 10000000;
     // 1 for only 1ns
     let duration = 1;
@@ -28,9 +29,10 @@ pub fn test_set_ktime_ns() {
             delta_ticks
         );
     }
+    0
 }
 
-pub fn test_set_ktime_seconds() {
+pub fn test_set_ktime_seconds() -> u8 {
     let cpu_freq = 10000000;
     // 1 for only 1ns
     let duration = 1;
@@ -41,6 +43,7 @@ pub fn test_set_ktime_seconds() {
             delta_ticks
         );
     }
+    0
 }
 
 pub fn ktime_test_suite() {

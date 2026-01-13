@@ -10,7 +10,7 @@ use crate::{
     tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
 };
 
-pub fn test_serial_subsystem_impl() {
+pub fn test_serial_subsystem_impl() -> u8 {
     // Check init serial subsystem
     let serial_subsystem: SerialManager = SerialManager::init();
     if serial_subsystem.get_serial_array_size() != 0 {
@@ -49,10 +49,11 @@ pub fn test_serial_subsystem_impl() {
 
     // Initialize serial subsystem, don't know where to put it instead of here
     init_serial_subsystem();
+    0
 }
 
 /// Test how the sub-system react when adding multiple time the same device.
-pub fn test_serial_subsystem_same_device() {
+pub fn test_serial_subsystem_same_device() -> u8 {
     let serial_subsystem: SerialManager = SerialManager::init();
     if serial_subsystem.get_serial_array_size() != 0 {
         panic!("Serial sub-system should be initialized empty.")
@@ -85,9 +86,10 @@ pub fn test_serial_subsystem_same_device() {
     if serial_subsystem.get_serial_array_size() != 1 {
         panic!("Serial sub-system should contain only 1 device.");
     }
+    0
 }
 
-pub fn test_serial_subsystem_overflow() {
+pub fn test_serial_subsystem_overflow() -> u8 {
     let serial_subsystem: SerialManager = SerialManager::init();
     if serial_subsystem.get_serial_array_size() != 0 {
         panic!("Serial sub-system should be initialized empty.")
@@ -192,6 +194,7 @@ pub fn test_serial_subsystem_overflow() {
     if default_console_region != device_region {
         panic!("Wrong default console. The default console should be the first device registered.")
     }
+    0
 }
 
 pub fn serial_subsystem_test_suite() {

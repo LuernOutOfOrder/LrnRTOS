@@ -33,15 +33,22 @@ pub fn test_kprint(s: core::fmt::Arguments) {
 }
 
 #[macro_export]
-macro_rules! test_info_kprint {
+macro_rules! test_info {
     ($($arg:tt)*) => {
         $crate::tests::test_info_kprint(format_args!($($arg)*))
     };
 }
 
+#[macro_export]
+macro_rules! test_failed {
+    ($($arg:tt)*) => {
+        $crate::tests::test_failed(format_args!($($arg)*))
+    };
+}
+
 macro_rules! run_test {
     ($test_name: expr, $fn: expr) => {
-        test_info_kprint!("Running test: {}", $test_name);
+        test_info!("Running test: {}", $test_name);
         ($fn)();
         test_kprint!("{}", $test_name);
     };
@@ -51,9 +58,13 @@ pub fn test_info_kprint(s: core::fmt::Arguments) {
     kprint_fmt!("\x1b[33;1m[TEST INFO]\x1b[0m {}\n", s);
 }
 
+pub fn test_failed(s: core::fmt::Arguments) {
+    kprint_fmt!("\x1b[31;1m[TEST FAILED]\x1b[0m {}\n", s);
+}
+
 #[panic_handler]
 pub fn test_panic(s: &core::panic::PanicInfo) -> ! {
-    kprint_fmt!("\x1b[31;1m[TEST FAILED]\x1b[0m {:?}", s);
+    kprint_fmt!("\x1b[31;1m[KERNEL INTEGRITY FAILURE]\x1b[0m {:?}", s);
     loop {}
 }
 
@@ -123,12 +134,12 @@ pub enum TestBehavior {
 #[derive(Copy, Clone)]
 pub struct TestCase<'a> {
     pub name: &'a str,
-    pub func: fn(),
+    pub func: fn() -> u8,
     pub behavior: TestBehavior,
 }
 
 impl<'a> TestCase<'a> {
-    const fn init(name: &'a str, func: fn(), behavior: TestBehavior) -> Self {
+    const fn init(name: &'a str, func: fn() -> u8, behavior: TestBehavior) -> Self {
         TestCase {
             name,
             func,
@@ -161,7 +172,7 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
         panic!("Booting on wrong CPU core");
     }
     test_kprint!("Successfully start kernel booting on CPU Core: 0.");
-    test_info_kprint!("Running test: platform_init");
+    test_info!("Running test: platform_init");
     test_platform_init(dtb_addr);
     test_kprint!("platform_init");
     // All test suites

@@ -4,7 +4,7 @@ use crate::{
     tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
 };
 
-pub fn test_cpu_intc_subsystem_impl() {
+pub fn test_cpu_intc_subsystem_impl() -> u8 {
     let cpu_intc_subsystem = CpuIntcSubSystem::init();
     if cpu_intc_subsystem.get_cpu_intc_array_size() != 0 {
         panic!("CPU interrupt-controller sub-system should be initialized empty.")
@@ -31,9 +31,10 @@ pub fn test_cpu_intc_subsystem_impl() {
     if get_cpu_intc.get_cpu_intc_core_id() != 0 {
         panic!("CPU interrupt-controller sub-system return the wrong CPU interrupt-controller");
     }
+    0
 }
 
-pub fn test_cpu_intc_subsystem_same_device() {
+pub fn test_cpu_intc_subsystem_same_device() -> u8 {
     let cpu_intc_subsystem = CpuIntcSubSystem::init();
     // Add CPU intc to sub-system
     let cpu_intc_pool: RiscVCpuIntc = RiscVCpuIntc { hart_id: 0 };
@@ -59,9 +60,10 @@ pub fn test_cpu_intc_subsystem_same_device() {
     if get_cpu_intc.get_cpu_intc_core_id() != 0 {
         panic!("CPU interrupt-controller sub-system return the wrong CPU interrupt-controller");
     }
+    0
 }
 
-pub fn test_cpu_intc_subsystem_overflow() {
+pub fn test_cpu_intc_subsystem_overflow() -> u8 {
     let cpu_intc_subsystem = CpuIntcSubSystem::init();
     // Add CPU intc to sub-system
     let cpu_intc_pool: RiscVCpuIntc = RiscVCpuIntc { hart_id: 0 };
@@ -92,6 +94,7 @@ pub fn test_cpu_intc_subsystem_overflow() {
     if get_cpu_intc.get_cpu_intc_core_id() != 0 {
         panic!("CPU interrupt-controller sub-system return the wrong CPU interrupt-controller");
     }
+    0
 }
 
 pub fn cpu_intc_subsystem_test_suite() {

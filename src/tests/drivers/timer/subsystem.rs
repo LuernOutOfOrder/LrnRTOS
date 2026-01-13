@@ -11,7 +11,7 @@ use crate::{
     tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
 };
 
-pub fn test_timer_subsystem_impl() {
+pub fn test_timer_subsystem_impl() -> u8 {
     let timer_subsystem = TimerSubSystem::init();
     if timer_subsystem.get_timer_array_size() != 0 {
         panic!("Timer sub-system should be initialized empty.")
@@ -53,9 +53,10 @@ pub fn test_timer_subsystem_impl() {
 
     // Initialize timer subsystem, don't know where to put it instead of here
     init_timer_subsystem();
+    0
 }
 
-pub fn test_timer_subsystem_same_device() {
+pub fn test_timer_subsystem_same_device() -> u8 {
     let timer_subsystem = TimerSubSystem::init();
     // Add timer to sub-system
     // Just unwrap, being in test env we know that it will return Some.
@@ -81,9 +82,10 @@ pub fn test_timer_subsystem_same_device() {
     if timer_subsystem.get_timer_array_size() > 1 {
         panic!("Timer sub-system should contain only 1 timer.")
     }
+    0
 }
 
-pub fn test_timer_subsystem_overflow() {
+pub fn test_timer_subsystem_overflow() -> u8 {
     let timer_subsystem = TimerSubSystem::init();
     // Build multiple timer to test how the subsystem handle overflow
     let int_ext = [InterruptExtended {
@@ -141,9 +143,10 @@ pub fn test_timer_subsystem_overflow() {
             "Timer sub-system state has changed after handling the overflow. This should not happened"
         );
     }
+    0
 }
 
-pub fn test_timer_subsystem_primary_timer() {
+pub fn test_timer_subsystem_primary_timer() -> u8 {
     let timer_subsystem = TimerSubSystem::init();
     // Build multiple timer to test how the subsystem handle overflow
     let int_ext = [InterruptExtended {
@@ -184,6 +187,7 @@ pub fn test_timer_subsystem_primary_timer() {
     if primary_timer != device1 {
         panic!("Timer sub-system primary timer should be the first ArchitecturalTimer registered");
     }
+    0
 }
 
 pub fn timer_subsystem_test_suite() {

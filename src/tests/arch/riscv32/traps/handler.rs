@@ -4,7 +4,7 @@ use crate::{
     tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
 };
 
-pub fn test_trap_handler_timer_interrupt() {
+pub fn test_trap_handler_timer_interrupt() -> u8 {
     let cause: usize = 2147483655;
     // Random mepc
     // TODO: improve mepc security in trap handler
@@ -18,6 +18,7 @@ pub fn test_trap_handler_timer_interrupt() {
             "Timer interrupt not correctly handled. Global tick should be updated at each timer interrupt handled"
         );
     }
+    0
 }
 
 pub fn trap_handler_test_suite() {

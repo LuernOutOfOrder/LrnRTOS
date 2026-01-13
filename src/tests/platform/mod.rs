@@ -34,7 +34,7 @@ pub fn test_platform_init(dtb_addr: usize) {
 }
 
 /// Test getting device info from FDT.
-pub fn test_platform_get_device_info_fdt() {
+pub fn test_platform_get_device_info_fdt() -> u8 {
     // Test to get None from an invalid device in the FDT.
     let none = platform_get_device_info("ns16550", DeviceType::Serial);
     if none.is_none() {
@@ -71,10 +71,11 @@ pub fn test_platform_get_device_info_fdt() {
             device.header.device_addr.size
         );
     }
+    return 0;
 }
 
 /// Test getting device info from static
-pub fn test_platform_get_device_info_static() {
+pub fn test_platform_get_device_info_static() -> u8 {
     // Reset platform info to use static
     unsafe { PLATFORM_INFO.flags = 0 };
     // Test to get None from an invalid device in the FDT.
@@ -113,6 +114,7 @@ pub fn test_platform_get_device_info_static() {
             device.header.device_addr.size
         );
     }
+    return 0;
 }
 
 pub fn platform_test_suite() {

@@ -6,7 +6,7 @@ use crate::{
     tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
 };
 
-pub fn test_ns16550_qemu_putchar() {
+pub fn test_ns16550_qemu_putchar() -> u8 {
     let ns16550: Ns16550 = Ns16550 {
         region: DriverRegion {
             addr: 0x1000_0000,
@@ -22,6 +22,7 @@ pub fn test_ns16550_qemu_putchar() {
     match &mut device.driver {
         SerialDeviceDriver::Ns16550(ns16550) => ns16550.putchar(0x00000001),
     }
+    0
 }
 
 pub fn ns16550_test_suite() {

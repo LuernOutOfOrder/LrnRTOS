@@ -11,24 +11,26 @@ use crate::{
     tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
 };
 
-pub fn test_mtvec_set_direct_mode() {
+pub fn test_mtvec_set_direct_mode() -> u8 {
     let current_mode = mtvec_read_mode();
     mtvec_switch_to_direct_mode();
     let update_mode = mtvec_read_mode();
     if current_mode != update_mode {
         panic!("mtvec mode should be 0, got: {}", update_mode);
     }
+    0
 }
 
-pub fn test_mtvec_set_vectored_mode() {
+pub fn test_mtvec_set_vectored_mode() -> u8 {
     mtvec_switch_to_vectored_mode();
     let mode = mtvec_read_mode();
     if mode != 1 {
         panic!("mtvec mode should be 1, got: {}", mode);
     }
+    0
 }
 
-pub fn test_mtvec_trap_entry() {
+pub fn test_mtvec_trap_entry() -> u8 {
     let mtvec_trap_entry = mtvec_read_trap_entry();
     let trap_entry_addr = trap_entry as usize as u32;
     mtvec_set_trap_entry();
@@ -39,9 +41,10 @@ pub fn test_mtvec_trap_entry() {
     if trap_entry_addr != updated_mtvec_trap_entry {
         panic!("mtvec trap_entry is wrong. It should be using the trap_entry function address");
     }
+    0
 }
 
-pub fn test_mscratch_trap_frame() {
+pub fn test_mscratch_trap_frame() -> u8 {
     // Init trap_frame and declare ptr to it
     init_trap_frame();
     #[allow(static_mut_refs)]
@@ -56,24 +59,27 @@ pub fn test_mscratch_trap_frame() {
     if update_mscratch != ptr {
         panic!("mscratch isn't using the KERNEL_TRAP_FRAME structure.")
     }
+    0
 }
 
-pub fn test_mie_mtie() {
+pub fn test_mie_mtie() -> u8 {
     let current_mie_mtie = read_mie_mtie();
     enable_mie_mtie();
     let update_mie_mtie = read_mie_mtie();
     if current_mie_mtie == update_mie_mtie {
         panic!("mie.mtie should have been updated to enable machine timer interrupt");
     }
+    0
 }
 
-pub fn test_mie_msie() {
+pub fn test_mie_msie() -> u8 {
     let current_mie_msie = read_mie_msie();
     enable_mie_msie();
     let update_mie_msie = read_mie_msie();
     if current_mie_msie == update_mie_msie {
         panic!("mie.msie should have been updated to enable machine software interrupt");
     }
+    0
 }
 
 // pub fn test_mstatus_mie() {

@@ -1,9 +1,10 @@
 use crate::{
     arch::traps::trap_frame::{KERNEL_TRAP_FRAME, TRAP_STACK_BUFF, TrapFrame, init_trap_frame},
+    test_failed,
     tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
 };
 
-pub fn test_trap_frame_init_zeroed() {
+pub fn test_trap_frame_init_zeroed() -> u8 {
     // Init trap frame using struct method
     let trap_frame: TrapFrame = TrapFrame::init();
     // Check all field
@@ -14,20 +15,25 @@ pub fn test_trap_frame_init_zeroed() {
         }
     }
     if gp_regs_size != 0 {
-        panic!("Trap frame gp_regs field should be initialized empty.");
+        test_failed!("Trap frame gp_regs field should be initialized empty.");
+        return 1;
     }
     if trap_frame.satp != 0 {
-        panic!("Trap frame satp field should be initialized at 0.");
+        test_failed!("Trap frame satp field should be initialized at 0.");
+        return 1;
     }
     if trap_frame.hartid != 0 {
-        panic!("Trap frame hartid field should be initialized at 0.");
+        test_failed!("Trap frame hartid field should be initialized at 0.");
+        return 1;
     }
     if !trap_frame.trap_stack.is_null() {
-        panic!("Trap frame trap_stack field should be initialized at null ptr.");
+        test_failed!("Trap frame trap_stack field should be initialized at null ptr.");
+        return 1;
     }
+    0
 }
 
-pub fn test_trap_frame_init() {
+pub fn test_trap_frame_init() -> u8 {
     // Init trap frame using init_trap_frame fn
     init_trap_frame();
     // Ok because test env, no concurrency
@@ -35,6 +41,7 @@ pub fn test_trap_frame_init() {
     if unsafe { KERNEL_TRAP_FRAME.trap_stack } != unsafe { TRAP_STACK_BUFF.as_mut_ptr() } {
         panic!("Trap frame trap_stack field should be initialized with ptr to TRAP_STACK_BUFF");
     }
+    0
 }
 
 pub fn trap_frame_test_suite() {

@@ -5,7 +5,7 @@ use crate::{
 
 use super::{TestCase, TestSuite};
 
-pub fn test_memory_impl() {
+pub fn test_memory_impl() -> u8 {
     let default_mem = Memory::init_default();
     if default_mem.mem_end != 0 || default_mem.mem_start != 0 {
         panic!("Memory init_default should initialize all field at 0");
@@ -14,6 +14,7 @@ pub fn test_memory_impl() {
     if mem.mem_end != 0x88000000 || mem.mem_start != 0x80000000 {
         panic!("Memory init should initialize all field with correct Qemu memory.");
     }
+    0
 }
 
 pub fn memory_test_suite() {
