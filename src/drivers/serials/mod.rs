@@ -65,7 +65,7 @@ impl SerialDevice {
 /// Devices: use an UnsafeCell with an array of Option<UartDevice> used to store and retrieve all
 /// device initialized.
 pub struct SerialManager {
-    pub devices: UnsafeCell<[Option<SerialDevice>; SERIAL_MAX_SIZE]>,
+    pub devices: [UnsafeCell<Option<SerialDevice>>; SERIAL_MAX_SIZE],
 }
 
 unsafe impl Sync for SerialManager {}
@@ -73,7 +73,8 @@ unsafe impl Sync for SerialManager {}
 impl SerialManager {
     pub const fn init() -> Self {
         SerialManager {
-            devices: UnsafeCell::new([const { None }; SERIAL_MAX_SIZE]),
+            // devices: UnsafeCell::new([const { None }; SERIAL_MAX_SIZE]),
+            devices: [const { UnsafeCell::new(const { None }) }; SERIAL_MAX_SIZE],
         }
     }
 
@@ -83,7 +84,7 @@ impl SerialManager {
     pub fn add_serial(&self, new_serial: SerialDevice) {
         let mut index_none: Option<usize> = None;
         for i in 0..SERIAL_MAX_SIZE {
-            let device = unsafe { (&*self.devices.get())[i].as_ref() };
+            let device = unsafe { &*self.devices[i].get() };
             if let Some(serial) = device {
                 // Avoid duplication and log warning
                 if serial.driver == new_serial.driver {
@@ -93,7 +94,7 @@ impl SerialManager {
                     );
                     return;
                 }
-            } else if i == 0 && device.is_none() || device.is_none() {
+            } else if device.is_none() {
                 index_none = Some(i);
                 break;
             }
@@ -112,33 +113,37 @@ impl SerialManager {
                 default_console: true,
                 driver: new_serial.driver,
             };
-            unsafe { (&mut *self.devices.get())[0] = Some(update_serial) };
+            unsafe { *self.devices[0].get() = Some(update_serial) }
         } else {
             // Just save the new device
-            unsafe { (&mut *self.devices.get())[index_none.unwrap()] = Some(new_serial) };
+            unsafe { *self.devices[index_none.unwrap()].get() = Some(new_serial) };
         }
     }
 
-    /// Return static reference static mutable of SerialDevice default_console
-    pub fn get_default_console(&self) -> Option<&'static mut SerialDevice> {
-        let devices = unsafe { &mut *self.devices.get() };
-        devices
-            .iter_mut()
-            .find(|d| {
-                if let Some(serial) = d {
-                    serial.default_console
-                } else {
-                    false
-                }
-            })
-            .map(|d| d.as_mut().unwrap())
+    /// Return &mut default_console from subsystem, 
+    ///
+    /// # Safety
+    ///
+    /// - currently the kernel is single-threaded
+    /// - interrupt system can't access the sub-system concurrently
+    ///   unsafe function while there's no mutex built
+    #[allow(clippy::mut_from_ref)]
+    pub unsafe fn get_default_console(&self) -> &mut SerialDevice {
+        let default_console = unsafe { (*self.devices[0].get()).as_mut() };
+        if let Some(serial) = default_console {
+            serial
+        } else {
+            panic!(
+                "Serial sub-system: invariant violated, default console should always be available after the sub-system initialized"
+            );
+        }
     }
 
     pub fn get_serial_array_size(&self) -> usize {
         let mut size: usize = 0;
         for i in 0..SERIAL_MAX_SIZE {
-            let present = unsafe { (&*self.devices.get())[i].is_some() };
-            if present {
+            let present = unsafe { &*self.devices[i].get() };
+            if present.is_some() {
                 size += 1;
             }
         }
