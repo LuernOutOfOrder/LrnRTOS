@@ -98,6 +98,6 @@ A test can have 3 different conclusion:
 - Kernel integrity failure, if the test encounter a critical failure, like a device not correctly initialized. This failure indicate that the state after the fail could lead to an unstable kernel. That shouldn't happened, so panic directly.
 
 ## Invariants
-• All test suites must be registered before test execution starts.
-• Test suites are static and must remain valid for the entire test runtime.
-• Test code must not rely on subsystems that are not initialized in test mode.
+- All test suites must be registered before test execution starts.
+- Test suites are static and must remain valid for the entire test runtime.
+- Test code must not rely on subsystems that are not initialized in test mode.
