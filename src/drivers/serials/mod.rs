@@ -73,8 +73,7 @@ unsafe impl Sync for SerialManager {}
 impl SerialManager {
     pub const fn init() -> Self {
         SerialManager {
-            // devices: UnsafeCell::new([const { None }; SERIAL_MAX_SIZE]),
-            devices: [const { UnsafeCell::new(const { None }) }; SERIAL_MAX_SIZE],
+            devices: [const { UnsafeCell::new(None) }; SERIAL_MAX_SIZE],
         }
     }
 
@@ -120,7 +119,7 @@ impl SerialManager {
         }
     }
 
-    /// Return &mut default_console from subsystem, 
+    /// Return &mut default_console from subsystem,
     ///
     /// # Safety
     ///
