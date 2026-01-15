@@ -1,25 +1,37 @@
 # Kernel test framework
 
+<!--toc:start-->
+- [Kernel test framework](#kernel-test-framework)
+  - [Description](#description)
+  - [Purpose](#purpose)
+  - [How it works](#how-it-works)
+  - [How to write test?](#how-to-write-test)
+  - [Test behavior](#test-behavior)
+  - [Invariants](#invariants)
+<!--toc:end-->
+
 ## Description
 
-Testing a kernel is very different that testing a userland application. Especially on specific target when you don't have access to cargo test. So not being able to use cargo test, I decided to write my own test framework for the kernel.
-For now it's very trivial but hey it work.
-So the kernel has 2 running modes: 
+Testing a kernel is very different than testing a userland application. Especially on specific target when you don't have access to cargo test. So not being able to use cargo test, I decided to write my own test framework for the kernel.
+The framework is trivial but sufficient.
+So the kernel has 2 running modes:
 
 - Release runtime: just run the kernel like a kernel.
 - Test runtime: run the kernel in test mode, run all test suites, don't do anything else than just run all test suites.
 
 ## Purpose
 
-The framework purpose is to make the writing of test suite less painful and easier. Making the kernel easier to test, and to maintain.
+The purpose of this framework is to make the kernel testable in isolation and to detect regressions early during development.
 
-## How it work
+## How it works
 
 To be able to run different test suites, with different test inside, and the test can have different behavior, I needed to create like three entities:
 
 - TestManager: contains all test suite and the number of test suites to run.
 - TestSuite: a test suite, like its name, contains all tests and the number of tests inside.
 - TestCase: just a test, define the test's name and a function pointer to the test itself.
+
+This hierarchy enforces a strict ownership model and avoids dynamic discovery or allocation during test execution.
 
 ## How to write test?
 
@@ -55,6 +67,8 @@ pub fn foo_test_suite() {
     };
     #[allow(static_mut_refs)]
     // Register the suite inside the TestManager
+    // This operation is unsafe because TEST_MANAGER is a global static.
+    // It is safe in this context because test suite registration happens during single-threaded early boot.
     unsafe {
         TEST_MANAGER.add_suite(&FOO_TEST_SUITE)
     };
@@ -74,3 +88,16 @@ fn test_suites() {
 ```
 
 That's it, not so hard to write a correct test suite.
+
+## Test behavior
+
+A test can have 3 different conclusion:
+
+- The test pass, everything is ok.
+- The test fail, test failures are reported, stop the execution of current test suite, but do not stop execution of other test suites.
+- Kernel integrity failure, if the test encounter a critical failure, like a device not correctly initialized. This failure indicate that the state after the fail could lead to an unstable kernel. That shouldn't happened, so panic directly.
+
+## Invariants
+• All test suites must be registered before test execution starts.
+• Test suites are static and must remain valid for the entire test runtime.
+• Test code must not rely on subsystems that are not initialized in test mode.
