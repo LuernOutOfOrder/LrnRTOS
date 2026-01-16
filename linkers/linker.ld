@@ -19,8 +19,10 @@ SECTIONS {
   } > RAM
 
   .bss (NOLOAD) : {
+    bss_start = .;
     *(.bss*)
     *(COMMON)
+    bss_end = .;
   } > RAM
 
   /* Stack */
@@ -34,6 +36,8 @@ SECTIONS {
   /* make sure the symbols are provided to the symbol table */
   PROVIDE(__stack_start = stack_start);
   PROVIDE(__stack_top = stack_top);
+  PROVIDE(__bss_start = bss_start);
+  PROVIDE(__bss_end = bss_end);
 
   /* Debug info */
   .debug_info     0 : { *(.debug_info) }
