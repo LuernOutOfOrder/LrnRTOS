@@ -27,7 +27,7 @@ kstart:
 .option push
 # Don't use the relax option
 .option norelax
-  la		gp, _global_ptr
+  la		gp, __global_ptr
 .option pop
   # The BSS section is expected to be zero
   # Load bss region 

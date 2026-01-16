@@ -5,11 +5,14 @@ MEMORY {
 }
 
 SECTIONS {
+  . = ORIGIN(RAM);
+  PROVIDE(__kernel_start = .);
+
     .text : {
     *(.text.init)
     *(.text*)
   } > RAM
-  PROVIDE(_global_ptr = .);
+  PROVIDE(__global_ptr = .);
   .rodata : {
     *(.rodata*)
   } > RAM
@@ -24,6 +27,7 @@ SECTIONS {
     *(COMMON)
     bss_end = .;
   } > RAM
+  PROVIDE(__kernel_end = .);
 
   /* Stack */
   .stack (NOLOAD) : ALIGN(4)
