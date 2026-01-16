@@ -6,13 +6,17 @@ MEMORY {
 
 SECTIONS {
   . = ORIGIN(RAM);
-  PROVIDE(__kernel_start = .);
+  /* Provide kernel image start */
+  kernel_start = .;
 
-    .text : {
+  .text : {
+    /* Custom section for asm init */
     *(.text.init)
     *(.text*)
   } > RAM
-  PROVIDE(__global_ptr = .);
+
+  global_ptr = .;
+
   .rodata : {
     *(.rodata*)
   } > RAM
@@ -21,27 +25,35 @@ SECTIONS {
     *(.data*)
   } > RAM
 
+  /* Don't write .bss section in bin file */
   .bss (NOLOAD) : {
     bss_start = .;
     *(.bss*)
+    /* Avoid any global uninitialized variable to be saved in another section */
     *(COMMON)
     bss_end = .;
   } > RAM
-  PROVIDE(__kernel_end = .);
+
+  /* Provide kernel image end */
+  kernel_end = .;
 
   /* Stack */
-  .stack (NOLOAD) : ALIGN(4)
-{
-  stack_top = ORIGIN(RAM) + LENGTH(RAM);  /* stack starts at RAM top */
-  . = stack_top - 0x2000;                 /* 0x4000 = 16 KiB */
-  stack_start = .;
-} > RAM
+  /* Don't write stack section in bin file, just reserve the memory in the RAM */
+  .stack (NOLOAD) : ALIGN(4) {
+    /* stack starts at RAM top */
+    stack_top = ORIGIN(RAM) + LENGTH(RAM);
+    /* 0x4000 = 16 KiB */
+    stack_bottom = stack_top - 0x2000;
+  } > RAM
   
   /* make sure the symbols are provided to the symbol table */
-  PROVIDE(__stack_start = stack_start);
+  PROVIDE(__global_ptr = global_ptr);
+  PROVIDE(__stack_start = stack_bottom);
   PROVIDE(__stack_top = stack_top);
   PROVIDE(__bss_start = bss_start);
   PROVIDE(__bss_end = bss_end);
+  PROVIDE(__kernel_start = kernel_start);
+  PROVIDE(__kernel_end = kernel_end);
 
   /* Debug info */
   .debug_info     0 : { *(.debug_info) }
