@@ -10,12 +10,12 @@ This ensures that anyone extending or modifying the kernel understands the assum
 
 For the kernel to be able to boot correctly, it will need:
 
-- At least 8kb stack.
+- At least 4kb stack.
 - CPU in M-mode.
-- To know if the machine has a FDT, if not, need to define basic devices in static.
+- To know if the machine has an FDT, if not, need to define basic devices in static.
 - The config file setup correctly.
 - Disable the kprint module in Cargo.toml if no need or if you don't know a correct serial device address. 
-- Only boot on mono-core machine ! No multi-core handled for now.
+- Only boot on mono-core machine! No multi-core handled for now.
 
 ## Non-goals
 
@@ -35,7 +35,7 @@ Without the platform layer, the early boot cannot continue, basically.
 
 ### Sub-systems 
 
-Initialize all kernel sub-systems(serial,timer,etc) [2]. 
+Initialize all kernel sub-systems(serial, timer, etc.) [2]. 
 It guarantees that all kernel's sub-systems is initialized properly.
 The sub-systems use static from config file to set a static size for sub-systems pool. The kernel consider that all sub-systems pool have a correct size. If there's a panic during boot,
 consider this invariant violated.
