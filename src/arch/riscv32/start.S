@@ -27,8 +27,13 @@ kstart:
 .option push
 # Don't use the relax option
 .option norelax
+  # Load address of global ptr
   la		gp, __global_ptr
 .option pop
+  # load address of stack_top
+  la sp, stack_top    
+  # TODO: load data from binary to ram.
+
   # The BSS section is expected to be zero
   # Load bss region 
 	la a0, __bss_start
@@ -46,13 +51,11 @@ kstart:
   bltu a0, a1, 1b
 # .bss is zeroed, continue boot
 2:
-  la sp, stack_top    
   # We use mret here so that the mstatus register
   # is properly updated.
   # Set mstatus to M-mode
   li t0, (0b11 << 11)
   csrw	mstatus, t0
-  # load address of stack_top
   # load address of _start function
   la t1, _start
   # Set mepc to t1
