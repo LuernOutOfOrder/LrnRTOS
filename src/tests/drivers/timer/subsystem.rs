@@ -133,12 +133,23 @@ pub fn test_timer_subsystem_overflow() -> u8 {
     timer_subsystem.add_timer(device);
     timer_subsystem.add_timer(device1);
     #[allow(clippy::clone_on_copy)]
-    let timer_subsystem_snapshot = unsafe { (*timer_subsystem.timer_pool.get()).clone() };
+    let timer_subsystem_snapshot = unsafe {
+        [
+            *timer_subsystem.timer_pool[0].get(),
+            *timer_subsystem.timer_pool[1].get(),
+        ]
+    };
     // This one should trigger a warning and not be registered to the sub-system
     timer_subsystem.add_timer(device2);
+    // Recreate a snapshot of subsystem
+    let timer_subsystem_snapshot_updated = unsafe {
+        [
+            *timer_subsystem.timer_pool[0].get(),
+            *timer_subsystem.timer_pool[1].get(),
+        ]
+    };
     // Check if the subsystem has changed after the overflow aborted
-    #[allow(clippy::clone_on_copy)]
-    if timer_subsystem_snapshot != unsafe { (*timer_subsystem.timer_pool.get()).clone() } {
+    if timer_subsystem_snapshot != timer_subsystem_snapshot_updated {
         panic!(
             "Timer sub-system state has changed after handling the overflow. This should not happened"
         );

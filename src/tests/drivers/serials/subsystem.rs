@@ -35,12 +35,12 @@ pub fn test_serial_subsystem_impl() -> u8 {
         );
     }
     // Check default console
-    let serial = unsafe { &(*serial_subsystem.devices.get())[0] };
+    let serial = unsafe { *serial_subsystem.devices[0].get() };
     if !serial.unwrap().default_console {
         panic!("Serial sub-system failed to set new serial as default console.");
     }
 
-    let default_console = serial_subsystem.get_default_console().unwrap();
+    let default_console = unsafe { serial_subsystem.get_default_console() };
     if *default_console != serial.unwrap() {
         panic!(
             "Error getting the default console, default console get is different than the one saved before."
@@ -161,15 +161,27 @@ pub fn test_serial_subsystem_overflow() -> u8 {
     serial_subsystem.add_serial(device2);
     serial_subsystem.add_serial(device3);
     // Save the state of the serial subsystem
-    // Allow clone on copy because we want to save a snapshot of the subsystem at this time
-    #[allow(clippy::clone_on_copy)]
-    let serial_subsystem_snapshot = unsafe { (*serial_subsystem.devices.get()).clone() };
+    // Manually copy the inner values since UnsafeCell doesn't implement Clone
+    let serial_subsystem_snapshot = unsafe {
+        [
+            *serial_subsystem.devices[0].get(),
+            *serial_subsystem.devices[1].get(),
+            *serial_subsystem.devices[2].get(),
+            *serial_subsystem.devices[3].get(),
+        ]
+    };
     // This one should trigger a warning and not be registered to the sub-system
     serial_subsystem.add_serial(device4);
-    // Allow clone on copy because we want to save a snapshot of the subsystem at this time
-    #[allow(clippy::clone_on_copy)]
     // Check if the subsystem has changed after the overflow aborted
-    if serial_subsystem_snapshot != unsafe { (*serial_subsystem.devices.get()).clone() } {
+    let current_devices = unsafe {
+        [
+            *serial_subsystem.devices[0].get(),
+            *serial_subsystem.devices[1].get(),
+            *serial_subsystem.devices[2].get(),
+            *serial_subsystem.devices[3].get(),
+        ]
+    };
+    if serial_subsystem_snapshot != current_devices {
         panic!(
             "Serial sub-system state has changed after handling the overflow. This should not happened"
         );
@@ -178,7 +190,7 @@ pub fn test_serial_subsystem_overflow() -> u8 {
     // Check default console
     // Unwrap because we know that there's a device
     // Get default console MMIO reg
-    let default_console = serial_subsystem.get_default_console().unwrap();
+    let default_console = unsafe { serial_subsystem.get_default_console() };
     let default_console_region = {
         match default_console.driver {
             SerialDeviceDriver::Ns16550(ns16550) => ns16550.region,

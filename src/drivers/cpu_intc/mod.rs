@@ -26,9 +26,6 @@ use crate::{config::CPU_INTC_MAX_SIZE, log, logs::LogLevel};
 
 pub mod riscv_cpu_intc;
 
-// Trait to implement in all cpu interrupt-controller driver
-pub trait CpuIntc {}
-
 #[derive(Copy, Clone)]
 // Unions enum for CpuIntcDriver struct
 // avoid using &'static mut dyn CpuIntc
@@ -53,7 +50,8 @@ impl CpuIntcHw {
 
 // Structure handling the cpu interrupt-controller initialized drivers
 pub struct CpuIntcSubSystem {
-    cpu_intc_pool: UnsafeCell<[Option<CpuIntcHw>; CPU_INTC_MAX_SIZE]>,
+    // cpu_intc_pool: UnsafeCell<[Option<CpuIntcHw>; CPU_INTC_MAX_SIZE]>,
+    cpu_intc_pool: [UnsafeCell<Option<CpuIntcHw>>; CPU_INTC_MAX_SIZE],
 }
 
 unsafe impl Sync for CpuIntcSubSystem {}
@@ -61,7 +59,7 @@ unsafe impl Sync for CpuIntcSubSystem {}
 impl CpuIntcSubSystem {
     pub const fn init() -> Self {
         CpuIntcSubSystem {
-            cpu_intc_pool: UnsafeCell::new([const { None }; CPU_INTC_MAX_SIZE]),
+            cpu_intc_pool: [const { UnsafeCell::new(None) }; CPU_INTC_MAX_SIZE],
         }
     }
 
@@ -89,7 +87,7 @@ impl CpuIntcSubSystem {
             );
         } else {
             unsafe {
-                (&mut *self.cpu_intc_pool.get())[index] = Some(new_cpu_intc);
+                *self.cpu_intc_pool[index].get() = Some(new_cpu_intc);
             }
         }
     }
@@ -97,8 +95,8 @@ impl CpuIntcSubSystem {
     pub fn get_cpu_intc_array_size(&self) -> usize {
         let mut size: usize = 0;
         for i in 0..CPU_INTC_MAX_SIZE {
-            let present = unsafe { (&*self.cpu_intc_pool.get())[i].is_some() };
-            if present {
+            let present = unsafe { *self.cpu_intc_pool[i].get() };
+            if present.is_some() {
                 size += 1;
             }
         }
@@ -106,7 +104,7 @@ impl CpuIntcSubSystem {
     }
 
     pub fn get_cpu_intc(&self, index: usize) -> Option<&CpuIntcHw> {
-        let cpu_intc = unsafe { &(*self.cpu_intc_pool.get())[index] };
+        let cpu_intc = unsafe { &*self.cpu_intc_pool[index].get() };
         if let Some(cpu_intc_driver) = cpu_intc {
             Some(cpu_intc_driver)
         } else {
