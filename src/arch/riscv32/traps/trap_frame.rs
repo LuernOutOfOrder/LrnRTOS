@@ -1,3 +1,21 @@
+/*
+File info: RISC-V 32 bits trap frame structure
+
+Test coverage: All tested
+
+Tested:
+- Structure initialization with all field tested.
+
+Not tested:
+- ...
+
+Reasons:
+- ...
+
+Tests files:
+- 'src/tests/arch/riscv32/traps/trap_frame.rs'
+*/
+
 use core::{mem, ptr::null_mut};
 
 #[repr(C)]
@@ -9,26 +27,26 @@ pub struct TrapFrame {
     pub gp_regs: [u32; 32], // x0..x31  - integer registers
     // Supervisor Address Translation and Protection Register (satp register only exist when supervisor mode is enabled)
     pub satp: u32, // Offset in struct 128
-    // Mutable ptr to a bytes buffer to save trap stack
-    pub trap_stack: *mut u8, // offset in struct 132
     // Current hart id
-    pub hartid: u32, // offset in struct 136
+    pub hartid: u32, // offset in struct 132
+    // Mutable ptr to a bytes buffer to save trap stack
+    pub trap_stack: *mut u8, // offset in struct 136
 }
 
 impl TrapFrame {
     // Initialized TrapFrame with field set to 0
-    pub const fn zero() -> Self {
+    pub const fn init() -> Self {
         TrapFrame {
             gp_regs: [0; 32],
             satp: 0,
-            trap_stack: null_mut(),
             hartid: 0,
+            trap_stack: null_mut(),
         }
     }
 }
 
 // Static buffer used as a stack for trap handling
-static mut TRAP_STACK_BUFF: [u8; 1024] = [0u8; 1024];
+pub static mut TRAP_STACK_BUFF: [u8; 1024] = [0u8; 1024];
 
 // Init TrapFrame with 0 in mem
 pub static mut KERNEL_TRAP_FRAME: TrapFrame = unsafe { mem::zeroed() };

@@ -45,10 +45,10 @@ impl FdtHeader {
 #[derive(Copy, Clone)]
 pub struct FdtNode {
     // Name is max 31 bytes
+    pub parent_node_index: Option<usize>,
     pub nameoff: u32,
     pub first_prop_off: u32,
     pub prop_count: u16,
-    pub parent_node_index: Option<usize>,
 }
 
 #[repr(C)]
@@ -93,8 +93,12 @@ static mut NODE_COUNT: usize = 0;
 static mut PROPS_COUNT: usize = 0;
 
 pub fn fdt_present(dtb: usize) -> bool {
-    let header: FdtHeader = unsafe { ptr::read(dtb as *const FdtHeader) };
-    if !header.valid_magic() {
+    if dtb == 0 || !dtb.is_multiple_of(8) {
+        return false;
+    }
+    // Read only first 4 bytes to check magic
+    let header_magic: u32 = unsafe { ptr::read(dtb as *const u32) };
+    if header_magic.swap_bytes() != 0xd00dfeed {
         return false;
     }
     true

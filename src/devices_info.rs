@@ -3,21 +3,21 @@
 use crate::{
     drivers::DriverRegion,
     platform::{
-        CpuFreqDevice, CpuIntCDevice, DeviceInfo, DeviceType, Devices, DevicesHeader,
-        InterruptExtended, SerialDevice, TimerDevice, mem::MemoryProvider,
+        DeviceInfo, DeviceType, Devices, DevicesHeader, InterruptExtended, PlatformCpuFreqDevice,
+        PlatformCpuIntCDevice, PlatformSerialDevice, PlatformTimerDevice, mem::MemoryProvider,
     },
 };
 
-static mut SERIAL_DEVICE: SerialDevice = SerialDevice {};
-static mut CLINT_DEVICE: TimerDevice = TimerDevice {
+static mut SERIAL_DEVICE: PlatformSerialDevice = PlatformSerialDevice {};
+static mut CLINT_DEVICE: PlatformTimerDevice = PlatformTimerDevice {
     interrupt_extended: [InterruptExtended {
         cpu_intc: 0,
         irq_len: 2,
         irq_ids: [3, 7, 0, 0],
     }; 4],
 };
-static mut CPU_INTC_DEVICE: CpuIntCDevice = CpuIntCDevice { core_id: 0 };
-static mut CPU_FREQ_DEVICE: CpuFreqDevice = CpuFreqDevice { freq: 10000000 };
+static mut CPU_INTC_DEVICE: PlatformCpuIntCDevice = PlatformCpuIntCDevice { core_id: 0 };
+static mut CPU_FREQ_DEVICE: PlatformCpuFreqDevice = PlatformCpuFreqDevice { freq: 10000000 };
 
 pub static MEM: MemoryProvider = MemoryProvider {
     reg: DriverRegion {
@@ -33,7 +33,7 @@ pub static DEVICES: &[Devices] = &[
             compatible: "ns16550a",
             device_addr: DriverRegion {
                 addr: 0x1000_0000,
-                size: 0x1000,
+                size: 0x100,
             },
         },
         #[allow(static_mut_refs)]

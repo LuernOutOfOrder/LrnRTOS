@@ -1,5 +1,21 @@
 # RISC-V CSR
 
+<!--toc:start-->
+- [RISC-V CSR](#risc-v-csr)
+  - [CSR roles](#csr-roles)
+  - [Machine-Level CSRs](#machine-level-csrs)
+    - [mstatus - Machine Status](#mstatus-machine-status)
+    - [mie - Machine Interrupt Enable](#mie-machine-interrupt-enable)
+    - [mtvec - Machine Trap-Vector](#mtvec-machine-trap-vector)
+    - [mscratch - Machine Scratch](#mscratch-machine-scratch)
+    - [mcause - Machine Cause](#mcause-machine-cause)
+    - [mepc - Machine Exception Program Counter](#mepc-machine-exception-program-counter)
+    - [mtval - Machine Trap Value](#mtval-machine-trap-value)
+    - [mip - Machine Interrupt Pending](#mip-machine-interrupt-pending)
+  - [CSR Instructions](#csr-instructions)
+  - [References](#references)
+<!--toc:end-->
+
 ## CSR roles
 
 The RISC-V CSR(Control and Status Register) are special purpose register. They are used to manage and observe hardware behavior. Unlike general purpose registers, CSR are not used to store and compute ordinary values. They exposed machine state, like interrupt configurations, trap handling, privilege level, or other low-level control over the CPU.

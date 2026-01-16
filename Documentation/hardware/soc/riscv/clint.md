@@ -1,14 +1,14 @@
 # RISC-V Core Local Interrupt (CLINT)
 
-## Description 
+## Description
 
-The clint is a soc device only in RISC-V. It is responsible for maintaining memory mapped control and status registers which are associated with the software and timer interrupts. Basically, the clint is used to trigger timer or software interrupt or send interrupt to a specific hart. 
+The clint is a soc device only in RISC-V. It is responsible for maintaining memory mapped control and status registers which are associated with the software and timer interrupts. Basically, the clint is used to trigger timer or software interrupt or send interrupt to a specific hart.
 
 ## Properties
 
 ### Reg
 
-The clint used a region memory in MMIO like other devices. 
+The clint used a region memory in MMIO like other devices.
 
 ### Interrupt-extended
 
@@ -21,11 +21,11 @@ The interrupt-extended is basically a list of (&cpu_id, irq_id).
 
 ### mtime
 
-#### Description:
+#### Description
 
-mtime register is used to return current timer value. The hardware automatically increment mtime at each CPU cycle. 
+mtime register is used to return current timer value. The hardware automatically increment mtime at each CPU cycle.
 
-#### Info:
+#### Info
 
 Offset: 0xBFF8
 
@@ -37,15 +37,15 @@ Access-type: RW
 
 ### mtimecmp
 
-#### Description:
+#### Description
 
 mtimecmp register hold the compare value for the timer. It can be used to trigger timer interrupt. The hardware automatically compare mtime with mtime cmp. If timer interrupt is enabled, the hardware will check mtime >= mtimecmp, if true, the clint will send and irq to the CPU interrupt-controller, and the interrupt-controller will write to mip.MTIP.
 
-#### Info:
+#### Info
 
 Offset: 0x4000
 
-Size: 64 bits 
+Size: 64 bits
 
 Reset: 0x0 hex
 
@@ -53,11 +53,11 @@ Access-type: RW
 
 ### msip
 
-#### Description:
+#### Description
 
-This register is used to send software interrupt to a specific hart. 
+This register is used to send software interrupt to a specific hart.
 
-#### Info:
+#### Info
 
 Offset: 0x0 + (hard_id * 4)
 
@@ -85,13 +85,11 @@ pub struct Clint0 {
     region: DriverRegion,
     // List of Interrupt, each interrupt is a hart_id with a list of irqs_id.
     interrupt_extended: [Interrupt; 4],
-    // Timer type used in the timer sub-system
-    timer_type: TimerType,
 }
 
 pub struct Interrupt {
-    // Ptr to CpuIntc struct
-    cpu_intc: *mut RiscVCpuIntc,
+    // Core id
+    cpu_intc: u32,
     // Field to follow the len of the irq_ids array to avoid crushing valid data
     irq_len: usize,
     // Array of all irq

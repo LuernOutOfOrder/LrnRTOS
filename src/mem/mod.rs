@@ -1,15 +1,33 @@
+/*
+File info: Kernel memory management.
+
+Test coverage: All basic implementation and check correct value compared to Qemu memory.
+
+Tested:
+- Memory structure methods.
+
+Not tested:
+- The switch from the early boot stack, and final kernel stack.
+
+Reasons:
+- Hard to unit test, so just need to check the invariant during the test flow to see if the stack is correctly updated.
+
+Tests files:
+- 'src/tests/mem/mod.rs'
+*/
+
 mod kernel;
 
 use core::{arch::asm, mem};
 
 use kernel::{KERNEL_STACK, KernelStack};
 
-use crate::{
-    arch, config::KERNEL_STACK_SIZE, log, logs::LogLevel, platform::mem::platform_init_mem,
-};
+use crate::{arch, config::KERNEL_STACK_SIZE, platform::mem::platform_init_mem};
 
 pub struct Memory {
+    // Low addr
     pub mem_start: usize,
+    // hi addr
     pub mem_end: usize,
 }
 
@@ -43,12 +61,10 @@ pub fn memory_init() {
             bottom: stack_bottom,
         }
     };
-    log!(LogLevel::Debug, "Switch to new kernel stack...");
-    update_kernel_sp();
 }
 
 #[unsafe(no_mangle)]
-fn update_kernel_sp() {
+pub fn update_kernel_sp() {
     unsafe { asm!("mv a0, {}", in(reg) KERNEL_STACK.top) };
     unsafe { arch::asm::set_kernel_sp() };
 }

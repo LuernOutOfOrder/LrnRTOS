@@ -29,7 +29,7 @@ pub mod cpufreq;
 /// Public structure used to define device region in memory.
 /// addr: the address to use in drivers.
 /// size: the size of the address.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, PartialEq)]
 pub struct DriverRegion {
     pub addr: usize,
     pub size: usize,

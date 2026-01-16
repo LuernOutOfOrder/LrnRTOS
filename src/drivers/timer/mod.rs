@@ -1,31 +1,76 @@
+/*
+File info: Timer sub-system.
+
+Test coverage: All basic implementation and some edge case.
+
+Tested:
+- Basic methods from implementation
+- Adding same devices
+- Overflow in the sub-system pools.
+- Selecting the primary timer.
+
+Not tested:
+- ...
+
+Reasons:
+- ...
+
+Tests files:
+- 'src/tests/drivers/timer/subsystem.rs'
+*/
+
 use core::cell::UnsafeCell;
 
 use clint0::Clint0;
 
-use crate::config::TIMER_MAX_SIZE;
+use crate::{config::TIMER_MAX_SIZE, log, logs::LogLevel};
 
 pub mod clint0;
-
-pub trait Timer {
-    fn read_time(&self) -> u64;
-    fn set_delay(&self, core: usize, delay: u64);
-    fn timer_type(&self) -> TimerType;
-}
 
 // Enum to define different type for Timer. This is used after the sub-system fill the timer_pool.
 // All timers driver use this enum to tell what type the timer is, and the sub-system use it to
 // select specific driver for specific task.
 #[derive(Copy, Clone, PartialEq)]
+#[repr(u8)]
 pub enum TimerType {
     ArchitecturalTimer,
     SoCTimer,
 }
 
+#[derive(Copy, Clone, PartialEq)]
+pub enum TimerDeviceDriver {
+    Clint0(Clint0),
+}
+
+#[derive(Copy, Clone, PartialEq)]
+pub struct TimerDevice {
+    pub(crate) device: TimerDeviceDriver,
+    pub timer_type: TimerType,
+}
+
+impl TimerDevice {
+    fn timer_type(&self) -> TimerType {
+        self.timer_type
+    }
+
+    pub fn read_time(&self) -> u64 {
+        match &self.device {
+            TimerDeviceDriver::Clint0(clint0) => clint0.read_mtime(),
+        }
+    }
+
+    pub fn set_delay(&self, core: usize, delay: u64) {
+        match &self.device {
+            TimerDeviceDriver::Clint0(clint0) => clint0.set_mtimecmp(core, delay),
+        }
+    }
+}
+
 pub struct TimerSubSystem {
-    // Timer for scheduling and global work on the kernel
-    pub primary_timer: UnsafeCell<Option<*mut dyn Timer>>,
     // Timer pool where all timer initialized is store, waiting to be assigned at another field
-    pub timer_pool: UnsafeCell<[Option<*mut dyn Timer>; TIMER_MAX_SIZE]>,
+    pub timer_pool: [UnsafeCell<Option<TimerDevice>>; TIMER_MAX_SIZE],
+    // Timer for scheduling and global work on the kernel
+    pub primary_timer: UnsafeCell<Option<TimerDevice>>,
 }
 
 unsafe impl Sync for TimerSubSystem {}
@@ -34,7 +79,7 @@ impl TimerSubSystem {
     pub const fn init() -> Self {
         TimerSubSystem {
             primary_timer: UnsafeCell::new(None),
-            timer_pool: UnsafeCell::new([const { None }; TIMER_MAX_SIZE]),
+            timer_pool: [const { UnsafeCell::new(None) }; TIMER_MAX_SIZE],
         }
     }
 
@@ -42,59 +87,64 @@ impl TimerSubSystem {
     ///
     /// Params:
     /// &self: the sub-system structure.
-    /// new_timer: static structure of a driver implementing the Timer trait.
-    pub fn add_timer(&self, new_timer: &'static mut dyn Timer) {
+    /// new_timer: structure of a timer driver.
+    pub fn add_timer(&self, new_timer: TimerDevice) {
         let size = self.get_timer_array_size();
         if size == TIMER_MAX_SIZE {
-            panic!(
-                "Timer sub-system pool possible overflow. Consider increase size in config file."
-            )
+            log!(
+                LogLevel::Warn,
+                "Timer sub-system: subsystem is full, ignoring registration request"
+            );
+            return;
         }
         for i in 0..TIMER_MAX_SIZE {
-            let timer = unsafe { (&*self.timer_pool.get())[i].as_ref() };
-            if timer.is_none() {
-                unsafe {
-                    (&mut *self.timer_pool.get())[i] = Some(new_timer as *mut dyn Timer);
+            let device = unsafe { &*self.timer_pool[i].get() };
+            if let Some(timer) = device {
+                // Check duplication
+                if *timer == new_timer {
+                    log!(
+                        LogLevel::Warn,
+                        "Timer sub-system: duplicate device detected, ignoring registration request"
+                    );
+                    return;
                 }
+            } else {
+                unsafe {
+                    *self.timer_pool[i].get() = Some(new_timer);
+                }
+                break;
             }
         }
     }
 
-    pub fn remove_timer(&self, index: usize) {
-        unsafe { (&mut *self.timer_pool.get())[index] = None }
+    fn remove_timer(&self, index: usize) {
+        unsafe { *self.timer_pool[index].get() = None }
     }
 
     pub fn get_timer_array_size(&self) -> usize {
         let mut size: usize = 0;
         for i in 0..TIMER_MAX_SIZE {
-            let present = unsafe { (&*self.timer_pool.get())[i].is_some() };
-            if present {
+            let present = unsafe { &*self.timer_pool[i].get() };
+            if present.is_some() {
                 size += 1;
             }
         }
         size
     }
 
-    pub fn get_timer(&self, index: usize) -> Option<*mut dyn Timer> {
-        let timer = unsafe { (&*self.timer_pool.get())[index] };
-        if let Some(ptr) = timer {
-            // ptr was created from a &'static mut dyn Timer in add_timer,
-            // converting the raw pointer back to a &'static mut is safe.
-            unsafe { Some(&mut *ptr) }
-        } else {
-            None
-        }
+    fn get_timer(&self, index: usize) -> Option<&TimerDevice> {
+        let timer = unsafe { &*self.timer_pool[index].get() };
+        if let Some(t) = timer { Some(t) } else { None }
     }
 
     pub fn select_primary_timer(&self) {
         for i in 0..TIMER_MAX_SIZE {
-            let timer_ptr = self.get_timer(i);
-            if let Some(timer) = timer_ptr {
-                let timer_ref: &mut dyn Timer = unsafe { &mut *timer };
-                if timer_ref.timer_type() == TimerType::ArchitecturalTimer {
+            let get_timer = self.get_timer(i);
+            if let Some(timer) = get_timer {
+                if timer.timer_type() == TimerType::ArchitecturalTimer {
                     // Update the sub-system primary timer
                     unsafe {
-                        *self.primary_timer.get() = timer_ptr;
+                        *self.primary_timer.get() = Some(*timer);
                     }
                     // Remove timer in pool to avoid duplication
                     self.remove_timer(i);
@@ -105,11 +155,10 @@ impl TimerSubSystem {
         }
     }
 
-    pub fn get_primary_timer(&self) -> &dyn Timer {
-        let timer_ptr = unsafe { *self.primary_timer.get() };
-        if let Some(timer) = timer_ptr {
-            let timer_ref: &dyn Timer = unsafe { &mut *timer };
-            timer_ref
+    pub fn get_primary_timer(&self) -> TimerDevice {
+        let primary_timer = unsafe { *self.primary_timer.get() };
+        if let Some(timer) = primary_timer {
+            timer
         } else {
             panic!("Error getting the primary timer in the timer sub-system");
         }
@@ -119,11 +168,6 @@ impl TimerSubSystem {
 // Init static timer sub-system
 pub static TIMER_SUBSYSTEM: TimerSubSystem = TimerSubSystem::init();
 
-/// Initialize the timer sub-system with all drivers available.
-/// Call all timer driver init function, if the fn find a compatible node in the fdt, continue
-/// the init and auto register itself in the sub-system. Else, if the init function doesn't find a
-/// compatible node, it return to give the next driver init function the turn.
-/// Panic if after all drivers init the sub-system pool is empty.
 pub fn init_timer_subsystem() {
     Clint0::init();
     TIMER_SUBSYSTEM.select_primary_timer();
