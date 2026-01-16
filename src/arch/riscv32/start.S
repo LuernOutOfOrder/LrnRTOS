@@ -1,4 +1,15 @@
-.section .text.entry
+# Disable generation of compressed instructions.
+# Only use 32 bits instructions
+.option norvc
+
+# Define a .data section.
+# Symbol in .data section
+.section .data
+
+# Define a .text.init section.
+# Code in .text.init section
+.section .text.init
+
 .global kstart
 .type kstart, @function
 # Do not allow interrupts while running kinit
@@ -9,6 +20,15 @@ kstart:
 	bnez	t0, 3f
 	# SATP should be zero, but let's make sure
 	csrw	satp, zero
+  # Disable linker instruction relaxation for the `la` instruction below.
+	# This disallows the assembler from assuming that `gp` is already initialized.
+	# This causes the value stored in `gp` to be calculated from `pc`.
+  # It basically avoid that gp being garbage and use the PC-relative option (safest)
+.option push
+# Don't use the relax option
+.option norelax
+  la		gp, _global_ptr
+.option pop
   # The BSS section is expected to be zero
   # Load bss region 
 	la a0, __bss_start
@@ -45,7 +65,6 @@ kstart:
   mret
 
 3:
-
 	# Parked harts go here. We need to set these
 	# to only awaken if it receives a software interrupt,
 	# which we're going to call the SIPI (Software Intra-Processor Interrupt).

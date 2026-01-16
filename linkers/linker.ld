@@ -6,10 +6,10 @@ MEMORY {
 
 SECTIONS {
     .text : {
-    *(.text.entry)
+    *(.text.init)
     *(.text*)
   } > RAM
-
+  PROVIDE(_global_ptr = .);
   .rodata : {
     *(.rodata*)
   } > RAM
