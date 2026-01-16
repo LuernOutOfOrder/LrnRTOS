@@ -6,7 +6,7 @@ kstart:
   # Any hardware threads (hart) that are not bootstrapping
 	# need to wait for an IPI
 	csrr	t0, mhartid
-	bnez	t0, hart_wait_ipi
+	bnez	t0, 3f
 	# SATP should be zero, but let's make sure
 	csrw	satp, zero
   # The BSS section is expected to be zero
@@ -43,11 +43,6 @@ kstart:
   # mret will return directly to the kernel entry point in rust
   la		ra, 4f
   mret
-
-hart_wait_ipi:
-  # TODO: Try to replace nop by wfi later
-  nop
-  j hart_wait_ipi
 
 3:
 
