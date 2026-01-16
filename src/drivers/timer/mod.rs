@@ -27,11 +27,6 @@ use crate::{config::TIMER_MAX_SIZE, log, logs::LogLevel};
 
 pub mod clint0;
 
-pub trait Timer {
-    fn read_time(&self) -> u64;
-    fn set_delay(&self, core: usize, delay: u64);
-}
-
 // Enum to define different type for Timer. This is used after the sub-system fill the timer_pool.
 // All timers driver use this enum to tell what type the timer is, and the sub-system use it to
 // select specific driver for specific task.
@@ -66,7 +61,7 @@ impl TimerDevice {
 
     pub fn set_delay(&self, core: usize, delay: u64) {
         match &self.device {
-            TimerDeviceDriver::Clint0(clint0) => clint0.set_delay(core, delay),
+            TimerDeviceDriver::Clint0(clint0) => clint0.set_mtimecmp(core, delay),
         }
     }
 }

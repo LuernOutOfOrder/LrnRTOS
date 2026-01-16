@@ -3,14 +3,12 @@ use crate::{
     platform::{DeviceType, PlatformCpuIntCDevice, platform_get_device_info},
 };
 
-use super::{CPU_INTC_SUBSYSTEM, CpuIntc, CpuIntcDriver, CpuIntcHw};
+use super::{CPU_INTC_SUBSYSTEM, CpuIntcDriver, CpuIntcHw};
 
 #[derive(Clone, Copy)]
 pub struct RiscVCpuIntc {
     pub hart_id: u32,
 }
-
-impl CpuIntc for RiscVCpuIntc {}
 
 impl RiscVCpuIntc {
     pub fn init() {

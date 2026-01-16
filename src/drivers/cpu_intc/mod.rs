@@ -26,9 +26,6 @@ use crate::{config::CPU_INTC_MAX_SIZE, log, logs::LogLevel};
 
 pub mod riscv_cpu_intc;
 
-// Trait to implement in all cpu interrupt-controller driver
-pub trait CpuIntc {}
-
 #[derive(Copy, Clone)]
 // Unions enum for CpuIntcDriver struct
 // avoid using &'static mut dyn CpuIntc

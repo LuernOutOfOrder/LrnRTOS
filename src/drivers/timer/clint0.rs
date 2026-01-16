@@ -24,23 +24,13 @@ use crate::{
     platform::{self, DeviceType, InterruptExtended, platform_get_device_info},
 };
 
-use super::{TIMER_SUBSYSTEM, Timer, TimerDevice, TimerType};
+use super::{TIMER_SUBSYSTEM, TimerDevice, TimerType};
 
 #[derive(Copy, Clone, PartialEq)]
 pub struct Clint0 {
     #[allow(unused)]
     pub interrupt_extended: [InterruptExtended; 4],
     pub region: DriverRegion,
-}
-
-impl Timer for Clint0 {
-    fn read_time(&self) -> u64 {
-        self.read_mtime()
-    }
-
-    fn set_delay(&self, core: usize, delay: u64) {
-        self.set_mtimecmp(core, delay);
-    }
 }
 
 impl Clint0 {
