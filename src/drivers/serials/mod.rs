@@ -35,7 +35,6 @@ pub trait SerialDriver: Send + Sync + Write {
     fn getchar(&self) -> u8;
 }
 
-#[cfg_attr(feature = "test", derive(Copy, Clone))]
 #[derive(PartialEq)]
 pub enum SerialDeviceDriver {
     Ns16550(ns16550a::Ns16550),
@@ -45,7 +44,6 @@ pub enum SerialDeviceDriver {
 /// id: the device id for faster access or identification
 /// default_console: if it's the default console to use or not
 /// driver: enum unions with all serial driver structure
-#[cfg_attr(feature = "test", derive(Copy, Clone))]
 #[derive(PartialEq)]
 pub struct SerialDevice {
     pub driver: SerialDeviceDriver,
