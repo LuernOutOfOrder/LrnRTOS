@@ -22,7 +22,7 @@ pub enum LogLevel {
 /// Params:
 /// level: use LogLevel enum to define which logging level used.
 /// msg: the message to print as an &str
-pub fn log(level: LogLevel, msg: &str) {
+pub fn log(level: LogLevel, msg: core::fmt::Arguments) {
     if level >= LOG_LEVEL {
         match level {
             LogLevel::Info => print!("\x1b[32;1m[INFO]\x1b[0m {}\n", msg),
@@ -40,8 +40,8 @@ pub fn log(level: LogLevel, msg: &str) {
 #[cfg(feature = "logs")]
 #[macro_export]
 macro_rules! log {
-    ($log_level:expr, $msg:expr) => {
-        $crate::logs::log($log_level, $msg);
+    ($log_level:expr, $($arg:tt)*) => {
+        $crate::logs::log($log_level, format_args!($($arg)*));
     };
 }
 
