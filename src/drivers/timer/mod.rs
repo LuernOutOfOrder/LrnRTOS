@@ -134,10 +134,9 @@ impl TimerSubSystem {
             if let Some(timer) = get_timer {
                 if timer.timer_type() == &TimerType::ArchitecturalTimer {
                     // Update the sub-system primary timer
-                        let extract_timer: Option<TimerDevice> = unsafe { (*self.timer_pool[i].get()).take() }; 
-                    unsafe {
-                        *self.primary_timer.get() = extract_timer
-                    }
+                    let extract_timer: Option<TimerDevice> =
+                        unsafe { (*self.timer_pool[i].get()).take() };
+                    unsafe { *self.primary_timer.get() = extract_timer }
                     // Remove timer in pool to avoid duplication
                 }
             } else {
