@@ -19,7 +19,6 @@ Tests files:
 use core::{mem, ptr::null_mut};
 
 #[repr(C)]
-#[derive(Clone, Copy)]
 // Trap frame structure, used to store all global registers, give a stack for the trap handling
 // to avoid using the kernel stack.
 pub struct TrapFrame {
