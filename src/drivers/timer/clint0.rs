@@ -26,7 +26,8 @@ use crate::{
 
 use super::{TIMER_SUBSYSTEM, TimerDevice, TimerType};
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(PartialEq)]
+#[cfg_attr(feature = "test", derive(Copy,Clone))]
 pub struct Clint0 {
     #[allow(unused)]
     pub interrupt_extended: [InterruptExtended; 4],

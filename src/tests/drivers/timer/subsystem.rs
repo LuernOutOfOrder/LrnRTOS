@@ -47,7 +47,7 @@ pub fn test_timer_subsystem_impl() -> u8 {
     }
     // Check primary timer
     let primary_timer = timer_subsystem.get_primary_timer();
-    if primary_timer != device {
+    if *primary_timer != device {
         panic!("Timer sub-system doesn't have the correct primary timer. Selection is wrong.");
     }
 
@@ -195,7 +195,7 @@ pub fn test_timer_subsystem_primary_timer() -> u8 {
     // Check primary timer
     timer_subsystem.select_primary_timer();
     let primary_timer = timer_subsystem.get_primary_timer();
-    if primary_timer != device1 {
+    if *primary_timer != device1 {
         panic!("Timer sub-system primary timer should be the first ArchitecturalTimer registered");
     }
     0
