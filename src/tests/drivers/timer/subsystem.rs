@@ -131,7 +131,6 @@ pub fn test_timer_subsystem_overflow() -> u8 {
     // Register all devices
     timer_subsystem.add_timer(device);
     timer_subsystem.add_timer(device1);
-    #[allow(clippy::clone_on_copy)]
     let timer_subsystem_snapshot = unsafe {
         [
             &*timer_subsystem.timer_pool[0].get(),
