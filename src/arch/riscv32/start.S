@@ -32,8 +32,27 @@ kstart:
 .option pop
   # load address of stack_top
   la sp, stack_top    
-  # TODO: load data from binary to ram.
 
+  # Load .data from binary to RAM
+  # .data destination
+  la a0, __data_start
+  la a1, __data_end
+  # .data src
+  la a2, __data_la_start
+
+  bgeu a0, a1, 1f
+1:
+  # if a0 >= a1, jump to 2f (unsigned)
+  bgeu a0, a1, 2f  
+  lw t0, 0(a2)
+  sw t0, 0(a0)
+  # dst += 4
+  addi    a0, a0, 4
+  # src += 4
+  addi    a2, a2, 4      
+  j       1b
+2:
+  
   # The BSS section is expected to be zero
   # Load bss region 
 	la a0, __bss_start

@@ -22,7 +22,10 @@ SECTIONS {
   } > RAM
 
   .data : {
+    data_la_start = LOADADDR(.data);
+    data_start = .;
     *(.data*)
+    data_end = .;
   } > RAM
 
   /* Don't write .bss section in bin file */
@@ -52,6 +55,9 @@ SECTIONS {
   PROVIDE(__stack_top = stack_top);
   PROVIDE(__bss_start = bss_start);
   PROVIDE(__bss_end = bss_end);
+  PROVIDE(__data_la_start = data_la_start);
+  PROVIDE(__data_start = data_start);
+  PROVIDE(__data_end = data_end);
   PROVIDE(__kernel_start = kernel_start);
   PROVIDE(__kernel_end = kernel_end);
 
