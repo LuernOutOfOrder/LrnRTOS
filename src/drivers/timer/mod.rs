@@ -32,20 +32,17 @@ pub mod clint0;
 // select specific driver for specific task.
 #[derive(PartialEq)]
 #[repr(u8)]
-#[cfg_attr(feature = "test", derive(Copy,Clone))]
 pub enum TimerType {
     ArchitecturalTimer,
     SoCTimer,
 }
 
 #[derive(PartialEq)]
-#[cfg_attr(feature = "test", derive(Copy,Clone))]
 pub enum TimerDeviceDriver {
     Clint0(Clint0),
 }
 
 #[derive(PartialEq)]
-#[cfg_attr(feature = "test", derive(Copy,Clone))]
 pub struct TimerDevice {
     pub(crate) device: TimerDeviceDriver,
     pub timer_type: TimerType,
