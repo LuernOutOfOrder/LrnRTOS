@@ -1,11 +1,13 @@
 ENTRY(kstart)
 
 MEMORY {
-  RAM (rwx) : ORIGIN = 0x80000000, LENGTH = 128K
+  RAM (rwx) : ORIGIN = 0x80200000, LENGTH = 128K
+  /* Not real ROM or flash from qemu virt machine, just use another RAM reg for now */
+  ROM (rx) : ORIGIN = 0x80000000, LENGTH = 200K
 }
 
 SECTIONS {
-  . = ORIGIN(RAM);
+  . = ORIGIN(ROM);
   /* Provide kernel image start */
   kernel_start = .;
 
@@ -13,20 +15,22 @@ SECTIONS {
     /* Custom section for asm init */
     *(.text.init)
     *(.text*)
-  } > RAM
+  } > ROM
 
   global_ptr = .;
 
   .rodata : {
     *(.rodata*)
-  } > RAM
+  } > ROM
+
+  . = ORIGIN(RAM);
 
   .data : {
-    data_la_start = LOADADDR(.data);
     data_start = .;
     *(.data*)
     data_end = .;
-  } > RAM
+  } > RAM AT > ROM
+  data_la_start = LOADADDR(.data);
 
   /* Don't write .bss section in bin file */
   .bss (NOLOAD) : {
