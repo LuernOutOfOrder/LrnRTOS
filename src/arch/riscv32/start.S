@@ -85,7 +85,7 @@ kstart:
   # Set hartid to a0, some machine do it directly
   # I prefer to do it like that to be sure
   csrr a0, mhartid
-  # Recover FDT from t6
+  # Recover FDT from s11
   mv a1, s11
 
   # mret will return directly to the kernel entry point in rust
