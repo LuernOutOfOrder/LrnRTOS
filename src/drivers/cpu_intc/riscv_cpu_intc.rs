@@ -5,7 +5,6 @@ use crate::{
 
 use super::{CPU_INTC_SUBSYSTEM, CpuIntcDriver, CpuIntcHw};
 
-#[derive(Clone, Copy)]
 pub struct RiscVCpuIntc {
     pub hart_id: u32,
 }
@@ -26,6 +25,7 @@ impl RiscVCpuIntc {
         let cpu_intc: CpuIntcHw = CpuIntcHw {
             driver: CpuIntcDriver::RiscVCpuIntc(cpu_intc_pool),
         };
-        CPU_INTC_SUBSYSTEM.add_cpu_intc(cpu_intc, cpu_intc.get_cpu_intc_core_id() as usize);
+        let cpu_core_id = &cpu_intc.get_cpu_intc_core_id();
+        CPU_INTC_SUBSYSTEM.add_cpu_intc(cpu_intc, *cpu_core_id as usize);
     }
 }

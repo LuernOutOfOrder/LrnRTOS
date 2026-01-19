@@ -26,7 +26,6 @@ use crate::{config::CPU_INTC_MAX_SIZE, log, logs::LogLevel};
 
 pub mod riscv_cpu_intc;
 
-#[derive(Copy, Clone)]
 // Unions enum for CpuIntcDriver struct
 // avoid using &'static mut dyn CpuIntc
 pub enum CpuIntcDriver {
@@ -34,7 +33,6 @@ pub enum CpuIntcDriver {
     RiscVCpuIntc(RiscVCpuIntc),
 }
 
-#[derive(Copy, Clone)]
 pub struct CpuIntcHw {
     #[allow(unused)]
     pub driver: CpuIntcDriver,
@@ -42,7 +40,7 @@ pub struct CpuIntcHw {
 
 impl CpuIntcHw {
     pub fn get_cpu_intc_core_id(&self) -> u32 {
-        match self.driver {
+        match &self.driver {
             CpuIntcDriver::RiscVCpuIntc(riscv_cpu_intc) => riscv_cpu_intc.hart_id,
         }
     }
@@ -95,7 +93,7 @@ impl CpuIntcSubSystem {
     pub fn get_cpu_intc_array_size(&self) -> usize {
         let mut size: usize = 0;
         for i in 0..CPU_INTC_MAX_SIZE {
-            let present = unsafe { *self.cpu_intc_pool[i].get() };
+            let present = unsafe { &*self.cpu_intc_pool[i].get() };
             if present.is_some() {
                 size += 1;
             }
