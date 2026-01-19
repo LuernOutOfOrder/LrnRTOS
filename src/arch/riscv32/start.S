@@ -32,6 +32,9 @@ kstart:
 .option pop
   # load address of stack_top
   la sp, stack_top    
+  # Save FDT
+  # Use s11 to be sure that it doesn't be overwrite because it's callee-saved, making it stable accross function call
+  mv s11, a1
 
   # Load .data from binary to RAM
   # .data destination
@@ -82,6 +85,9 @@ kstart:
   # Set hartid to a0, some machine do it directly
   # I prefer to do it like that to be sure
   csrr a0, mhartid
+  # Recover FDT from t6
+  mv a1, s11
+
   # mret will return directly to the kernel entry point in rust
   la		ra, 4f
   mret
