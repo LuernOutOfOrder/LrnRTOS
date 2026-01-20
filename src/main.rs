@@ -34,6 +34,9 @@ pub mod boot;
 // Kernel information
 pub mod info;
 
+// Task mod
+pub mod task;
+
 // Test module
 #[cfg(feature = "test")]
 pub mod tests;
