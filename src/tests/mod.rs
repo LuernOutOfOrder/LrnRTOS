@@ -119,7 +119,7 @@ impl<'a> TestSuite<'a> {
 #[derive(Copy, Clone, PartialEq)]
 pub enum TestSuiteBehavior {
     Default,
-    Skipped
+    Skipped,
 }
 
 #[derive(Copy, Clone, PartialEq)]

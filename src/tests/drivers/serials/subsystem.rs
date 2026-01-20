@@ -1,11 +1,13 @@
 use crate::{
     drivers::{
+        DriverRegion,
         serials::{
-            init_serial_subsystem, ns16550a::Ns16550, SerialDevice, SerialDeviceDriver, SerialManager
-        }, DriverRegion
+            SerialDevice, SerialDeviceDriver, SerialManager, init_serial_subsystem,
+            ns16550a::Ns16550,
+        },
     },
-    platform::{platform_get_device_info, DeviceType},
-    tests::{TestBehavior, TestCase, TestSuite, TestSuiteBehavior, TEST_MANAGER},
+    platform::{DeviceType, platform_get_device_info},
+    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
 };
 
 pub fn test_serial_subsystem_impl() -> u8 {
@@ -228,7 +230,7 @@ pub fn serial_subsystem_test_suite() {
         ],
         name: "Serial sub-system",
         tests_nb: 3,
-        behavior: TestSuiteBehavior::Default
+        behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]
     unsafe {

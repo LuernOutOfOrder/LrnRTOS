@@ -1,7 +1,7 @@
 use crate::{
-    arch::traps::trap_frame::{init_trap_frame, TrapFrame, KERNEL_TRAP_FRAME, TRAP_STACK_BUFF},
+    arch::traps::trap_frame::{KERNEL_TRAP_FRAME, TRAP_STACK_BUFF, TrapFrame, init_trap_frame},
     test_failed,
-    tests::{TestBehavior, TestCase, TestSuite, TestSuiteBehavior, TEST_MANAGER},
+    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
 };
 
 pub fn test_trap_frame_init_zeroed() -> u8 {
@@ -60,7 +60,7 @@ pub fn trap_frame_test_suite() {
         ],
         name: "Trap frame",
         tests_nb: 2,
-        behavior: TestSuiteBehavior::Default
+        behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]
     unsafe {

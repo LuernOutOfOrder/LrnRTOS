@@ -1,6 +1,6 @@
 use crate::{
     mem::Memory,
-    tests::{TestBehavior, TestSuiteBehavior, TEST_MANAGER},
+    tests::{TEST_MANAGER, TestBehavior, TestSuiteBehavior},
 };
 
 use super::{TestCase, TestSuite};

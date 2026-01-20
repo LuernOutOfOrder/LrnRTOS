@@ -1,11 +1,13 @@
 use crate::{
     drivers::{
+        DriverRegion,
         timer::{
-            clint0::Clint0, init_timer_subsystem, TimerDevice, TimerDeviceDriver, TimerSubSystem, TimerType
-        }, DriverRegion
+            TimerDevice, TimerDeviceDriver, TimerSubSystem, TimerType, clint0::Clint0,
+            init_timer_subsystem,
+        },
     },
     platform::InterruptExtended,
-    tests::{TestBehavior, TestCase, TestSuite, TestSuiteBehavior, TEST_MANAGER},
+    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
 };
 
 pub fn test_timer_subsystem_impl() -> u8 {
@@ -223,7 +225,7 @@ pub fn timer_subsystem_test_suite() {
         ],
         name: "Timer sub-system",
         tests_nb: 4,
-        behavior: TestSuiteBehavior::Default
+        behavior: TestSuiteBehavior::Default,
     };
 
     #[allow(static_mut_refs)]

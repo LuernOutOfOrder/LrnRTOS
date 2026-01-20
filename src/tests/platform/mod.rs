@@ -1,6 +1,8 @@
 use crate::{
     platform::{
-        fdt::{fdt_present, parse_dtb_file}, platform_get_device_info, DeviceType, PLATFORM_INFO
+        DeviceType, PLATFORM_INFO,
+        fdt::{fdt_present, parse_dtb_file},
+        platform_get_device_info,
     },
     tests::{TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
 };
@@ -131,7 +133,7 @@ pub fn platform_test_suite() {
         ],
         name: "Platform",
         tests_nb: 2,
-        behavior: TestSuiteBehavior::Default
+        behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]
     unsafe {
