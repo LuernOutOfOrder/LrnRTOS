@@ -7,7 +7,7 @@ use crate::{
         },
     },
     platform::InterruptExtended,
-    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
+    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
 };
 
 pub fn test_timer_subsystem_impl() -> u8 {
@@ -225,6 +225,7 @@ pub fn timer_subsystem_test_suite() {
         ],
         name: "Timer sub-system",
         tests_nb: 4,
+        behavior: TestSuiteBehavior::Default,
     };
 
     #[allow(static_mut_refs)]

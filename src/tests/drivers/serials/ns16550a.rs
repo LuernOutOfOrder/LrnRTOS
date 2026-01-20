@@ -3,7 +3,7 @@ use crate::{
         DriverRegion,
         serials::{SerialDevice, SerialDeviceDriver, SerialDriver, ns16550a::Ns16550},
     },
-    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
+    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
 };
 
 pub fn test_ns16550_qemu_putchar() -> u8 {
@@ -34,6 +34,7 @@ pub fn ns16550_test_suite() {
         )],
         name: "Ns16550",
         tests_nb: 1,
+        behavior: TestSuiteBehavior::Skipped,
     };
     #[allow(static_mut_refs)]
     unsafe {

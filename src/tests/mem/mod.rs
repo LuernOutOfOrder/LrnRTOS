@@ -1,6 +1,6 @@
 use crate::{
     mem::Memory,
-    tests::{TEST_MANAGER, TestBehavior},
+    tests::{TEST_MANAGER, TestBehavior, TestSuiteBehavior},
 };
 
 use super::{TestCase, TestSuite};
@@ -26,6 +26,7 @@ pub fn memory_test_suite() {
         )],
         name: "Kernel memory",
         tests_nb: 1,
+        behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]
     unsafe {

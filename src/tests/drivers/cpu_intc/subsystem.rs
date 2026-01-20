@@ -1,7 +1,7 @@
 use crate::{
     config::CPU_INTC_MAX_SIZE,
     drivers::cpu_intc::{CpuIntcDriver, CpuIntcHw, CpuIntcSubSystem, riscv_cpu_intc::RiscVCpuIntc},
-    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
+    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
 };
 
 pub fn test_cpu_intc_subsystem_impl() -> u8 {
@@ -125,6 +125,7 @@ pub fn cpu_intc_subsystem_test_suite() {
         ],
         name: "CPU interrupt-controller",
         tests_nb: 3,
+        behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]
     unsafe {

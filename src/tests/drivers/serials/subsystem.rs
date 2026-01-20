@@ -7,7 +7,7 @@ use crate::{
         },
     },
     platform::{DeviceType, platform_get_device_info},
-    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
+    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
 };
 
 pub fn test_serial_subsystem_impl() -> u8 {
@@ -230,6 +230,7 @@ pub fn serial_subsystem_test_suite() {
         ],
         name: "Serial sub-system",
         tests_nb: 3,
+        behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]
     unsafe {

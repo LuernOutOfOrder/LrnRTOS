@@ -4,7 +4,7 @@ use crate::{
         fdt::{fdt_present, parse_dtb_file},
         platform_get_device_info,
     },
-    tests::{TestBehavior, TestCase, TestSuite},
+    tests::{TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
 };
 
 use super::TEST_MANAGER;
@@ -71,7 +71,7 @@ pub fn test_platform_get_device_info_fdt() -> u8 {
             device.header.device_addr.size
         );
     }
-    return 0;
+    0
 }
 
 /// Test getting device info from static
@@ -114,7 +114,7 @@ pub fn test_platform_get_device_info_static() -> u8 {
             device.header.device_addr.size
         );
     }
-    return 0;
+    0
 }
 
 pub fn platform_test_suite() {
@@ -133,6 +133,7 @@ pub fn platform_test_suite() {
         ],
         name: "Platform",
         tests_nb: 2,
+        behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]
     unsafe {

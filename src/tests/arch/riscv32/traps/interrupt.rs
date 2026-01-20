@@ -8,7 +8,7 @@ use crate::{
         },
         trap_frame::{KERNEL_TRAP_FRAME, init_trap_frame},
     },
-    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
+    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
 };
 
 pub fn test_mtvec_set_direct_mode() -> u8 {
@@ -134,6 +134,7 @@ pub fn interrupt_enabling_test_suite() {
         ],
         name: "Interruptions enabling",
         tests_nb: 6,
+        behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]
     unsafe {
