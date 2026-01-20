@@ -27,20 +27,34 @@ impl Task {
     /// priority: the task priority, highest priority will be executed first and prioritized by the
     /// scheduler.
     /// size: the task size asked for RAM allocation.
-    pub fn init(name: [u8; 16], state: TaskState, func: fn() -> !, priority: u8, size: usize) -> Option<Self> {
+    fn init(name: &str, func: fn() -> !, priority: u8, size: usize) -> Option<Self> {
+        let name_b = name.as_bytes();
+        let mut buf = [0u8; 16];
+        let len = core::cmp::min(name_b.len(), 16 - 1);
+        buf[..len].copy_from_slice(&name_b[..len]);
         let mem_reg = mem_task_alloc(size);
-        let task_name = str::from_utf8(&name).expect("Failed to cast bytes slice to &str");
         if mem_reg.is_none() {
-            log!(LogLevel::Error, "The size asked to create the task: {task_name} couldn't be allocate, abort task creation.");
+            log!(
+                LogLevel::Error,
+                "The size asked to create the task: {name} couldn't be allocate, abort task creation."
+            );
             return None;
         }
         Some(Task {
             context: TaskContext::init(mem_reg.unwrap()),
             func,
             pid: 0,
-            name,
-            state,
-            priority
+            name: buf,
+            state: TaskState::New,
+            priority,
         })
+    }
+}
+
+pub fn task_create(name: &str, func: fn() -> !, priority: u8, size: usize) {
+    let new_task = Task::init(name, func, priority, size);
+    if let Some(task) = new_task {
+        let name = str::from_utf8(&task.name).unwrap();
+        log!(LogLevel::Info, "Successfully created task: {name}");
     }
 }
