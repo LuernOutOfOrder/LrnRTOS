@@ -65,11 +65,15 @@ impl Memory {
     pub fn task_alloc(&mut self, size: usize) -> Option<[usize; 2]> {
         let available = self.available;
         let bottom = self.kernel_img_end;
-        // The size asked must be between available and bottom
+        // Compute new available address from available - size asked.
         let check = available - size;
+        // The size asked must pass between available and bottom
         if check > bottom {
-            self.available = check;
-            return Some([check, bottom]);
+            // Update available to exclude new allocated region and subtract 4 bytes to avoid any
+            // overlap
+            self.available = check - mem::size_of::<usize>();
+            // Return memory region usable by the new task.
+            return Some([available, check]);
         }
         None
     }
@@ -88,6 +92,14 @@ pub fn memory_init() {
     let stack_bottom: usize = unsafe { MEMORY.mem_end - KERNEL_STACK_SIZE };
     // One word below kernel stack
     let available: usize = stack_bottom - core::mem::size_of::<usize>();
+    // Check the delta between stack_bottom and available.
+    // If different from the size of a usize, panic.
+    // Avoid running the kernel if the memory allocation is not stable.
+    if stack_bottom - available != core::mem::size_of::<usize>() {
+        panic!(
+            "Computation of available address is wrong. It should be - sizeoff(usize) under kernel stack bottom address. Kernel cannot run if memory allocation is unstable"
+        );
+    }
     // Update MEMORY with new kernel stack
     unsafe {
         MEMORY.kernel_stack = KernelStack {
@@ -114,9 +126,11 @@ pub fn mem_kernel_stack_info<'a>() -> &'a KernelStack {
     }
 }
 
-pub fn mem_task_alloc(size: usize) -> Option<[usize;2]> {
+pub fn mem_task_alloc(size: usize) -> Option<[usize; 2]> {
     // Allow static mut refs for now
     // TODO: improve memory static to not use mut if possible
     #[allow(static_mut_refs)]
-    unsafe { MEMORY.task_alloc(size)}
+    unsafe {
+        MEMORY.task_alloc(size)
+    }
 }
