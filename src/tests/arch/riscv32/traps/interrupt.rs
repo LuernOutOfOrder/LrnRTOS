@@ -134,6 +134,7 @@ pub fn interrupt_enabling_test_suite() {
         ],
         name: "Interruptions enabling",
         tests_nb: 6,
+        behavior: TestBehavior::Default
     };
     #[allow(static_mut_refs)]
     unsafe {

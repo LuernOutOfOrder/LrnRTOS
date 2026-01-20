@@ -26,6 +26,7 @@ pub fn memory_test_suite() {
         )],
         name: "Kernel memory",
         tests_nb: 1,
+        behavior: TestBehavior::Default,
     };
     #[allow(static_mut_refs)]
     unsafe {

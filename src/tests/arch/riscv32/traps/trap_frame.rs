@@ -60,6 +60,7 @@ pub fn trap_frame_test_suite() {
         ],
         name: "Trap frame",
         tests_nb: 2,
+        behavior: TestBehavior::Default
     };
     #[allow(static_mut_refs)]
     unsafe {

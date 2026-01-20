@@ -230,6 +230,7 @@ pub fn serial_subsystem_test_suite() {
         ],
         name: "Serial sub-system",
         tests_nb: 3,
+        behavior: TestBehavior::Default
     };
     #[allow(static_mut_refs)]
     unsafe {

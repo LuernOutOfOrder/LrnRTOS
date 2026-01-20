@@ -225,6 +225,7 @@ pub fn timer_subsystem_test_suite() {
         ],
         name: "Timer sub-system",
         tests_nb: 4,
+        behavior: TestBehavior::Default
     };
 
     #[allow(static_mut_refs)]

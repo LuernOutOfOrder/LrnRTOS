@@ -59,6 +59,7 @@ pub fn ktime_test_suite() {
         ],
         name: "Ktime",
         tests_nb: 3,
+        behavior: TestBehavior::Default
     };
     #[allow(static_mut_refs)]
     unsafe {

@@ -30,6 +30,7 @@ pub fn trap_handler_test_suite() {
         )],
         name: "Trap handler",
         tests_nb: 1,
+        behavior: TestBehavior::Default
     };
     #[allow(static_mut_refs)]
     unsafe {

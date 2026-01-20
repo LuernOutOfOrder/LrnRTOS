@@ -88,6 +88,7 @@ pub struct TestSuite<'a> {
     pub tests: &'a [TestCase<'a>],
     pub name: &'a str,
     pub tests_nb: u32,
+    pub behavior: TestBehavior,
 }
 
 impl<'a> TestSuite<'a> {
@@ -96,14 +97,21 @@ impl<'a> TestSuite<'a> {
             tests: &[],
             name: "",
             tests_nb: 0,
+            behavior: TestBehavior::Skipped,
         }
     }
 
-    pub fn init(tests: &'a [TestCase], name: &'a str, tests_nb: u32) -> Self {
+    pub fn init(
+        tests: &'a [TestCase],
+        name: &'a str,
+        tests_nb: u32,
+        behavior: TestBehavior,
+    ) -> Self {
         TestSuite {
             tests,
             name,
             tests_nb,
+            behavior,
         }
     }
 }
@@ -158,10 +166,15 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
     let mut tests_skipped: usize = 0;
     // Tests suites
     let mut test_suites_failed: usize = 0;
+    let mut test_suites_skipped: usize = 0;
     // Iterate over all test suite and run all test inside
     for test_suite in unsafe { TEST_MANAGER.test_pool } {
         if test_suite.tests_nb == 0 {
             break;
+        }
+        if test_suite.behavior == TestBehavior::Skipped {
+            test_suites_skipped += 1;
+            continue;
         }
         kprint_fmt!(
             "\nRunning {} tests from test suite: {}\n",
@@ -206,13 +219,15 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
         tests_failed,
         tests_skipped
     );
-    let test_suites_passed = test_suites_nb - test_suites_failed;
+    let test_suites_runned = test_suites_nb - test_suites_skipped;
+    let test_suites_passed = test_suites_nb - test_suites_failed - test_suites_skipped;
     kprint_fmt!(
-        "Test suites ran: {}\ttest suites passed: {}/{}\ttest suites failed: {}\n",
-        test_suites_nb,
+        "Test suites ran: {}\ttest suites passed: {}/{}\ttest suites failed: {}\ttest suites skipped: {}\n",
+        test_suites_runned,
         test_suites_passed,
         test_suites_nb,
-        test_suites_failed
+        test_suites_failed,
+        test_suites_skipped
     );
     // Exit Qemu at the end of the tests
     unsafe { ptr::write_volatile(0x100000 as *mut u32, 0x5555) };

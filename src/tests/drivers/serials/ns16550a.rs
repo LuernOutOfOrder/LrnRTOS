@@ -30,10 +30,11 @@ pub fn ns16550_test_suite() {
         tests: &[TestCase::init(
             "Ns16550 driver qemu putchar",
             test_ns16550_qemu_putchar,
-            TestBehavior::Skipped,
+            TestBehavior::Default,
         )],
         name: "Ns16550",
         tests_nb: 1,
+        behavior: TestBehavior::Skipped,
     };
     #[allow(static_mut_refs)]
     unsafe {
