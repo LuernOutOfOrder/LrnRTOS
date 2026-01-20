@@ -18,7 +18,7 @@ Tests files:
 
 mod kernel;
 
-use core::{arch::asm, mem};
+use core::{arch::asm, mem, usize};
 
 use kernel::{__kernel_end, __kernel_start, KernelStack};
 
@@ -34,13 +34,17 @@ pub struct Memory {
     pub mem_start: usize,
     // hi addr
     pub mem_end: usize,
+    // Allocation on the RAM happened from hi to lo
+    // That's the address of where the RAM is available, going down
+    // Consider this address as usable. Addresses above this one is used, below is available
+    pub available: usize,
 }
 
 impl Memory {
-    pub const fn init_default() -> Self {
+    const fn init_default() -> Self {
         unsafe { mem::zeroed() }
     }
-    pub fn init() -> Self {
+    fn init() -> Self {
         let platform_mem = platform_init_mem();
         Memory {
             kernel_stack: KernelStack { top: 0, bottom: 0 },
@@ -48,7 +52,26 @@ impl Memory {
             mem_end: platform_mem.reg.addr + platform_mem.reg.size,
             kernel_img_start: unsafe { &__kernel_start } as *const u8 as usize,
             kernel_img_end: unsafe { &__kernel_end } as *const u8 as usize,
+            available: 0,
         }
+    }
+
+    fn mem_available(&self) -> [usize; 2] {
+        [self.available, self.kernel_img_end]
+    }
+
+    /// Return hi and lo address usable.
+    /// First element of array is the hi address usable, last one is lo address usable.
+    pub fn task_alloc(&mut self, size: usize) -> Option<[usize; 2]> {
+        let available = self.available;
+        let bottom = self.kernel_img_end;
+        // The size asked must be between available and bottom
+        let check = available - size;
+        if check > bottom {
+            self.available = check;
+            return Some([check, bottom]);
+        }
+        None
     }
 }
 
@@ -63,12 +86,19 @@ pub fn memory_init() {
     };
     let stack_top: usize = unsafe { MEMORY.mem_end };
     let stack_bottom: usize = unsafe { MEMORY.mem_end - KERNEL_STACK_SIZE };
+    // One word below kernel stack
+    let available: usize = stack_bottom - core::mem::size_of::<usize>();
+    // Update MEMORY with new kernel stack
     unsafe {
         MEMORY.kernel_stack = KernelStack {
             top: stack_top,
             bottom: stack_bottom,
         }
     };
+    // Update MEMORY with address usable for future task
+    unsafe {
+        MEMORY.available = available;
+    }
 }
 
 #[unsafe(no_mangle)]
@@ -82,4 +112,11 @@ pub fn mem_kernel_stack_info<'a>() -> &'a KernelStack {
     unsafe {
         &MEMORY.kernel_stack
     }
+}
+
+pub fn mem_task_alloc(size: usize) -> Option<[usize;2]> {
+    // Allow static mut refs for now
+    // TODO: improve memory static to not use mut if possible
+    #[allow(static_mut_refs)]
+    unsafe { MEMORY.task_alloc(size)}
 }
