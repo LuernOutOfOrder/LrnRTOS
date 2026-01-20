@@ -2,8 +2,14 @@ use core::mem;
 
 pub struct KernelStack {
     pub top: usize,
-    #[allow(unused)]
     pub bottom: usize,
+}
+
+// Kernel image location
+// From linker script symbol
+unsafe extern "C" {
+    pub static __kernel_start: u8;
+    pub static __kernel_end: u8;
 }
 
 impl KernelStack {
@@ -11,5 +17,3 @@ impl KernelStack {
         unsafe { mem::zeroed() }
     }
 }
-
-pub static mut KERNEL_STACK: KernelStack = KernelStack::init();

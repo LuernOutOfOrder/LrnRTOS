@@ -31,6 +31,9 @@ pub mod misc;
 // Early boot module
 pub mod boot;
 
+// Kernel information
+pub mod info;
+
 // Test module
 #[cfg(feature = "test")]
 pub mod tests;
@@ -39,10 +42,18 @@ pub mod tests;
 #[cfg(not(feature = "test"))]
 use core::panic::PanicInfo;
 use logs::LogLevel;
+use mem::mem_kernel_stack_info;
 
 #[unsafe(no_mangle)]
 unsafe extern "C" fn main() -> ! {
     log!(LogLevel::Debug, "Successfully switch to new kernel stack.");
+    let kernel_stack = mem_kernel_stack_info();
+    log!(
+        LogLevel::Debug,
+        "Kernel new stack: stack-top: {:#x}\tstack-bottom: {:#x}",
+        kernel_stack.top,
+        kernel_stack.bottom
+    );
     log!(LogLevel::Info, "LrnRTOS started!");
     loop {
         log!(LogLevel::Debug, "Main loop uptime.");

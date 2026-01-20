@@ -6,9 +6,8 @@ use crate::{
             init_timer_subsystem,
         },
     },
-    misc::RawTraitObject,
-    platform::{self, DeviceType, InterruptExtended, platform_get_device_info},
-    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
+    platform::InterruptExtended,
+    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
 };
 
 pub fn test_timer_subsystem_impl() -> u8 {
@@ -17,23 +16,23 @@ pub fn test_timer_subsystem_impl() -> u8 {
         panic!("Timer sub-system should be initialized empty.")
     }
     // Add timer to sub-system
-    // Just unwrap, being in test env we know that it will return Some.
-    let device_info = platform_get_device_info("sifive,clint0", DeviceType::Timer).unwrap();
-    // Get struct behind trait
-    let device_info_trait = device_info.info.unwrap();
-    let raw: RawTraitObject = unsafe { core::mem::transmute(device_info_trait) };
-    let timer_device_ptr = raw.data as *const platform::PlatformTimerDevice;
-    let timer_device_ref = unsafe { &*timer_device_ptr };
     // Init timer driver
-    let clint0: Clint0 = Clint0 {
-        region: device_info.header.device_addr,
-        interrupt_extended: timer_device_ref.interrupt_extended,
+    const CLINT0: Clint0 = Clint0 {
+        region: DriverRegion {
+            addr: 0x2000000,
+            size: 0x10000,
+        },
+        interrupt_extended: [InterruptExtended {
+            cpu_intc: 0,
+            irq_len: 2,
+            irq_ids: [3, 7, 0, 0],
+        }; 4],
     };
-    let device: TimerDevice = TimerDevice {
+    const DEVICE: TimerDevice = TimerDevice {
         timer_type: TimerType::ArchitecturalTimer,
-        device: TimerDeviceDriver::Clint0(clint0),
+        device: TimerDeviceDriver::Clint0(CLINT0),
     };
-    timer_subsystem.add_timer(device);
+    timer_subsystem.add_timer(DEVICE);
     // Check if timer sub-system timer array has been updated
     if timer_subsystem.get_timer_array_size() != 1 {
         panic!("Timer sub-system should not be empty.")
@@ -47,7 +46,7 @@ pub fn test_timer_subsystem_impl() -> u8 {
     }
     // Check primary timer
     let primary_timer = timer_subsystem.get_primary_timer();
-    if primary_timer != device {
+    if primary_timer != &DEVICE {
         panic!("Timer sub-system doesn't have the correct primary timer. Selection is wrong.");
     }
 
@@ -59,25 +58,25 @@ pub fn test_timer_subsystem_impl() -> u8 {
 pub fn test_timer_subsystem_same_device() -> u8 {
     let timer_subsystem = TimerSubSystem::init();
     // Add timer to sub-system
-    // Just unwrap, being in test env we know that it will return Some.
-    let device_info = platform_get_device_info("sifive,clint0", DeviceType::Timer).unwrap();
-    // Get struct behind trait
-    let device_info_trait = device_info.info.unwrap();
-    let raw: RawTraitObject = unsafe { core::mem::transmute(device_info_trait) };
-    let timer_device_ptr = raw.data as *const platform::PlatformTimerDevice;
-    let timer_device_ref = unsafe { &*timer_device_ptr };
     // Init timer driver
-    let clint0: Clint0 = Clint0 {
-        region: device_info.header.device_addr,
-        interrupt_extended: timer_device_ref.interrupt_extended,
+    const CLINT0: Clint0 = Clint0 {
+        region: DriverRegion {
+            addr: 0x2000000,
+            size: 0x10000,
+        },
+        interrupt_extended: [InterruptExtended {
+            cpu_intc: 0,
+            irq_len: 2,
+            irq_ids: [3, 7, 0, 0],
+        }; 4],
     };
-    let device: TimerDevice = TimerDevice {
+    const DEVICE: TimerDevice = TimerDevice {
         timer_type: TimerType::ArchitecturalTimer,
-        device: TimerDeviceDriver::Clint0(clint0),
+        device: TimerDeviceDriver::Clint0(CLINT0),
     };
-    timer_subsystem.add_timer(device);
+    timer_subsystem.add_timer(DEVICE);
     // This should trigger a warning and abort timer registration
-    timer_subsystem.add_timer(device);
+    timer_subsystem.add_timer(DEVICE);
     // Check if timer sub-system timer array has been updated
     if timer_subsystem.get_timer_array_size() > 1 {
         panic!("Timer sub-system should contain only 1 timer.")
@@ -132,11 +131,10 @@ pub fn test_timer_subsystem_overflow() -> u8 {
     // Register all devices
     timer_subsystem.add_timer(device);
     timer_subsystem.add_timer(device1);
-    #[allow(clippy::clone_on_copy)]
     let timer_subsystem_snapshot = unsafe {
         [
-            *timer_subsystem.timer_pool[0].get(),
-            *timer_subsystem.timer_pool[1].get(),
+            &*timer_subsystem.timer_pool[0].get(),
+            &*timer_subsystem.timer_pool[1].get(),
         ]
     };
     // This one should trigger a warning and not be registered to the sub-system
@@ -144,8 +142,8 @@ pub fn test_timer_subsystem_overflow() -> u8 {
     // Recreate a snapshot of subsystem
     let timer_subsystem_snapshot_updated = unsafe {
         [
-            *timer_subsystem.timer_pool[0].get(),
-            *timer_subsystem.timer_pool[1].get(),
+            &*timer_subsystem.timer_pool[0].get(),
+            &*timer_subsystem.timer_pool[1].get(),
         ]
     };
     // Check if the subsystem has changed after the overflow aborted
@@ -160,7 +158,7 @@ pub fn test_timer_subsystem_overflow() -> u8 {
 pub fn test_timer_subsystem_primary_timer() -> u8 {
     let timer_subsystem = TimerSubSystem::init();
     // Build multiple timer to test how the subsystem handle overflow
-    let int_ext = [InterruptExtended {
+    const INT_EXT: [InterruptExtended; 4] = [InterruptExtended {
         cpu_intc: 0,
         irq_len: 2,
         irq_ids: [3, 7, 0, 0],
@@ -171,31 +169,31 @@ pub fn test_timer_subsystem_primary_timer() -> u8 {
             addr: 0x2000000,
             size: 0x10000,
         },
-        interrupt_extended: int_ext,
+        interrupt_extended: INT_EXT,
     };
     let device: TimerDevice = TimerDevice {
         timer_type: TimerType::SoCTimer,
         device: TimerDeviceDriver::Clint0(clint0),
     };
     // Second timer
-    let clint1: Clint0 = Clint0 {
+    const CLINT1: Clint0 = Clint0 {
         region: DriverRegion {
             addr: 0x2000001,
             size: 0x10001,
         },
-        interrupt_extended: int_ext,
+        interrupt_extended: INT_EXT,
     };
-    let device1: TimerDevice = TimerDevice {
+    const DEVICE1: TimerDevice = TimerDevice {
         timer_type: TimerType::ArchitecturalTimer,
-        device: TimerDeviceDriver::Clint0(clint1),
+        device: TimerDeviceDriver::Clint0(CLINT1),
     };
     // Register all devices
     timer_subsystem.add_timer(device);
-    timer_subsystem.add_timer(device1);
+    timer_subsystem.add_timer(DEVICE1);
     // Check primary timer
     timer_subsystem.select_primary_timer();
     let primary_timer = timer_subsystem.get_primary_timer();
-    if primary_timer != device1 {
+    if *primary_timer != DEVICE1 {
         panic!("Timer sub-system primary timer should be the first ArchitecturalTimer registered");
     }
     0
@@ -227,6 +225,7 @@ pub fn timer_subsystem_test_suite() {
         ],
         name: "Timer sub-system",
         tests_nb: 4,
+        behavior: TestSuiteBehavior::Default,
     };
 
     #[allow(static_mut_refs)]

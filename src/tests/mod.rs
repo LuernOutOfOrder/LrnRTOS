@@ -1,25 +1,16 @@
 use core::ptr;
 
-pub mod arch;
-pub mod drivers;
-pub mod ktime;
-pub mod mem;
-pub mod platform;
+mod arch;
+mod drivers;
+mod ktime;
+mod mem;
+mod platform;
+mod suites;
 
-use arch::traps::{
-    handler::trap_handler_test_suite, interrupt::interrupt_enabling_test_suite,
-    trap_frame::trap_frame_test_suite,
-};
-use drivers::{
-    cpu_intc::subsystem::cpu_intc_subsystem_test_suite,
-    serials::{ns16550a::ns16550_test_suite, subsystem::serial_subsystem_test_suite},
-    timer::subsystem::timer_subsystem_test_suite,
-};
-use ktime::ktime_test_suite;
-use mem::memory_test_suite;
-use platform::{platform_test_suite, test_platform_init};
+use platform::test_platform_init;
+use suites::test_suites;
 
-use crate::{kprint, kprint_fmt};
+use crate::{info::KERNEL_VERSION, kprint, kprint_fmt};
 
 #[macro_export]
 macro_rules! test_kprint {
@@ -97,6 +88,7 @@ pub struct TestSuite<'a> {
     pub tests: &'a [TestCase<'a>],
     pub name: &'a str,
     pub tests_nb: u32,
+    pub behavior: TestSuiteBehavior,
 }
 
 impl<'a> TestSuite<'a> {
@@ -105,22 +97,36 @@ impl<'a> TestSuite<'a> {
             tests: &[],
             name: "",
             tests_nb: 0,
+            behavior: TestSuiteBehavior::Skipped,
         }
     }
 
-    pub fn init(tests: &'a [TestCase], name: &'a str, tests_nb: u32) -> Self {
+    pub fn init(
+        tests: &'a [TestCase],
+        name: &'a str,
+        tests_nb: u32,
+        behavior: TestSuiteBehavior,
+    ) -> Self {
         TestSuite {
             tests,
             name,
             tests_nb,
+            behavior,
         }
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
+pub enum TestSuiteBehavior {
+    Default,
+    Skipped,
+}
+
+#[derive(Copy, Clone, PartialEq)]
 pub enum TestBehavior {
     Default,
     ShouldFailed,
+    Skipped,
 }
 
 #[derive(Copy, Clone)]
@@ -141,20 +147,6 @@ impl<'a> TestCase<'a> {
 }
 
 pub static mut TEST_MANAGER: TestManager = TestManager::init();
-
-// Call all test suite function to auto register all suites in test manager.
-fn test_suites() {
-    platform_test_suite();
-    serial_subsystem_test_suite();
-    timer_subsystem_test_suite();
-    cpu_intc_subsystem_test_suite();
-    ktime_test_suite();
-    ns16550_test_suite();
-    trap_frame_test_suite();
-    interrupt_enabling_test_suite();
-    trap_handler_test_suite();
-    memory_test_suite();
-}
 
 #[unsafe(no_mangle)]
 pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
@@ -177,12 +169,18 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
     let mut tests_run: usize = 0;
     let mut tests_sucess: usize = 0;
     let mut tests_failed: usize = 0;
+    let mut tests_skipped: usize = 0;
     // Tests suites
     let mut test_suites_failed: usize = 0;
+    let mut test_suites_skipped: usize = 0;
     // Iterate over all test suite and run all test inside
     for test_suite in unsafe { TEST_MANAGER.test_pool } {
         if test_suite.tests_nb == 0 {
             break;
+        }
+        if test_suite.behavior == TestSuiteBehavior::Skipped {
+            test_suites_skipped += 1;
+            continue;
         }
         kprint_fmt!(
             "\nRunning {} tests from test suite: {}\n",
@@ -192,10 +190,20 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
         let test_to_pass = test_suite.tests_nb;
         let mut test_passed: usize = 0;
         let mut test_failed: usize = 0;
+        let mut test_skipped: usize = 0;
         for test in test_suite.tests {
+            if test.behavior == TestBehavior::Skipped {
+                test_skipped += 1;
+                continue;
+            }
             test_info!("Running test: {}", test.name);
             let pass = (test.func)();
-            if pass == 1 {
+            if test.behavior == TestBehavior::Default && pass != 0 {
+                test_failed += 1;
+                test_suites_failed += 1;
+                break;
+            }
+            if test.behavior == TestBehavior::ShouldFailed && pass != 1 {
                 test_failed += 1;
                 test_suites_failed += 1;
                 break;
@@ -206,22 +214,30 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
         tests_run += test_to_pass as usize;
         tests_sucess += test_passed;
         tests_failed += test_failed;
+        tests_skipped += test_skipped;
         kprint!("Test suite passed successfully\n");
     }
     kprint_fmt!(
-        "\nTests ran: {}\ttests passed: {}/{}\ttests failed: {}\n",
+        "\nTests ran: {}\ttests passed: {}/{}\ttests failed: {}\ttests skipped: {}\n",
         tests_run,
         tests_sucess,
         tests_run,
-        tests_failed
+        tests_failed,
+        tests_skipped
     );
-    let test_suites_passed = test_suites_nb - test_suites_failed;
+    let test_suites_runned = test_suites_nb - test_suites_skipped;
+    let test_suites_passed = test_suites_nb - test_suites_failed - test_suites_skipped;
     kprint_fmt!(
-        "Test suites ran: {}\ttest suites passed: {}/{}\ttest suites failed: {}\n",
-        test_suites_nb,
+        "Test suites ran: {}\ttest suites passed: {}/{}\ttest suites failed: {}\ttest suites skipped: {}\n",
+        test_suites_runned,
         test_suites_passed,
         test_suites_nb,
-        test_suites_failed
+        test_suites_failed,
+        test_suites_skipped
+    );
+    kprint_fmt!(
+        "Kernel test mode using kernel version: {}\n",
+        KERNEL_VERSION,
     );
     // Exit Qemu at the end of the tests
     unsafe { ptr::write_volatile(0x100000 as *mut u32, 0x5555) };

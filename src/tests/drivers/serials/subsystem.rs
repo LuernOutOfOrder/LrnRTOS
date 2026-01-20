@@ -7,7 +7,7 @@ use crate::{
         },
     },
     platform::{DeviceType, platform_get_device_info},
-    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
+    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
 };
 
 pub fn test_serial_subsystem_impl() -> u8 {
@@ -35,13 +35,13 @@ pub fn test_serial_subsystem_impl() -> u8 {
         );
     }
     // Check default console
-    let serial = unsafe { *serial_subsystem.devices[0].get() };
-    if !serial.unwrap().default_console {
+    let serial = unsafe { &*serial_subsystem.devices[0].get() };
+    if !serial.as_ref().unwrap().default_console {
         panic!("Serial sub-system failed to set new serial as default console.");
     }
 
     let default_console = unsafe { serial_subsystem.get_default_console() };
-    if *default_console != serial.unwrap() {
+    if default_console != serial.as_ref().unwrap() {
         panic!(
             "Error getting the default console, default console get is different than the one saved before."
         );
@@ -96,16 +96,16 @@ pub fn test_serial_subsystem_overflow() -> u8 {
     }
     // Build multiple serial to test how the subsystem handle overflow
     // First Serial
-    let ns16550: Ns16550 = Ns16550 {
+    const NS16550: Ns16550 = Ns16550 {
         region: DriverRegion {
             addr: 0x10000000,
             size: 0x100,
         },
     };
-    let device = SerialDevice {
+    const DEVICE: SerialDevice = SerialDevice {
         _id: 0,
         default_console: false,
-        driver: SerialDeviceDriver::Ns16550(ns16550),
+        driver: SerialDeviceDriver::Ns16550(NS16550),
     };
     // Second Serial
     let ns16551: Ns16550 = Ns16550 {
@@ -156,7 +156,7 @@ pub fn test_serial_subsystem_overflow() -> u8 {
         driver: SerialDeviceDriver::Ns16550(ns16554),
     };
     // Register all devices
-    serial_subsystem.add_serial(device);
+    serial_subsystem.add_serial(DEVICE);
     serial_subsystem.add_serial(device1);
     serial_subsystem.add_serial(device2);
     serial_subsystem.add_serial(device3);
@@ -164,10 +164,10 @@ pub fn test_serial_subsystem_overflow() -> u8 {
     // Manually copy the inner values since UnsafeCell doesn't implement Clone
     let serial_subsystem_snapshot = unsafe {
         [
-            *serial_subsystem.devices[0].get(),
-            *serial_subsystem.devices[1].get(),
-            *serial_subsystem.devices[2].get(),
-            *serial_subsystem.devices[3].get(),
+            &*serial_subsystem.devices[0].get(),
+            &*serial_subsystem.devices[1].get(),
+            &*serial_subsystem.devices[2].get(),
+            &*serial_subsystem.devices[3].get(),
         ]
     };
     // This one should trigger a warning and not be registered to the sub-system
@@ -175,10 +175,10 @@ pub fn test_serial_subsystem_overflow() -> u8 {
     // Check if the subsystem has changed after the overflow aborted
     let current_devices = unsafe {
         [
-            *serial_subsystem.devices[0].get(),
-            *serial_subsystem.devices[1].get(),
-            *serial_subsystem.devices[2].get(),
-            *serial_subsystem.devices[3].get(),
+            &*serial_subsystem.devices[0].get(),
+            &*serial_subsystem.devices[1].get(),
+            &*serial_subsystem.devices[2].get(),
+            &*serial_subsystem.devices[3].get(),
         ]
     };
     if serial_subsystem_snapshot != current_devices {
@@ -192,13 +192,13 @@ pub fn test_serial_subsystem_overflow() -> u8 {
     // Get default console MMIO reg
     let default_console = unsafe { serial_subsystem.get_default_console() };
     let default_console_region = {
-        match default_console.driver {
+        match &default_console.driver {
             SerialDeviceDriver::Ns16550(ns16550) => ns16550.region,
         }
     };
     // Get first device registered MMIO reg
     let device_region = {
-        match device.driver {
+        match DEVICE.driver {
             SerialDeviceDriver::Ns16550(ns16550) => ns16550.region,
         }
     };
@@ -230,6 +230,7 @@ pub fn serial_subsystem_test_suite() {
         ],
         name: "Serial sub-system",
         tests_nb: 3,
+        behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]
     unsafe {
