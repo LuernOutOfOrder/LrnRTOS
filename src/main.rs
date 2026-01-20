@@ -31,6 +31,9 @@ pub mod misc;
 // Early boot module
 pub mod boot;
 
+// Kernel information
+pub mod info;
+
 // Test module
 #[cfg(feature = "test")]
 pub mod tests;

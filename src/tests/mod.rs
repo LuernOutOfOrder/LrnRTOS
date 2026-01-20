@@ -10,7 +10,7 @@ mod suites;
 use platform::test_platform_init;
 use suites::test_suites;
 
-use crate::{kprint, kprint_fmt};
+use crate::{info::KERNEL_VERSION, kprint, kprint_fmt};
 
 #[macro_export]
 macro_rules! test_kprint {
@@ -234,6 +234,10 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
         test_suites_nb,
         test_suites_failed,
         test_suites_skipped
+    );
+    kprint_fmt!(
+        "Kernel test mode using kernel version: {}\n",
+        KERNEL_VERSION,
     );
     // Exit Qemu at the end of the tests
     unsafe { ptr::write_volatile(0x100000 as *mut u32, 0x5555) };

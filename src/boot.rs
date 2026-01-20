@@ -2,6 +2,7 @@ use crate::{
     arch::traps::{enable_interrupts, trap_frame::init_trap_frame},
     config::TICK_SAFETY_DURATION,
     drivers::{cpufreq::CpuFreq, init_subsystems},
+    info::KERNEL_VERSION,
     kprint, kprint_fmt,
     ktime::set_ktime_seconds,
     log,
@@ -12,6 +13,7 @@ use crate::{
 
 #[unsafe(no_mangle)]
 pub fn kernel_early_boot(core: usize, dtb_addr: usize) -> ! {
+    kprint_fmt!("Kernel version: {}\n", KERNEL_VERSION);
     kprint_fmt!("Start kernel booting on CPU Core: {}.\n", core);
     kprint!("Initializing platform...\n");
     platform_init(dtb_addr);
