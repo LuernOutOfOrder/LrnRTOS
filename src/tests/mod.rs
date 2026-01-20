@@ -88,7 +88,7 @@ pub struct TestSuite<'a> {
     pub tests: &'a [TestCase<'a>],
     pub name: &'a str,
     pub tests_nb: u32,
-    pub behavior: TestBehavior,
+    pub behavior: TestSuiteBehavior,
 }
 
 impl<'a> TestSuite<'a> {
@@ -97,7 +97,7 @@ impl<'a> TestSuite<'a> {
             tests: &[],
             name: "",
             tests_nb: 0,
-            behavior: TestBehavior::Skipped,
+            behavior: TestSuiteBehavior::Skipped,
         }
     }
 
@@ -105,7 +105,7 @@ impl<'a> TestSuite<'a> {
         tests: &'a [TestCase],
         name: &'a str,
         tests_nb: u32,
-        behavior: TestBehavior,
+        behavior: TestSuiteBehavior,
     ) -> Self {
         TestSuite {
             tests,
@@ -114,6 +114,12 @@ impl<'a> TestSuite<'a> {
             behavior,
         }
     }
+}
+
+#[derive(Copy, Clone, PartialEq)]
+pub enum TestSuiteBehavior {
+    Default,
+    Skipped
 }
 
 #[derive(Copy, Clone, PartialEq)]
@@ -172,7 +178,7 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
         if test_suite.tests_nb == 0 {
             break;
         }
-        if test_suite.behavior == TestBehavior::Skipped {
+        if test_suite.behavior == TestSuiteBehavior::Skipped {
             test_suites_skipped += 1;
             continue;
         }

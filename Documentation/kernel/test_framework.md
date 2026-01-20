@@ -56,14 +56,24 @@ pub fn foo_test_suite() {
     const FOO_TEST_SUITE: TestSuite = TestSuite {
         // Array of all tests inside the suite
         tests: &[TestCase::init(
+            // Test name 
             "Foo driver basic implementation",
+            // Fn ptr to test function
             test_foo_impl,
+            // Test behavior
+            // Default: run the test normally
+            // ShouldFailed: expect the test to fail, return as passed if it fail correctly
+            // Skipped: don't run the test at all
             TestBehavior::Default,
         )],
         // Name of the test suite
         name: "Foo",
         // Number of tests inside the suite
         tests_nb: 1,
+        // Behavior of the test suite
+        // Default: run the suite normally
+        // Skipped: don't run the suite at all
+        behavior: TestBehavior::Default
     };
     #[allow(static_mut_refs)]
     // Register the suite inside the TestManager

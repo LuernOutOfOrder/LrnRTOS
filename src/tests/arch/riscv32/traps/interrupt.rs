@@ -6,9 +6,9 @@ use crate::{
             mtvec_switch_to_direct_mode, mtvec_switch_to_vectored_mode, read_mie_msie,
             read_mie_mtie, trap_entry,
         },
-        trap_frame::{KERNEL_TRAP_FRAME, init_trap_frame},
+        trap_frame::{init_trap_frame, KERNEL_TRAP_FRAME},
     },
-    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
+    tests::{TestBehavior, TestCase, TestSuite, TestSuiteBehavior, TEST_MANAGER},
 };
 
 pub fn test_mtvec_set_direct_mode() -> u8 {
@@ -134,7 +134,7 @@ pub fn interrupt_enabling_test_suite() {
         ],
         name: "Interruptions enabling",
         tests_nb: 6,
-        behavior: TestBehavior::Default
+        behavior: TestSuiteBehavior::Default
     };
     #[allow(static_mut_refs)]
     unsafe {

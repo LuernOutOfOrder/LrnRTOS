@@ -1,4 +1,4 @@
-use crate::tests::{TEST_MANAGER, TestBehavior, TestSuite};
+use crate::tests::{TestBehavior, TestSuite, TestSuiteBehavior, TEST_MANAGER};
 
 use super::TestCase;
 
@@ -59,7 +59,7 @@ pub fn ktime_test_suite() {
         ],
         name: "Ktime",
         tests_nb: 3,
-        behavior: TestBehavior::Default
+        behavior: TestSuiteBehavior::Default
     };
     #[allow(static_mut_refs)]
     unsafe {

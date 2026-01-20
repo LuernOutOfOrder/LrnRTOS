@@ -1,7 +1,7 @@
 use crate::{
     arch::traps::{handler::trap_handler, trap_frame::TrapFrame},
     ktime::tick::get_tick,
-    tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite},
+    tests::{TestBehavior, TestCase, TestSuite, TestSuiteBehavior, TEST_MANAGER},
 };
 
 pub fn test_trap_handler_timer_interrupt() -> u8 {
@@ -30,7 +30,7 @@ pub fn trap_handler_test_suite() {
         )],
         name: "Trap handler",
         tests_nb: 1,
-        behavior: TestBehavior::Default
+        behavior: TestSuiteBehavior::Default
     };
     #[allow(static_mut_refs)]
     unsafe {
