@@ -1,10 +1,10 @@
 pub struct TaskContext {
-    gpr: [u32; 32],
-    address_space: [u32; 2],
-    pc: u32,
-    sp: u32,
-    flags: [u8; 3],
-    instruction_register: u8,
+    pub gpr: [u32; 32],
+    pub address_space: [u32; 2],
+    pub pc: u32,
+    pub sp: u32,
+    pub flags: [u8; 3],
+    pub instruction_register: u8,
 }
 
 impl TaskContext {
