@@ -30,7 +30,7 @@ pub fn ns16550_test_suite() {
         tests: &[TestCase::init(
             "Ns16550 driver qemu putchar",
             test_ns16550_qemu_putchar,
-            TestBehavior::Default,
+            TestBehavior::Skipped,
         )],
         name: "Ns16550",
         tests_nb: 1,

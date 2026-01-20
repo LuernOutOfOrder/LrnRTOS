@@ -76,7 +76,7 @@ pub fn foo_test_suite() {
 
 // Then, call the foo_test_suite function in the test_suites function
 
-// src/tests/mod.rs
+// src/tests/suites.rs
 
 /// Function calling all test suites function 
 fn test_suites() {
