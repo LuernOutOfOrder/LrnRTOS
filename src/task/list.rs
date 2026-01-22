@@ -9,7 +9,7 @@ pub struct TaskList {
 }
 
 impl TaskList {
-    const fn init() -> Self {
+    pub const fn init() -> Self {
         TaskList {
             list: [const { None }; TASK_LIST_MAX_SIZE],
             last_pid: 0,
@@ -53,4 +53,8 @@ pub fn task_list_add_task(new_task: Task) {
     unsafe {
         TASK_LIST.add_task(new_task)
     };
+}
+
+pub fn task_list_size() -> u8 {
+    unsafe { TASK_LIST.size}
 }

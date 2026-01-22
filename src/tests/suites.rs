@@ -11,6 +11,7 @@ use super::{
     ktime::ktime_test_suite,
     mem::memory_test_suite,
     platform::platform_test_suite,
+    task::{list::task_list_test_suite, task_test_suite},
 };
 
 // Call all test suite function to auto register all suites in test manager.
@@ -25,4 +26,6 @@ pub fn test_suites() {
     interrupt_enabling_test_suite();
     trap_handler_test_suite();
     memory_test_suite();
+    task_list_test_suite();
+    task_test_suite();
 }
