@@ -1,8 +1,5 @@
 use crate::{
-    task::{
-        list::task_list_size,
-        task_create,
-    },
+    task::{list::task_list_size, task_create},
     test_info,
     tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
 };

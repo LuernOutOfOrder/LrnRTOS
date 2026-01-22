@@ -56,5 +56,5 @@ pub fn task_list_add_task(new_task: Task) {
 }
 
 pub fn task_list_size() -> u8 {
-    unsafe { TASK_LIST.size}
+    unsafe { TASK_LIST.size }
 }
