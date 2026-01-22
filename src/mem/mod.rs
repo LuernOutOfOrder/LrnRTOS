@@ -5,6 +5,7 @@ Test coverage: All basic implementation and check correct value compared to Qemu
 
 Tested:
 - Memory structure methods.
+- Task allocation.
 
 Not tested:
 - The switch from the early boot stack, and final kernel stack.

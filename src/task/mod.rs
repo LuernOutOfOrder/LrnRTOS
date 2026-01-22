@@ -1,3 +1,21 @@
+/*
+File info: Task management. Handle all task logic.
+
+Test coverage: Basic task creation and test memory region.
+
+Tested:
+- task_create function.
+
+Not tested:
+- All context, fn ptr, state and priority.
+
+Reasons:
+- Not really testable yet. Will be easier once there'll be a scheduler.
+
+Tests files:
+- 'src/tests/task/mod.rs'
+*/
+
 use list::task_list_add_task;
 
 use crate::{arch::task_context::TaskContext, log, logs::LogLevel, mem::mem_task_alloc};

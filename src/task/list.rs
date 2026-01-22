@@ -1,3 +1,19 @@
+/*
+File info: Task list handling. Where task are saved.
+
+Test coverage: All basic implementation and check if the list is correctly updated when adding a new task.
+
+Tested:
+- TaskList structure methods.
+
+Not tested:
+
+Reasons:
+
+Tests files:
+- 'src/tests/task/list.rs'
+*/
+
 use crate::{config::TASK_LIST_MAX_SIZE, log, logs::LogLevel};
 
 use super::Task;
