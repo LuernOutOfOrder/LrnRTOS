@@ -12,6 +12,7 @@
 .set OFFSET_INSTRUCTION_REG, 147
 
 # Restore context function
+# We don't want any remaining data from previous task in the registers, even some CSRs
 .global restore_context
 .type restore_context, @function
 restore_context:
