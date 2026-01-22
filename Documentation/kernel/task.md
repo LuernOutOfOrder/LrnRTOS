@@ -56,6 +56,24 @@ pub struct TaskContext {
 }
 ```
 
+## How task is store
+
+Task are saved in a task list structure when creating a new task. This list is used to store all tasks and will be used in the scheduler.
+
+Task list structure:
+
+```rust
+pub struct TaskList {
+    // Static array with defined size in config file
+    // Where all the tasks are stored
+    list: [Option<Task>; TASK_LIST_MAX_SIZE],
+    // Used to know which task has been add last and used when creating a new task to increment this, update it and use it as the new task pid
+    last_pid: u16,
+    // Size of the list, used to know how many task are stored
+    size: u8,
+}
+```
+
 ## References
 
 - Core Dumped process video: `https://www.youtube.com/watch?v=LDhoD4IVElk`.
