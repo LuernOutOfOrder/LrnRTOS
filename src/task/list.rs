@@ -43,6 +43,10 @@ impl TaskList {
 
 pub static mut TASK_LIST: TaskList = TaskList::init();
 
+// Allow private_interfaces because we want don't want this function to handle the task, it's just
+// a public API wrapping the TaskList::add_task function
+#[allow(private_interfaces)]
+/// Add new task to the TASK_LIST static.
 pub fn task_list_add_task(new_task: Task) {
     // Allow static mut refs for now, kernel only run in monocore
     #[allow(static_mut_refs)]

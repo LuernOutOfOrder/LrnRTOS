@@ -6,6 +6,8 @@ pub mod list;
 
 // Enum representing all state of a task.
 #[repr(u8)]
+// Allow unused for now because this issue doesn't need to handle all task state
+#[allow(unused)]
 enum TaskState {
     New,
     Running,
