@@ -34,6 +34,13 @@ pub fn test_memory_task_alloc() -> u8 {
             correct_task_bottom, task_bottom
         );
     }
+    let compute_allocate_size = allocate_reg.unwrap()[0] - allocate_reg.unwrap()[1];
+    if compute_allocate_size != size {
+        panic!(
+            "Task allocation should have allocate the asked size: {:#x}, got: {:#x}",
+            compute_allocate_size, size
+        );
+    }
     0
 }
 
