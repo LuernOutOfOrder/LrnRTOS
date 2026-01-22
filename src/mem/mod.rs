@@ -44,6 +44,7 @@ impl Memory {
     const fn init_default() -> Self {
         unsafe { mem::zeroed() }
     }
+
     fn init() -> Self {
         let platform_mem = platform_init_mem();
         Memory {
@@ -62,8 +63,6 @@ impl Memory {
         [self.available, self.kernel_img_end]
     }
 
-    /// Return hi and lo address usable.
-    /// First element of array is the hi address usable, last one is lo address usable.
     pub fn task_alloc(&mut self, size: usize) -> Option<[usize; 2]> {
         let available = self.available;
         let bottom = self.kernel_img_end;
@@ -128,6 +127,16 @@ pub fn mem_kernel_stack_info<'a>() -> &'a KernelStack {
     }
 }
 
+/// Return the hi and lo address of the RAM
+/// first index is hi, second is lo
+pub fn mem_reg_info() -> [usize; 2] {
+    let hi = unsafe { MEMORY.mem_end };
+    let lo = unsafe { MEMORY.mem_start };
+    [hi, lo]
+}
+
+/// Return hi and lo address usable.
+/// First element of array is the hi address usable, last one is lo address usable.
 pub fn mem_task_alloc(size: usize) -> Option<[usize; 2]> {
     // Allow static mut refs for now
     // TODO: improve memory static to not use mut if possible
