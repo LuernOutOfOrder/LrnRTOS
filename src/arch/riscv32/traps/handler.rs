@@ -28,8 +28,6 @@ use crate::{
 
 use super::trap_frame::TrapFrame;
 
-// Include gnu_macro asm file in compilation
-global_asm!(include_str!("gnu_macro.S"));
 // Include trap_entry asm file for trap entry fn in compilation
 global_asm!(include_str!("trap_entry.S"));
 
