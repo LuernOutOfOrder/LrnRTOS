@@ -18,14 +18,23 @@ pub static LOG_LEVEL: LogLevel = LogLevel::Debug;
 // Define the uart address to use in kprint
 pub static KPRINT_ADDRESS: usize = 0x1000_0000;
 
+// ————————————————————————————————————————————————————————————
 // ———————— Define the max size of devices sub-systems ————————
+// ————————————————————————————————————————————————————————————
 pub static CPU_INTC_MAX_SIZE: usize = 2;
 pub static TIMER_MAX_SIZE: usize = 2;
 pub static SERIAL_MAX_SIZE: usize = 4;
 
-// ———————— Define the max size of fdt pool ————————
+// ————————————————————————————————————————————————————————————
+// ————————————— Define the max size of fdt pool ——————————————
+// ————————————————————————————————————————————————————————————
 pub static FDT_MAX_STACK: usize = 64;
 pub static FDT_MAX_PROPS: usize = 128;
+
+// ————————————————————————————————————————————————————————————
+// ————————————— Define the max size of Task list —————————————
+// ————————————————————————————————————————————————————————————
+pub static TASK_LIST_MAX_SIZE: usize = 4;
 
 // Kernel stack size
 // WARNING

@@ -6,6 +6,7 @@ mod ktime;
 mod mem;
 mod platform;
 mod suites;
+mod task;
 
 use platform::test_platform_init;
 use suites::test_suites;
@@ -176,7 +177,7 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
     // Iterate over all test suite and run all test inside
     for test_suite in unsafe { TEST_MANAGER.test_pool } {
         if test_suite.tests_nb == 0 {
-            break;
+            continue;
         }
         if test_suite.behavior == TestSuiteBehavior::Skipped {
             test_suites_skipped += 1;

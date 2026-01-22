@@ -54,3 +54,46 @@ High addresses
 +---------------------+  <- start of RAM
 Low addresses
 ```
+
+## Task stack
+
+When kernel create new task, it allocate the task stack on RAM, the task stack is allocate just under the kernel stack, and grows downward, like the kernel stack.
+Each time the kernel create a new task, it allocate the new task stack under the previous one, etc.
+
+```
+High addresses
++---------------------+  <- end of RAM
+|                     |
+|   Kernel stack      |  <- SP initial
+|   (grows downward)  |
+|                     |
++---------------------+
+|                     |
+|     Task 1 stack    |
+|                     |
++---------------------+
+|                     |
+|     Task 2 stack    |
+|                     |
++---------------------+
+|                     |
+|   Free / heap       |
+|                     |
++---------------------+
+|                     |
+|       Padding       |
+|    (if there is)    |
+|                     |
++---------------------+
+|                     |
+|   Kernel data       |
+|   (.bss, .data)     |
+|                     |
++---------------------+
+|                     |
+|   Kernel text       |
+|   (.text, rodata)   |
+|                     |
++---------------------+  <- start of RAM
+Low addresses
+```
