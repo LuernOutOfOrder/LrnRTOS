@@ -18,7 +18,7 @@ Tests files:
 
 mod kernel;
 
-use core::{arch::asm, mem, usize};
+use core::{arch::asm, mem};
 
 use kernel::{__kernel_end, __kernel_start, KernelStack};
 
@@ -56,6 +56,8 @@ impl Memory {
         }
     }
 
+    // Allow unused because this method can be useful for later
+    #[allow(unused)]
     fn mem_available(&self) -> [usize; 2] {
         [self.available, self.kernel_img_end]
     }
