@@ -9,5 +9,5 @@ unsafe extern "C" {
     // Restore the task context
     pub fn restore_context();
     // Restore context for a newly created task
-    pub fn new_task_context();
+    pub fn new_task_context(context: usize, entry_point: usize) -> !;
 }
