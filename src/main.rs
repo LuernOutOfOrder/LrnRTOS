@@ -49,7 +49,8 @@ pub mod tests;
 use core::panic::PanicInfo;
 use logs::LogLevel;
 use mem::mem_kernel_stack_info;
-use task::{list::task_list_get_task_by_pid, task_context_switch, task_create};
+use primitive::RingBuffer;
+use task::{Task, list::task_list_get_task_by_pid, task_context_switch, task_create};
 
 #[unsafe(no_mangle)]
 unsafe extern "C" fn main() -> ! {
@@ -66,6 +67,11 @@ unsafe extern "C" fn main() -> ! {
     // Temporary task creation and retrieving to test context switch.
     task_create("Testing task", task_fn, 0, 128);
     let task = task_list_get_task_by_pid(1).unwrap();
+    task_create("Testing task 2", task_2_fn, 0, 128);
+    let task_2 = task_list_get_task_by_pid(1).unwrap();
+    let mut buffer: RingBuffer<Task, 3> = RingBuffer::init();
+    buffer.push(*task);
+    buffer.push(*task_2);
     task_context_switch(task);
     loop {
         log!(LogLevel::Debug, "Main loop uptime.");
@@ -78,7 +84,16 @@ unsafe extern "C" fn main() -> ! {
 // Temp task entry point
 fn task_fn() -> ! {
     loop {
-        log!(LogLevel::Info, "THIS IS A TASK AND IT'S WORKING");
+        log!(LogLevel::Info, "A");
+        unsafe {
+            arch::traps::interrupt::enable_and_halt();
+        }
+    }
+}
+
+fn task_2_fn() -> ! {
+    loop {
+        log!(LogLevel::Info, "B");
         unsafe {
             arch::traps::interrupt::enable_and_halt();
         }
