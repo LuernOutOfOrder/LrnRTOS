@@ -79,6 +79,9 @@ impl Task {
         })
     }
 
+    /// Trigger context switch for the given task.
+    /// Use the appropriate asm function depending of the current task state.
+    /// If the task is new, update the current task state to running.
     fn context_switch(&mut self) -> &mut Self {
         let task = self;
         match task.state {
@@ -118,7 +121,7 @@ pub fn task_create(name: &str, func: fn() -> !, priority: u8, size: usize) {
     }
 }
 
-#[unsafe(no_mangle)]
+/// Temporary function to trigger context switch on a given task
 pub fn task_context_switch(task: &mut Task) {
     task.context_switch();
 }
