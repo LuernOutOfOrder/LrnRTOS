@@ -18,14 +18,6 @@
 restore_context:
   # Move current task context struct save in caller in s0 reg to t6
   mv t6, s0
-  # Restore current task context using GNU macro
-  # GNU macros from `src/arch/riscv32/asm/gnu_macro.S`
-  .set	i, 1
-  .rept	31
-    load_gp %i
-    .set	i, i+1
-  .endr
-  ret
   # Update sp
   # Restore sp from current task context structure
   lw t0, OFFSET_SP(t6)
@@ -33,5 +25,12 @@ restore_context:
   # Restore pc from offset
   lw t0, OFFSET_PC(t6)
   csrw mepc, t0
+  # Restore current task context using GNU macro
+  # GNU macros from `src/arch/riscv32/asm/gnu_macro.S`
+  .set	i, 1
+  .rept	31
+    load_gp %i
+    .set	i, i+1
+  .endr
   # Using mret we will return and continue execution from mepc
   mret
