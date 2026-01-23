@@ -37,6 +37,9 @@ pub mod info;
 // Task mod
 pub mod task;
 
+// Primitive type mod
+pub mod primitive;
+
 // Test module
 #[cfg(feature = "test")]
 pub mod tests;
