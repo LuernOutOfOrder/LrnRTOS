@@ -46,6 +46,7 @@ pub mod tests;
 use core::panic::PanicInfo;
 use logs::LogLevel;
 use mem::mem_kernel_stack_info;
+use task::{list::task_list_get_task_by_pid, task_context_switch, task_create};
 
 #[unsafe(no_mangle)]
 unsafe extern "C" fn main() -> ! {
@@ -58,8 +59,23 @@ unsafe extern "C" fn main() -> ! {
         kernel_stack.bottom
     );
     log!(LogLevel::Info, "LrnRTOS started!");
+
+    // Temporary task creation and retrieving to test context switch.
+    task_create("Testing task", task_fn, 0, 128);
+    let task = task_list_get_task_by_pid(1).unwrap();
+    task_context_switch(task);
     loop {
         log!(LogLevel::Debug, "Main loop uptime.");
+        unsafe {
+            arch::traps::interrupt::enable_and_halt();
+        }
+    }
+}
+
+// Temp task entry point
+fn task_fn() -> ! {
+    loop {
+        log!(LogLevel::Info, "THIS IS A TASK AND IT'S WORKING");
         unsafe {
             arch::traps::interrupt::enable_and_halt();
         }
