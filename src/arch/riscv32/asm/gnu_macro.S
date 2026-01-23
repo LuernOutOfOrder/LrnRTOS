@@ -17,3 +17,10 @@
 .macro load_fp i, basereg=t6
 	flw	f\i, ((NUM_GP_REGS+(\i))*REG_SIZE)(\basereg)
 .endm
+# Macro used to load context from all saved general purpose registers store in t6 during a context switch
+# Avoid loading sp and t6 registers to avoid overriding both
+.macro load_gp_context i, basereg= t6
+  .if ((\i) != 2) && ((\i) != 31)
+    lw x\i, ((\i)*REG_SIZE)(\basereg)
+  .endif
+.endm
