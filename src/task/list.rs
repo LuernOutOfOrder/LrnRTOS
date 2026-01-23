@@ -70,6 +70,17 @@ impl TaskList {
         }
         None
     }
+
+    pub fn update_task(&mut self, pid: u16, update_task: Task) {
+        for i in 0..TASK_LIST_MAX_SIZE {
+            let task = unsafe { (*self.list[i].get()).as_mut() };
+            if let Some(is_task) = task
+                && is_task.pid == pid
+            {
+                unsafe { *self.list[i].get() = Some(update_task) };
+            }
+        }
+    }
 }
 
 pub static mut TASK_LIST: TaskList = TaskList::init();
@@ -95,5 +106,13 @@ pub fn task_list_get_task_by_pid<'a>(pid: u16) -> Option<&'a mut Task> {
     #[allow(static_mut_refs)]
     unsafe {
         TASK_LIST.get_task(pid)
+    }
+}
+
+pub fn task_list_update_task_by_pid(pid: u16, task: Task) {
+    // Allow static mut refs for now, kernel only run in monocore
+    #[allow(static_mut_refs)]
+    unsafe {
+        TASK_LIST.update_task(pid, task);
     }
 }

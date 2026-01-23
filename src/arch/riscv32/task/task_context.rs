@@ -1,6 +1,7 @@
 use super::{new_task_context, restore_context};
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct TaskContext {
     pub gpr: [u32; 32],           // Offset 0
     pub address_space: [u32; 2],  // Offset 128 (first index 128; second index 132)
@@ -11,12 +12,12 @@ pub struct TaskContext {
 }
 
 impl TaskContext {
-    pub const fn init(size: [usize; 2]) -> Self {
+    pub fn init(size: [usize; 2], func: fn() -> !) -> Self {
         TaskContext {
             gpr: [0u32; 32],
             address_space: [size[0] as u32, size[1] as u32],
-            pc: 0,
-            sp: 0,
+            pc: func as usize as u32,
+            sp: size[0] as u32,
             flags: [0u8; 3],
             instruction_register: 0,
         }

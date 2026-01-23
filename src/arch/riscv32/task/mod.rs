@@ -4,7 +4,6 @@ pub mod task_context;
 
 global_asm!(include_str!("context_offset.S"));
 global_asm!(include_str!("restore_context.S"));
-global_asm!(include_str!("new_context.S"));
 
 // Asm function for task context switch
 unsafe extern "C" {

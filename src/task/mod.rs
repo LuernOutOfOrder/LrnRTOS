@@ -16,9 +16,9 @@ Tests files:
 - 'src/tests/task/mod.rs'
 */
 
-use list::task_list_add_task;
+use list::{task_list_add_task, task_list_update_task_by_pid};
 
-use crate::{arch::task::task_context::TaskContext, log, logs::LogLevel, mem::mem_task_alloc};
+use crate::{arch::task::task_context::TaskContext, kprint_fmt, log, logs::LogLevel, mem::mem_task_alloc};
 
 pub mod list;
 
@@ -26,6 +26,7 @@ pub mod list;
 #[repr(u8)]
 // Allow unused for now because this issue doesn't need to handle all task state
 #[allow(unused)]
+#[derive(Copy, Clone)]
 pub enum TaskState {
     New,
     Running,
@@ -34,6 +35,7 @@ pub enum TaskState {
     Terminated,
 }
 
+#[derive(Copy, Clone)]
 #[repr(C)]
 pub struct Task {
     // Arch dependant context, don't handle this field in task, only use struct method when
@@ -70,7 +72,7 @@ impl Task {
         }
         // Return new task
         Some(Task {
-            context: TaskContext::init(mem_reg.unwrap()),
+            context: TaskContext::init(mem_reg.unwrap(), func),
             func,
             pid: 0,
             name: buf,
@@ -82,21 +84,24 @@ impl Task {
     /// Trigger context switch for the given task.
     /// Use the appropriate asm function depending of the current task state.
     /// If the task is new, update the current task state to running.
-    fn context_switch(&mut self) -> &mut Self {
-        let task = self;
-        match task.state {
+    fn context_switch(&mut self) {
+        match self.state {
             TaskState::New => {
-                task.context.new_context_switch(task.func);
-                task.state = TaskState::Running;
+                self.state = TaskState::Running;
+                task_list_update_task_by_pid(self.pid, *self);
+                self.context.context_switch();
             }
             TaskState::Running => {
-                task.context.context_switch();
+                self.context.context_switch();
             }
-            TaskState::Ready => todo!(),
+            TaskState::Ready => {
+                self.state = TaskState::Running;
+                task_list_update_task_by_pid(self.pid, *self);
+                self.context.context_switch();
+            }
             TaskState::Waiting => todo!(),
             TaskState::Terminated => todo!(),
         }
-        task
     }
 }
 
