@@ -1,4 +1,4 @@
-use super::{new_task_context, restore_context};
+use super::restore_context;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -23,24 +23,21 @@ impl TaskContext {
         }
     }
 
-    /// Trigger a context switch for a newly created task
-    pub fn new_context_switch(&self, task_func: fn() -> !) {
-        // Ptr to self struct
-        let self_ptr = self as *const _ as usize;
-        // Set task entry point to s2 reg
-        let task_entry_ptr = task_func as usize;
-        // Call new_task_context asm fn
-        // Pass argument here instead of using asm! macro to ensure that the ABI is respected
-        unsafe { new_task_context(self_ptr, task_entry_ptr) };
-    }
-
     /// Trigger a context switch for a task
     pub fn context_switch(&self) {
-        // Save the ptr to self struct to s1 reg, use saved registers to preserved it from across
-        // call
+        // Save the ptr to self struct, use saved registers to preserved it from across
         let self_ptr = self as *const _ as usize;
         // Call restore_context asm fn
         // Pass argument here instead of using asm! macro to ensure that the ABI is respected
         unsafe { restore_context(self_ptr) };
+    }
+
+    /// Trigger a context saving.
+    pub fn context_save(&self) {
+        // Save the ptr to self struct, use saved registers to preserved it from across
+        let self_ptr = self as *const _ as usize;
+        // Call restore_context asm fn
+        // Pass argument here instead of using asm! macro to ensure that the ABI is respected
+        unsafe { save_context(self_ptr) };
     }
 }
