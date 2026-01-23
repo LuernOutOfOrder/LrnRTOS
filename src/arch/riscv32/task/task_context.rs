@@ -1,6 +1,8 @@
 use core::arch::asm;
 
-use super::restore_context;
+use crate::task::{Task, TaskState};
+
+use super::{new_task_context, restore_context};
 
 #[repr(C)]
 pub struct TaskContext {
@@ -24,12 +26,22 @@ impl TaskContext {
         }
     }
 
-    fn prepare_context_switch(&self) {
+    pub fn new_context_switch(&self, task_func: fn() -> !) {
         // Ptr to self struct
         let self_ptr = self as *const _ as usize;
+        unsafe { asm!("mv s0, {}", in(reg) self_ptr) };
+        // Set task entry point to s2 reg
+        let task_entry_ptr = task_func;
+        unsafe { asm!("mv s1, {}", in(reg) task_entry_ptr) };
+        // Call new_task_context asm fn
+        unsafe { new_task_context() };
+    }
+
+    pub fn context_switch(&self) {
         // Save the ptr to self struct to s1 reg, use saved registers to preserved it from across
-        // calls
-        unsafe { asm!("mv s1, {}", in(reg) self_ptr) };
+        // call 
+        let self_ptr = self as *const _ as usize;
+        unsafe { asm!("mv s0, {}", in(reg) self_ptr) };
         unsafe { restore_context() };
     }
 }

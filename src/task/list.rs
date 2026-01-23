@@ -14,12 +14,14 @@ Tests files:
 - 'src/tests/task/list.rs'
 */
 
+use core::cell::UnsafeCell;
+
 use crate::{config::TASK_LIST_MAX_SIZE, log, logs::LogLevel};
 
 use super::Task;
 
 pub struct TaskList {
-    list: [Option<Task>; TASK_LIST_MAX_SIZE],
+    list: [UnsafeCell<Option<Task>>; TASK_LIST_MAX_SIZE],
     last_pid: u16,
     size: u8,
 }
@@ -27,7 +29,7 @@ pub struct TaskList {
 impl TaskList {
     pub const fn init() -> Self {
         TaskList {
-            list: [const { None }; TASK_LIST_MAX_SIZE],
+            list: [const { UnsafeCell::new(None) }; TASK_LIST_MAX_SIZE],
             last_pid: 0,
             size: 0,
         }
@@ -41,19 +43,32 @@ impl TaskList {
         }
         // Iter over the list to add new task
         for i in 0..TASK_LIST_MAX_SIZE {
-            if self.list[i].is_none() {
+            let task = unsafe { &*self.list[i].get() };
+            if task.is_none() {
                 // Increment last_pid by 1 to use as new_task.pid
                 self.last_pid += 1;
                 // Update new_task pid
                 let mut update_task = new_task;
                 update_task.pid = self.last_pid;
                 // Push new task to the list
-                self.list[i] = Some(update_task);
+                unsafe { *self.list[i].get() = Some(update_task) };
                 // Increment current list size by 1
                 self.size += 1;
                 break;
             }
         }
+    }
+
+    pub fn get_task(&mut self, pid: u16) -> Option<&mut Task> {
+        for i in 0..TASK_LIST_MAX_SIZE {
+            let task = unsafe { (*self.list[i].get()).as_mut() };
+            if let Some(is_task) = task
+                && is_task.pid == pid
+            {
+                return Some(is_task);
+            }
+        }
+        None
     }
 }
 
@@ -73,4 +88,12 @@ pub fn task_list_add_task(new_task: Task) {
 
 pub fn task_list_size() -> u8 {
     unsafe { TASK_LIST.size }
+}
+
+pub fn task_list_get_task_by_pid<'a>(pid: u16) -> Option<&'a mut Task> {
+    // Allow static mut refs for now, kernel only run in monocore
+    #[allow(static_mut_refs)]
+    unsafe {
+        TASK_LIST.get_task(pid)
+    }
 }

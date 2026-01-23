@@ -26,7 +26,7 @@ pub mod list;
 #[repr(u8)]
 // Allow unused for now because this issue doesn't need to handle all task state
 #[allow(unused)]
-enum TaskState {
+pub enum TaskState {
     New,
     Running,
     Ready,
@@ -35,16 +35,16 @@ enum TaskState {
 }
 
 #[repr(C)]
-struct Task {
+pub struct Task {
     // Arch dependant context, don't handle this field in task, only use struct method when
     // interacting with it.
     context: TaskContext,
     // Fn ptr to task entry point, this must never return.
-    func: fn() -> !,
+    pub func: fn() -> !,
     pid: u16,
     name: [u8; 16],
     // Task state, when creating a new task, use the new variant.
-    state: TaskState,
+    pub state: TaskState,
     // Priority of a task, use an u8, u8 max size represent the higher level of priority.
     priority: u8,
 }
@@ -78,6 +78,23 @@ impl Task {
             priority,
         })
     }
+
+    fn context_switch(&mut self) -> &mut Self {
+        let task = self;
+        match task.state {
+            TaskState::New => {
+                task.context.new_context_switch(task.func);
+                task.state = TaskState::Running;
+            }
+            TaskState::Running => {
+                task.context.context_switch();
+            }
+            TaskState::Ready => todo!(),
+            TaskState::Waiting => todo!(),
+            TaskState::Terminated => todo!(),
+        }
+        task
+    }
 }
 
 /// Create a new task. And register it to the task list.
@@ -99,4 +116,9 @@ pub fn task_create(name: &str, func: fn() -> !, priority: u8, size: usize) {
             "Failed to create task: {name}, try reducing task size if possible."
         );
     }
+}
+
+#[unsafe(no_mangle)]
+pub fn task_context_switch(task: &mut Task) {
+    task.context_switch();
 }
