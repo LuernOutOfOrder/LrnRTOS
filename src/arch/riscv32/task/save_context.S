@@ -8,11 +8,11 @@ save_context:
   # Get current sp 
   mv t0, sp
   # Store word from t0(sp) in context structure
-  sw OFFSET_SP(t6), t0
+  sw t0, OFFSET_SP(t6)
   # Get current pc
   csrr t0, mepc
   # Store word from t0(mepc) in context structure
-  sw OFFSET_PC(t6), t0
+  sw t0, OFFSET_PC(t6)
   # Save current task context using GNU macro
   # GNU macros from `src/arch/riscv32/asm/gnu_macro.S`
   .set	i, 1
@@ -31,4 +31,4 @@ save_context:
   # Update mstatus
   csrw  mstatus, t0
   # Using mret we will return and continue execution from mepc
-  mret
+  ret

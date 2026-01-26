@@ -1,7 +1,7 @@
-use super::restore_context;
+use super::{restore_context, save_context};
 
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct TaskContext {
     pub gpr: [u32; 32],           // Offset 0
     pub address_space: [u32; 2],  // Offset 128 (first index 128; second index 132)
