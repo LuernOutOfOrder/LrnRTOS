@@ -53,10 +53,11 @@ use core::panic::PanicInfo;
 use logs::LogLevel;
 use mem::mem_kernel_stack_info;
 use primitive::RingBuffer;
-use task::{Task, list::task_list_get_task_by_pid, task_context_switch, task_create, r#yield};
+use scheduler::dispatch;
+use task::{list::task_list_get_task_by_pid, task_context_switch, task_create, r#yield, CURRENT_TASK_PID};
 
 /// Temporary static mut buffer, used to store and retrieve task.
-pub static mut BUFFER: RingBuffer<Task, 3> = RingBuffer::init();
+pub static mut BUFFER: RingBuffer<u16, 3> = RingBuffer::init();
 
 #[unsafe(no_mangle)]
 unsafe extern "C" fn main() -> ! {
@@ -72,18 +73,14 @@ unsafe extern "C" fn main() -> ! {
 
     // Temporary task creation and retrieving to test context switch.
     task_create("Testing task", task_fn, 0, 128);
-    let task = task_list_get_task_by_pid(1).unwrap();
     task_create("Testing task 2", task_2_fn, 0, 128);
-    let task_2 = task_list_get_task_by_pid(2).unwrap();
     #[allow(static_mut_refs)]
     unsafe {
-        BUFFER.push(*task)
+        BUFFER.push(2)
     };
-    #[allow(static_mut_refs)]
-    unsafe {
-        BUFFER.push(*task_2)
-    };
-    task_context_switch(task);
+    unsafe { CURRENT_TASK_PID = 1 };
+    let task = task_list_get_task_by_pid(unsafe { CURRENT_TASK_PID });
+    task_context_switch(task.unwrap());
     loop {
         log!(LogLevel::Debug, "Main loop uptime.");
         unsafe {

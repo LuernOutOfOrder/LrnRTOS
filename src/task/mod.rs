@@ -16,7 +16,7 @@ Tests files:
 - 'src/tests/task/mod.rs'
 */
 
-use list::task_list_add_task;
+use list::{task_list_add_task, task_list_get_last_pid};
 
 use crate::{
     arch::task::task_context::TaskContext, log, logs::LogLevel, mem::mem_task_alloc,
@@ -122,8 +122,12 @@ pub fn task_create(name: &str, func: fn() -> !, priority: u8, size: usize) {
     let new_task = Task::init(name, func, priority, size);
     if let Some(task) = new_task {
         let name = str::from_utf8(&task.name).unwrap();
-        log!(LogLevel::Info, "Successfully created task: {name}");
-        task_list_add_task(task);
+        let updated_task_pid = task_list_add_task(task);
+        log!(
+            LogLevel::Info,
+            "Successfully created task: {name} with pid: {}",
+            updated_task_pid
+        );
     } else {
         log!(
             LogLevel::Error,

@@ -36,19 +36,18 @@ impl<T: Copy + core::fmt::Debug, const N: usize> RingBuffer<T, N> {
         self.count += 1;
     }
 
-    // Pop oldest element, return an Option<&mut T> and increment head.
-    pub fn pop(&mut self) -> Option<&mut T> {
-        kprint_fmt!("debug buff: {:?}\n", self);
+    // Pop oldest element
+    pub fn pop(&mut self) -> Option<T> {
         // Check if buffer is empty
         if self.head == self.tail {
             log!(LogLevel::Warn, "Ring buffer is empty, abort pop.");
             return None;
         }
         if self.buff[self.head].is_some() {
-            let element = self.buff[self.head].as_mut().unwrap();
+            let element = self.buff[self.head].take();
             self.head = (self.head + 1) % N;
             self.count -= 1;
-            Some(element)
+            element
         } else {
             None
         }

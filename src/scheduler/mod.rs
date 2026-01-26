@@ -1,7 +1,11 @@
 use crate::{
     BUFFER, kprint, kprint_fmt, log,
     logs::LogLevel,
-    task::{TaskState, task_context_save, task_context_switch},
+    task::{
+        CURRENT_TASK_PID, TaskState,
+        list::{task_list_get_task_by_pid, task_list_update_task_by_pid},
+        task_context_save, task_context_switch,
+    },
 };
 
 /// Temporary function use to test the context switch and context restore on multiple task.
@@ -10,38 +14,32 @@ use crate::{
 /// RingBuffer.
 /// Read on the RingBuffer to get the next task, update it, and update the RingBuffer.
 /// Not the best way to use the RingBuffer but it will do.
-#[unsafe(no_mangle)]
 pub fn dispatch() {
-    // Save and update current task
-    #[allow(static_mut_refs)]
-    let current_task = unsafe { BUFFER.read() };
-    if current_task.is_none() {
-        log!(
-            LogLevel::Error,
-            "Error getting the last task from RingBuffer"
-        );
-    }
-    let task = current_task.unwrap();
-    task_context_save(&*task);
-    task.state = TaskState::Ready;
+    // Current running task
+    let current_task_pid = unsafe { CURRENT_TASK_PID };
+    let current_task = task_list_get_task_by_pid(current_task_pid).unwrap();
+    kprint_fmt!("current task: {:?}•\n", current_task);
+    task_context_save(&*current_task);
+    current_task.state = TaskState::Ready;
+    task_list_update_task_by_pid(current_task_pid, *current_task);
     #[allow(static_mut_refs)]
     unsafe {
-        BUFFER.update(*task)
+        BUFFER.push(current_task_pid)
     };
     // Update and load next task
     #[allow(static_mut_refs)]
-    let new_task = unsafe { BUFFER.read() };
-    if new_task.is_none() {
+    let get_next_task = unsafe { BUFFER.pop() };
+    if get_next_task.is_none() {
         log!(
             LogLevel::Error,
             "Error getting the last task from RingBuffer"
         );
     }
-    let task = new_task.unwrap();
-    task.state = TaskState::Running;
-    #[allow(static_mut_refs)]
-    unsafe {
-        BUFFER.update(*task)
-    };
-    task_context_switch(task);
+    let next_task_pid = get_next_task.unwrap();
+    let next_task = task_list_get_task_by_pid(next_task_pid).unwrap();
+    kprint_fmt!("next task: {:?}•\n", next_task);
+    next_task.state = TaskState::Running;
+    task_list_update_task_by_pid(next_task_pid, *next_task);
+    unsafe { CURRENT_TASK_PID = next_task_pid };
+    task_context_switch(next_task);
 }

@@ -35,11 +35,12 @@ impl TaskList {
         }
     }
 
-    fn add_task(&mut self, new_task: Task) {
+    /// Add the new task to the task list and return the pid.
+    fn add_task(&mut self, new_task: Task) -> u16 {
         // Check possible overflow, abort if self.size == TASK_LIST_MAX_SIZE
         if self.size as usize == TASK_LIST_MAX_SIZE {
             log!(LogLevel::Warn, "Task list is full, ignore adding new task.");
-            return;
+            return 0;
         }
         // Iter over the list to add new task
         for i in 0..TASK_LIST_MAX_SIZE {
@@ -54,9 +55,11 @@ impl TaskList {
                 unsafe { *self.list[i].get() = Some(update_task) };
                 // Increment current list size by 1
                 self.size += 1;
-                break;
+                return update_task.pid;
             }
         }
+        // This should never be reach
+        0
     }
 
     pub fn get_task(&mut self, pid: u16) -> Option<&mut Task> {
@@ -81,6 +84,10 @@ impl TaskList {
             }
         }
     }
+
+    pub fn get_last_pid(&self) -> u16 {
+        self.last_pid
+    }
 }
 
 pub static mut TASK_LIST: TaskList = TaskList::init();
@@ -88,13 +95,13 @@ pub static mut TASK_LIST: TaskList = TaskList::init();
 // Allow private_interfaces because we want don't want this function to handle the task, it's just
 // a public API wrapping the TaskList::add_task function
 #[allow(private_interfaces)]
-/// Add new task to the TASK_LIST static.
-pub fn task_list_add_task(new_task: Task) {
+/// Add new task to the TASK_LIST static and return new task pid
+pub fn task_list_add_task(new_task: Task) -> u16 {
     // Allow static mut refs for now, kernel only run in monocore
     #[allow(static_mut_refs)]
     unsafe {
         TASK_LIST.add_task(new_task)
-    };
+    }
 }
 
 pub fn task_list_size() -> u8 {
@@ -114,5 +121,13 @@ pub fn task_list_update_task_by_pid(pid: u16, task: Task) {
     #[allow(static_mut_refs)]
     unsafe {
         TASK_LIST.update_task(pid, task);
+    }
+}
+
+pub fn task_list_get_last_pid() -> u16 {
+    // Allow static mut refs for now, kernel only run in monocore
+    #[allow(static_mut_refs)]
+    unsafe {
+        TASK_LIST.get_last_pid()
     }
 }
