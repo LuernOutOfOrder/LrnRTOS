@@ -16,17 +16,24 @@ Tests files:
 - 'src/tests/task/mod.rs'
 */
 
-use list::{task_list_add_task, task_list_update_task_by_pid};
+use list::task_list_add_task;
 
-use crate::{arch::task::task_context::TaskContext, kprint_fmt, log, logs::LogLevel, mem::mem_task_alloc};
+use crate::{
+    arch::task::task_context::TaskContext, log, logs::LogLevel, mem::mem_task_alloc,
+    scheduler::dispatch,
+};
 
 pub mod list;
+
+// Mutable static to keep track of the current task
+// Only relevant on a monocore CPU.
+pub static mut CURRENT_TASK_PID: u16 = 0;
 
 // Enum representing all state of a task.
 #[repr(u8)]
 // Allow unused for now because this issue doesn't need to handle all task state
 #[allow(unused)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum TaskState {
     New,
     Running,
@@ -35,7 +42,7 @@ pub enum TaskState {
     Terminated,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 #[repr(C)]
 pub struct Task {
     // Arch dependant context, don't handle this field in task, only use struct method when
@@ -82,26 +89,25 @@ impl Task {
     }
 
     /// Trigger context switch for the given task.
-    /// Use the appropriate asm function depending of the current task state.
-    /// If the task is new, update the current task state to running.
-    fn context_switch(&mut self) {
-        match self.state {
-            TaskState::New => {
-                self.state = TaskState::Running;
-                task_list_update_task_by_pid(self.pid, *self);
-                self.context.context_switch();
-            }
-            TaskState::Running => {
-                self.context.context_switch();
-            }
-            TaskState::Ready => {
-                self.state = TaskState::Running;
-                task_list_update_task_by_pid(self.pid, *self);
-                self.context.context_switch();
-            }
-            TaskState::Waiting => todo!(),
-            TaskState::Terminated => todo!(),
-        }
+    fn context_switch(&self) {
+        self.context.context_switch();
+        // match self.state {
+        //     TaskState::New => {
+        //         self.context.context_switch();
+        //     }
+        //     TaskState::Running => {
+        //         self.context.context_switch();
+        //     }
+        //     TaskState::Ready => {
+        //         self.context.context_switch();
+        //     }
+        //     TaskState::Waiting => todo!(),
+        //     TaskState::Terminated => todo!(),
+        // }
+    }
+
+    fn context_save(&self) {
+        self.context.context_save();
     }
 }
 
@@ -127,6 +133,16 @@ pub fn task_create(name: &str, func: fn() -> !, priority: u8, size: usize) {
 }
 
 /// Temporary function to trigger context switch on a given task
-pub fn task_context_switch(task: &mut Task) {
+pub fn task_context_switch(task: &Task) {
     task.context_switch();
+}
+
+pub fn task_context_save(task: &Task) {
+    task.context_save();
+}
+
+/// When a task call yield explicitely, it will trigger a reschedule of tasks, save context of the
+/// current task and switch to the next one.
+pub fn r#yield() {
+    dispatch();
 }

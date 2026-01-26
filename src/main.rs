@@ -40,6 +40,9 @@ pub mod task;
 // Primitive type mod
 pub mod primitive;
 
+// Scheduler module
+pub mod scheduler;
+
 // Test module
 #[cfg(feature = "test")]
 pub mod tests;
@@ -50,7 +53,10 @@ use core::panic::PanicInfo;
 use logs::LogLevel;
 use mem::mem_kernel_stack_info;
 use primitive::RingBuffer;
-use task::{Task, list::task_list_get_task_by_pid, task_context_switch, task_create};
+use task::{Task, list::task_list_get_task_by_pid, task_context_switch, task_create, r#yield};
+
+/// Temporary static mut buffer, used to store and retrieve task.
+pub static mut BUFFER: RingBuffer<Task, 3> = RingBuffer::init();
 
 #[unsafe(no_mangle)]
 unsafe extern "C" fn main() -> ! {
@@ -68,10 +74,15 @@ unsafe extern "C" fn main() -> ! {
     task_create("Testing task", task_fn, 0, 128);
     let task = task_list_get_task_by_pid(1).unwrap();
     task_create("Testing task 2", task_2_fn, 0, 128);
-    let task_2 = task_list_get_task_by_pid(1).unwrap();
-    let mut buffer: RingBuffer<Task, 3> = RingBuffer::init();
-    buffer.push(*task);
-    buffer.push(*task_2);
+    let task_2 = task_list_get_task_by_pid(2).unwrap();
+    #[allow(static_mut_refs)]
+    unsafe {
+        BUFFER.push(*task)
+    };
+    #[allow(static_mut_refs)]
+    unsafe {
+        BUFFER.push(*task_2)
+    };
     task_context_switch(task);
     loop {
         log!(LogLevel::Debug, "Main loop uptime.");
@@ -85,6 +96,7 @@ unsafe extern "C" fn main() -> ! {
 fn task_fn() -> ! {
     loop {
         log!(LogLevel::Info, "A");
+        r#yield();
         unsafe {
             arch::traps::interrupt::enable_and_halt();
         }
@@ -94,6 +106,7 @@ fn task_fn() -> ! {
 fn task_2_fn() -> ! {
     loop {
         log!(LogLevel::Info, "B");
+        r#yield();
         unsafe {
             arch::traps::interrupt::enable_and_halt();
         }
