@@ -30,5 +30,6 @@ save_context:
   or    t0, t0, t1
   # Update mstatus
   csrw  mstatus, t0
-  # Using mret we will return and continue execution from mepc
+  # Using ret we will return and continue execution just after this function in the caller
+  # We don't want to use mret to avoid returning in the task function entry point
   ret
