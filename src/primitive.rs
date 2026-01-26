@@ -1,4 +1,4 @@
-use crate::{kprint_fmt, log, logs::LogLevel};
+use crate::{log, logs::LogLevel};
 
 #[derive(Debug)]
 pub struct RingBuffer<T, const N: usize> {

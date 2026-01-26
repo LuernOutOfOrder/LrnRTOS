@@ -16,7 +16,7 @@ Tests files:
 - 'src/tests/task/mod.rs'
 */
 
-use list::{task_list_add_task, task_list_get_last_pid};
+use list::task_list_add_task;
 
 use crate::{
     arch::task::task_context::TaskContext, log, logs::LogLevel, mem::mem_task_alloc,
