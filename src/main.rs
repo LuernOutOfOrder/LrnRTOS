@@ -54,7 +54,9 @@ use logs::LogLevel;
 use mem::mem_kernel_stack_info;
 use primitive::RingBuffer;
 use scheduler::dispatch;
-use task::{list::task_list_get_task_by_pid, task_context_switch, task_create, r#yield, CURRENT_TASK_PID};
+use task::{
+    CURRENT_TASK_PID, list::task_list_get_task_by_pid, task_context_switch, task_create, r#yield,
+};
 
 /// Temporary static mut buffer, used to store and retrieve task.
 pub static mut BUFFER: RingBuffer<u16, 3> = RingBuffer::init();
@@ -94,9 +96,6 @@ fn task_fn() -> ! {
     loop {
         log!(LogLevel::Info, "A");
         r#yield();
-        unsafe {
-            arch::traps::interrupt::enable_and_halt();
-        }
     }
 }
 
@@ -104,9 +103,6 @@ fn task_2_fn() -> ! {
     loop {
         log!(LogLevel::Info, "B");
         r#yield();
-        unsafe {
-            arch::traps::interrupt::enable_and_halt();
-        }
     }
 }
 

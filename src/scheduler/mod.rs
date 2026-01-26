@@ -1,5 +1,5 @@
 use crate::{
-    BUFFER, kprint, kprint_fmt, log,
+    BUFFER, log,
     logs::LogLevel,
     task::{
         CURRENT_TASK_PID, TaskState,
@@ -18,7 +18,6 @@ pub fn dispatch() {
     // Current running task
     let current_task_pid = unsafe { CURRENT_TASK_PID };
     let current_task = task_list_get_task_by_pid(current_task_pid).unwrap();
-    kprint_fmt!("current task: {:?}•\n", current_task);
     task_context_save(&*current_task);
     current_task.state = TaskState::Ready;
     task_list_update_task_by_pid(current_task_pid, *current_task);
@@ -37,7 +36,6 @@ pub fn dispatch() {
     }
     let next_task_pid = get_next_task.unwrap();
     let next_task = task_list_get_task_by_pid(next_task_pid).unwrap();
-    kprint_fmt!("next task: {:?}•\n", next_task);
     next_task.state = TaskState::Running;
     task_list_update_task_by_pid(next_task_pid, *next_task);
     unsafe { CURRENT_TASK_PID = next_task_pid };
