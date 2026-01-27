@@ -38,7 +38,7 @@ pub mod info;
 pub mod task;
 
 // Primitive type mod
-pub mod primitive;
+pub mod primitives;
 
 // Scheduler module
 pub mod scheduler;
@@ -52,7 +52,7 @@ pub mod tests;
 use core::panic::PanicInfo;
 use logs::LogLevel;
 use mem::mem_kernel_stack_info;
-use primitive::RingBuffer;
+use primitives::RingBuffer;
 use task::{
     CURRENT_TASK_PID, list::task_list_get_task_by_pid, task_context_switch, task_create, r#yield,
 };

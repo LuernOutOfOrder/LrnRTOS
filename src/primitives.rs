@@ -1,3 +1,18 @@
+/*
+File info: Primitive type, used in different situation.
+
+Test coverage: ....
+
+Tested:
+
+Not tested:
+
+Reasons:
+
+Tests files:
+- 'src/tests/primitives.rs'
+*/
+
 use crate::{log, logs::LogLevel};
 
 #[derive(Debug)]
