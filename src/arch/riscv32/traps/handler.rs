@@ -19,17 +19,12 @@ Tests files:
 - 'src/tests/arch/riscv32/traps/handler.rs'
 */
 
-use core::arch::global_asm;
-
 use crate::{
     config::TICK_DURATION,
     ktime::{set_ktime_ms, tick::increment_tick},
 };
 
 use super::trap_frame::TrapFrame;
-
-// Include trap_entry asm file for trap entry fn in compilation
-global_asm!(include_str!("trap_entry.S"));
 
 /// Trap routines
 /// Enter this function from trap_entry caller
