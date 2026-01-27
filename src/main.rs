@@ -48,6 +48,7 @@ pub mod scheduler;
 pub mod tests;
 
 // Use from modules
+#[cfg(not(feature = "test"))]
 use core::panic::PanicInfo;
 use logs::LogLevel;
 use mem::mem_kernel_stack_info;
