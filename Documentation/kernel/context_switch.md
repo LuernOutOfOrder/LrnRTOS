@@ -27,3 +27,8 @@ From now on, there's: a list containing all task, and a static storing the `pid`
 I've added a `FIFO queue`, from a `RingBuffer type`, it's used to store all `Ready` task, so when calling the yield, and trigger a reschedule, the kernel only have to look into this `FIFO queue` to find the next task to run.
 Then, the reschedule will get the task from the static `handler(pid)`, update it to make it `Ready`, get the next task from the `FIFO queue` or ready task, update it to `Running` state, update the static `handler(pid)` and context switch on it.
 
+## Invariants
+
+- When a task is saved, its state is correctly saved in its own context.
+- When a new task is restore, it's CPU state is correctly restored, its execution restart at `PC` and in its own stack.
+- State of multiple task must not be crossed corrupted.
