@@ -33,7 +33,7 @@ pub static mut CURRENT_TASK_PID: u16 = 0;
 #[repr(u8)]
 // Allow unused for now because this issue doesn't need to handle all task state
 #[allow(unused)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 pub enum TaskState {
     New,
     Running,
@@ -42,7 +42,7 @@ pub enum TaskState {
     Terminated,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 #[repr(C)]
 pub struct Task {
     // Arch dependant context, don't handle this field in task, only use struct method when
