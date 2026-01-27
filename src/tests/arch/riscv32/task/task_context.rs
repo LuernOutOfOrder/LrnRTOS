@@ -1,6 +1,14 @@
+use core::mem;
+
 use crate::{
-    arch::task::task_context::TaskContext,
-    test_failed,
+    BUFFER,
+    arch::{task::task_context::TaskContext, traps::interrupt::halt},
+    print,
+    task::{
+        CURRENT_TASK_PID, list::task_list_get_task_by_pid, task_context_switch, task_create,
+        r#yield,
+    },
+    test_failed, test_info,
     tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
 };
 
@@ -45,6 +53,86 @@ pub fn test_task_context_init() -> u8 {
     0
 }
 
+pub fn test_task_context_offset() -> u8 {
+    let gpr_off = mem::offset_of!(TaskContext, gpr);
+    if gpr_off != 0 {
+        panic!("Task context gpr offset must be 0, got: {gpr_off}");
+    }
+    let addr_spc_off = mem::offset_of!(TaskContext, address_space);
+    if addr_spc_off != 128 {
+        panic!("Task context address_space offset must be 128, got: {addr_spc_off}");
+    }
+    let pc_off = mem::offset_of!(TaskContext, pc);
+    if pc_off != 136 {
+        panic!("Task context pc offset must be 136, got: {pc_off}");
+    }
+    let sp_off = mem::offset_of!(TaskContext, sp);
+    if sp_off != 140 {
+        panic!("Task context sp offset must be 140, got: {sp_off}");
+    }
+    let flags_off = mem::offset_of!(TaskContext, flags);
+    if flags_off != 144 {
+        panic!("Task context flags offset must be 144, got: {flags_off}");
+    }
+    let instruction_reg_off = mem::offset_of!(TaskContext, instruction_register);
+    if instruction_reg_off != 147 {
+        panic!("Task context instruction_register offset must be 147, got: {instruction_reg_off}");
+    };
+    0
+}
+
+fn test_context_switch_a() -> ! {
+    loop {
+        let mut i: usize = 0;
+        i += 1;
+        print!("A {i}\n");
+        if i >= 28 {
+            unsafe {
+                halt();
+            }
+        } else {
+            r#yield();
+        }
+    }
+}
+
+fn test_context_switch_b() -> ! {
+    loop {
+        let mut i: usize = 0;
+        i += 1;
+        print!("B {i}\n");
+        if i >= 27 {
+            unsafe {
+                halt();
+            }
+        } else {
+            r#yield();
+        }
+    }
+}
+
+/// Test context switch across 2 tasks
+/// It's hard to test context switch, so the dev running this test must intercept any invariants
+/// violated.
+/// Don't work yet, must make the kernel work on test mode with memory discovery and switch kernel
+/// sp ?
+pub fn test_task_context_switch() -> u8 {
+    // Temporary task creation and retrieving to test context switch.
+    task_create("A", test_context_switch_a, 0, 128);
+    task_create("B", test_context_switch_b, 0, 128);
+    #[allow(static_mut_refs)]
+    unsafe {
+        BUFFER.push(3)
+    };
+    unsafe { CURRENT_TASK_PID = 2 };
+    let task = task_list_get_task_by_pid(unsafe { CURRENT_TASK_PID });
+    test_info!(
+        "The next output should be the task A and B, which print alternately A, and B, with a digit. The final output must from A should be 28, and from B, 26"
+    );
+    task_context_switch(task.unwrap());
+    0
+}
+
 pub fn task_context_test_suite() {
     const TASK_CONTEXT_TEST_SUITE: TestSuite = TestSuite {
         tests: &[
@@ -53,11 +141,16 @@ pub fn task_context_test_suite() {
                 test_task_context_init,
                 TestBehavior::Default,
             ),
-            // TestCase::init(
-            //     "Trap frame initialization",
-            //     test_trap_frame_init,
-            //     TestBehavior::Default,
-            // ),
+            TestCase::init(
+                "Task context memory layout offset",
+                test_task_context_offset,
+                TestBehavior::Default,
+            ),
+            TestCase::init(
+                "Task context switch no invariants violated",
+                test_task_context_switch,
+                TestBehavior::Skipped,
+            ),
         ],
         name: "RISC-V32 bit task context layout",
         tests_nb: 2,
