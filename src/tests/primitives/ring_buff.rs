@@ -154,7 +154,7 @@ pub fn primitives_test_suite() {
             TestCase::init("RingBuffer pop", test_ringbuffer_pop, TestBehavior::Default),
         ],
         name: "Primitives",
-        tests_nb: 2,
+        tests_nb: 3,
         behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]

@@ -20,14 +20,14 @@
 # Macro used to load context from all saved general purpose registers store in t6 during a context switch
 # Avoid loading sp and t6 registers to avoid overriding both
 .macro load_gp_context i, basereg= t6
-  .if ((\i) != 2) && ((\i) != 31)
+  .if ((\i) != 1) && ((\i) != 2) && ((\i) != 31)
     lw x\i, ((\i)*REG_SIZE)(\basereg)
   .endif
 .endm
 # Macro used to store context from all general purpose registers store in t6 during a context switch
 # Avoid storing sp and t6 registers, because they are already save in other structure field
 .macro save_gp_context i, basereg= t6
-  .if ((\i) != 2) && ((\i) != 31)
+  .if ((\i) != 1) && ((\i) != 2) && ((\i) != 31)
     sw x\i, ((\i)*REG_SIZE)(\basereg)
   .endif
 .endm

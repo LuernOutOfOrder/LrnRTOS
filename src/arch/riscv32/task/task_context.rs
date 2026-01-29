@@ -26,8 +26,9 @@ pub struct TaskContext {
     pub address_space: [u32; 2],  // Offset 128 (first index 128; second index 132)
     pub pc: u32,                  // Offset 136
     pub sp: u32,                  // Offset 140
-    pub flags: [u8; 3],           // Offset 144 (first index 144; second index 145, third index 146)
-    pub instruction_register: u8, // Offset 147
+    pub ra: u32,                  // Offset 144
+    pub flags: [u8; 3],           // Offset 148 (first index 144; second index 145, third index 146)
+    pub instruction_register: u8, // Offset 151
 }
 
 impl TaskContext {
@@ -37,6 +38,7 @@ impl TaskContext {
             address_space: [size[0] as u32, size[1] as u32],
             pc: func as usize as u32,
             sp: size[0] as u32,
+            ra: func as usize as u32,
             flags: [0u8; 3],
             instruction_register: 0,
         }
@@ -52,11 +54,11 @@ impl TaskContext {
     }
 
     /// Trigger a context saving.
-    pub fn context_save(&self) {
+    pub fn context_save(&self, ra: usize) {
         // Save the ptr to self struct, use saved registers to preserved it from across
         let self_ptr = self as *const _ as usize;
         // Call restore_context asm fn
         // Pass argument here instead of using asm! macro to ensure that the ABI is respected
-        unsafe { save_context(self_ptr) };
+        unsafe { save_context(self_ptr, ra) };
     }
 }

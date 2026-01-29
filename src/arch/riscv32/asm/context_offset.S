@@ -9,6 +9,8 @@
 .set OFFSET_PC, 136
 # Stack pointer offset (will be set to OFFSET_ADDR_SPACE_HI at first if sp == 0)
 .set OFFSET_SP, 140
+# Return address
+.set OFFSET_RA, 144
 # Optionnal flags, will be use later maybe
-.set OFFSET_FLAGS, 144
-.set OFFSET_INSTRUCTION_REG, 147
+.set OFFSET_FLAGS, 148
+.set OFFSET_INSTRUCTION_REG, 151
