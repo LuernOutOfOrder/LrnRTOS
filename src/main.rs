@@ -52,7 +52,7 @@ pub mod tests;
 use core::panic::PanicInfo;
 use logs::LogLevel;
 use mem::mem_kernel_stack_info;
-use primitives::RingBuffer;
+use primitives::ring_buff::RingBuffer;
 use task::{
     CURRENT_TASK_PID, list::task_list_get_task_by_pid, task_context_switch, task_create, r#yield,
 };

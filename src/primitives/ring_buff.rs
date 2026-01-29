@@ -1,7 +1,7 @@
 /*
 File info: Primitive type, used in different situation.
 
-Test coverage: ....
+Test coverage: ...
 
 Tested:
 
@@ -10,7 +10,7 @@ Not tested:
 Reasons:
 
 Tests files:
-- 'src/tests/primitives.rs'
+- 'src/tests/primitives/ring_buff.rs'
 */
 
 use crate::{log, logs::LogLevel};
@@ -20,8 +20,6 @@ pub struct RingBuffer<T, const N: usize> {
     buff: [Option<T>; N],
     // Oldest element in the buffer
     head: usize,
-    // Just like head but doesn't pop element of the buffer
-    read: usize,
     // Newest element in the buffer
     tail: usize,
     // Number of element in the buffer
@@ -33,7 +31,6 @@ impl<T: Copy + core::fmt::Debug, const N: usize> RingBuffer<T, N> {
         RingBuffer {
             buff: [None; N],
             head: 0,
-            read: 0,
             tail: 0,
             count: 0,
         }
@@ -70,26 +67,13 @@ impl<T: Copy + core::fmt::Debug, const N: usize> RingBuffer<T, N> {
 
     /// Read element at self.read index, self.read work just like self.head, but it never remove
     /// element when reading it.
-    pub fn read(&mut self) -> Option<&mut T> {
-        let mut update_read = self.read;
-        // Iter to find the next readable value in case of the first element is None
-        for _ in 0..N {
-            if self.buff[update_read].is_none() {
-                update_read = (self.read + 1) % N;
-                continue;
-            } else {
-                self.read = update_read;
-                return Some(self.buff[update_read].as_mut().unwrap());
-            };
+    pub fn read(&mut self) -> Option<T> {
+        let element = self.buff[self.head];
+        if element.is_none() {
+            return None;
+        } else {
+            return Some(self.buff[self.head].unwrap());
         }
-        None
-    }
-
-    /// Update the element previously read. Not the best way to use the RingBuffer, but can be
-    /// helpful.
-    pub fn update(&mut self, updated: T) {
-        self.buff[self.read] = Some(updated);
-        self.read = (self.read + 1) % N;
     }
 
     pub fn state(&self) {
@@ -99,5 +83,17 @@ impl<T: Copy + core::fmt::Debug, const N: usize> RingBuffer<T, N> {
         if self.head != self.tail {
             // Buffer partially full
         }
+    }
+
+    pub fn size(&self) -> usize {
+        self.count
+    }
+
+    pub fn head(&self) -> usize {
+        self.head
+    }
+
+    pub fn tail(&self) -> usize {
+        self.tail
     }
 }
