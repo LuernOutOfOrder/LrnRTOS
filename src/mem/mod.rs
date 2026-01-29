@@ -23,7 +23,9 @@ use core::{arch::asm, mem};
 
 use kernel::{__kernel_end, __kernel_start, KernelStack};
 
-use crate::{arch, config::KERNEL_STACK_SIZE, platform::mem::platform_init_mem};
+use crate::{
+    arch, config::KERNEL_STACK_SIZE, log, logs::LogLevel, platform::mem::platform_init_mem,
+};
 
 pub struct Memory {
     // Final kernel stack
@@ -67,6 +69,13 @@ impl Memory {
     pub fn task_alloc(&mut self, size: usize) -> Option<[usize; 2]> {
         let available = self.available;
         let bottom = self.kernel_img_end;
+        if available <= size {
+            log!(
+                LogLevel::Error,
+                "Error allocating new task stask. No available space, try reducing the task stack size"
+            );
+            return None;
+        }
         // Compute new available address from available - size asked.
         let check = available - size;
         // Align check on 16 bytes under check
@@ -75,7 +84,7 @@ impl Memory {
         if check_align > bottom {
             // Update available to exclude new allocated region and subtract 4 bytes to avoid any
             // overlap
-            self.available = check_align - mem::size_of::<usize>();
+            self.available = check_align;
             // Return memory region usable by the new task.
             return Some([available, check_align]);
         }
@@ -93,9 +102,18 @@ pub fn memory_init() {
         MEMORY = init_mem
     };
     let stack_top: usize = unsafe { MEMORY.mem_end };
+    let stack_top_aligned: usize = stack_top & !(16 - 1);
+    if stack_top_aligned <= KERNEL_STACK_SIZE {
+        panic!("Failed to initialize memory, try to reduce KERNEL_STACK_SIZE");
+    }
     let stack_bottom: usize = unsafe { MEMORY.mem_end - KERNEL_STACK_SIZE };
     // Align stack bottom on 16 bytes under stack bottom address.
     let stack_bottom_aligned: usize = stack_bottom & !(16 - 1);
+    if stack_bottom_aligned <= unsafe { MEMORY.kernel_img_end } {
+        panic!(
+            "Failed to initialize memory, no available space for KERNEL_STACK_SIZE, try reducing it."
+        )
+    }
     // One word below kernel stack
     let available: usize = stack_bottom_aligned;
     // Check the delta between stack_bottom and available.
@@ -109,7 +127,7 @@ pub fn memory_init() {
     // Update MEMORY with new kernel stack
     unsafe {
         MEMORY.kernel_stack = KernelStack {
-            top: stack_top,
+            top: stack_top_aligned,
             bottom: stack_bottom_aligned,
         }
     };
