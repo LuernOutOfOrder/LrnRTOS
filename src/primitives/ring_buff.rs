@@ -1,16 +1,24 @@
 /*
-File info: Primitive type, used in different situation.
+File info: RingBuffer primitive type.
 
-Test coverage: ...
+Test coverage: All main functions
 
 Tested:
+- init
+- push
+- pop
 
 Not tested:
+- read
+- count
 
-Reasons:
+Reasons: I don't think I need a test for one of these functions because they are already used in some test, so they are tested indirectly.
 
 Tests files:
 - 'src/tests/primitives/ring_buff.rs'
+
+References:
+- `https://en.wikipedia.org/wiki/Circular_buffer`
 */
 
 use crate::{log, logs::LogLevel};
@@ -70,9 +78,9 @@ impl<T: Copy + core::fmt::Debug, const N: usize> RingBuffer<T, N> {
     pub fn read(&mut self) -> Option<T> {
         let element = self.buff[self.head];
         if element.is_none() {
-            return None;
+            None
         } else {
-            return Some(self.buff[self.head].unwrap());
+            Some(self.buff[self.head].unwrap())
         }
     }
 
