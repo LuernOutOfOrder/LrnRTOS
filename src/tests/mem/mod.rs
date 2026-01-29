@@ -18,7 +18,7 @@ pub fn test_memory_task_alloc() -> u8 {
     let size: usize = 512;
     let allocate_reg: Option<[usize; 2]> = mem_task_alloc(size);
     let kernel_stack = mem_kernel_stack_info();
-    let available = kernel_stack.bottom - core::mem::size_of::<usize>();
+    let available = kernel_stack.bottom;
     let correct_available: u32 = 0x87ffbffc_u32;
     if allocate_reg.unwrap()[0] != available {
         panic!(

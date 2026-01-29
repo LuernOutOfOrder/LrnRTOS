@@ -69,13 +69,15 @@ impl Memory {
         let bottom = self.kernel_img_end;
         // Compute new available address from available - size asked.
         let check = available - size;
+        // Align check on 16 bytes under check
+        let check_align = check & !(16 - 1);
         // The size asked must pass between available and bottom
-        if check > bottom {
+        if check_align > bottom {
             // Update available to exclude new allocated region and subtract 4 bytes to avoid any
             // overlap
-            self.available = check - mem::size_of::<usize>();
+            self.available = check_align - mem::size_of::<usize>();
             // Return memory region usable by the new task.
-            return Some([available, check]);
+            return Some([available, check_align]);
         }
         None
     }
@@ -92,21 +94,23 @@ pub fn memory_init() {
     };
     let stack_top: usize = unsafe { MEMORY.mem_end };
     let stack_bottom: usize = unsafe { MEMORY.mem_end - KERNEL_STACK_SIZE };
+    // Align stack bottom on 16 bytes under stack bottom address.
+    let stack_bottom_aligned: usize = stack_bottom & !(16 - 1);
     // One word below kernel stack
-    let available: usize = stack_bottom - core::mem::size_of::<usize>();
+    let available: usize = stack_bottom_aligned;
     // Check the delta between stack_bottom and available.
     // If different from the size of a usize, panic.
     // Avoid running the kernel if the memory allocation is not stable.
-    if stack_bottom - available != core::mem::size_of::<usize>() {
+    if stack_bottom - available != 0 {
         panic!(
-            "Computation of available address is wrong. It should be - sizeoff(usize) under kernel stack bottom address. Kernel cannot run if memory allocation is unstable"
+            "Computation of available address is wrong. Kernel cannot run if memory allocation is unstable"
         );
     }
     // Update MEMORY with new kernel stack
     unsafe {
         MEMORY.kernel_stack = KernelStack {
             top: stack_top,
-            bottom: stack_bottom,
+            bottom: stack_bottom_aligned,
         }
     };
     // Update MEMORY with address usable for future task

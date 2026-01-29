@@ -138,8 +138,8 @@ pub fn test_ringbuffer_pop() -> u8 {
     0
 }
 
-pub fn primitives_test_suite() {
-    const PRIMITIVES_TEST_SUITE: TestSuite = TestSuite {
+pub fn ring_buff_primitive_test_suite() {
+    const RING_BUFF_TEST_SUITE: TestSuite = TestSuite {
         tests: &[
             TestCase::init(
                 "RingBuffer initialization",
@@ -153,12 +153,12 @@ pub fn primitives_test_suite() {
             ),
             TestCase::init("RingBuffer pop", test_ringbuffer_pop, TestBehavior::Default),
         ],
-        name: "Primitives",
+        name: "RingBuffer primitive type",
         tests_nb: 3,
         behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]
     unsafe {
-        TEST_MANAGER.add_suite(&PRIMITIVES_TEST_SUITE)
+        TEST_MANAGER.add_suite(&RING_BUFF_TEST_SUITE)
     };
 }

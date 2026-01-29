@@ -1,9 +1,8 @@
-use core::mem;
+use core::{arch::asm, mem};
 
 use crate::{
     BUFFER,
     arch::{task::task_context::TaskContext, traps::interrupt::halt},
-    print,
     task::{
         CURRENT_TASK_PID, list::task_list_get_task_by_pid, task_context_switch, task_create,
         r#yield,
@@ -70,43 +69,57 @@ pub fn test_task_context_offset() -> u8 {
     if sp_off != 140 {
         panic!("Task context sp offset must be 140, got: {sp_off}");
     }
+    let ra_off = mem::offset_of!(TaskContext, ra);
+    if ra_off != 144 {
+        panic!("Task context ra offset must be 144, got: {sp_off}");
+    }
     let flags_off = mem::offset_of!(TaskContext, flags);
-    if flags_off != 144 {
+    if flags_off != 148 {
         panic!("Task context flags offset must be 144, got: {flags_off}");
     }
     let instruction_reg_off = mem::offset_of!(TaskContext, instruction_register);
-    if instruction_reg_off != 147 {
+    if instruction_reg_off != 151 {
         panic!("Task context instruction_register offset must be 147, got: {instruction_reg_off}");
     };
     0
 }
 
 fn test_context_switch_a() -> ! {
+    let mut task: usize = 0;
+    unsafe { asm!("mv {}, sp", out(reg) task) };
+    let mut i: usize = 0;
+    print!("\nA DEBUG SP start task: {:#x}", task);
     loop {
-        let mut i: usize = 0;
         i += 1;
-        print!("A {i}\n");
+        print!("\nA {i}\n");
         if i >= 28 {
             unsafe {
                 halt();
             }
         } else {
+            print!("A DEBUG SP before yield: {:#x}\n", task);
             r#yield();
+            print!("A DEBUG SP after yield: {:#x}", task);
         }
     }
 }
 
 fn test_context_switch_b() -> ! {
+    let mut task: usize = 0;
+    unsafe { asm!("mv {}, sp", out(reg) task) };
+    let mut i: usize = 0;
+    print!("\nB DEBUG SP start task: {:#x}", task);
     loop {
-        let mut i: usize = 0;
         i += 1;
-        print!("B {i}\n");
+        print!("\nB {i}\n");
         if i >= 27 {
             unsafe {
                 halt();
             }
         } else {
+            print!("B DEBUG SP before yield: {:#x}\n", task);
             r#yield();
+            print!("B DEBUG SP after yield: {:#x}", task);
         }
     }
 }
@@ -116,10 +129,11 @@ fn test_context_switch_b() -> ! {
 /// violated.
 /// Don't work yet, must make the kernel work on test mode with memory discovery and switch kernel
 /// sp ?
+#[unsafe(no_mangle)]
 pub fn test_task_context_switch() -> u8 {
     // Temporary task creation and retrieving to test context switch.
-    task_create("A", test_context_switch_a, 0, 128);
-    task_create("B", test_context_switch_b, 0, 128);
+    task_create("A", test_context_switch_a, 0, 256);
+    task_create("B", test_context_switch_b, 0, 256);
     #[allow(static_mut_refs)]
     unsafe {
         BUFFER.push(3)
@@ -149,7 +163,7 @@ pub fn task_context_test_suite() {
             TestCase::init(
                 "Task context switch no invariants violated",
                 test_task_context_switch,
-                TestBehavior::Skipped,
+                TestBehavior::Default,
             ),
         ],
         name: "RISC-V32 bit task context layout",

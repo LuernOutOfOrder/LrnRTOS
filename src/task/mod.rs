@@ -16,6 +16,8 @@ Tests files:
 - 'src/tests/task/mod.rs'
 */
 
+use core::arch::asm;
+
 use list::task_list_add_task;
 
 use crate::{
@@ -106,8 +108,8 @@ impl Task {
         // }
     }
 
-    fn context_save(&self) {
-        self.context.context_save();
+    fn context_save(&self, ra: usize) {
+        self.context.context_save(ra);
     }
 }
 
@@ -141,12 +143,14 @@ pub fn task_context_switch(task: &Task) {
     task.context_switch();
 }
 
-pub fn task_context_save(task: &Task) {
-    task.context_save();
+pub fn task_context_save(task: &Task, ra: usize) {
+    task.context_save(ra);
 }
 
 /// When a task call yield explicitely, it will trigger a reschedule of tasks, save context of the
 /// current task and switch to the next one.
 pub fn r#yield() {
-    dispatch();
+    let mut ra: usize = 0;
+    unsafe { asm!("mv {}, ra", out(reg) ra) };
+    dispatch(ra);
 }
