@@ -169,6 +169,5 @@ pub fn r#yield() {
     unsafe { asm!("mv {}, ra", out(reg) ra) };
     unsafe { asm!("mv {}, sp", out(reg) sp) };
     unsafe { save_context(context as usize, ra, sp) };
-    dispatch();
-    // switch_scheduler_ctx();
+    switch_scheduler_ctx();
 }

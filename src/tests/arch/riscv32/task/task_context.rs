@@ -97,10 +97,10 @@ pub fn test_task_context_offset() -> u8 {
 
 #[unsafe(no_mangle)]
 fn test_context_switch_a() -> ! {
-    // let mut task: usize = 0;
-    // unsafe { asm!("mv {}, sp", out(reg) task) };
+    let mut task: usize = 0;
+    unsafe { asm!("mv {}, sp", out(reg) task) };
     let mut i: usize = 0;
-    // print!("\nA DEBUG SP start task: {:#x}", task);
+    print!("\nA DEBUG SP start task: {:#x}", task);
     loop {
         i += 1;
         print!("\nA {i}\n");
@@ -109,18 +109,18 @@ fn test_context_switch_a() -> ! {
                 halt();
             }
         } else {
-            // print!("A DEBUG SP before yield: {:#x}\n", task);
+            print!("A DEBUG SP before yield: {:#x}\n", task);
             r#yield();
-            // print!("A DEBUG SP after yield: {:#x}", task);
+            print!("A DEBUG SP after yield: {:#x}", task);
         }
     }
 }
 
 fn test_context_switch_b() -> ! {
-    // let mut task: usize = 0;
-    // unsafe { asm!("mv {}, sp", out(reg) task) };
+    let mut task: usize = 0;
+    unsafe { asm!("mv {}, sp", out(reg) task) };
     let mut i: usize = 0;
-    // print!("\nB DEBUG SP start task: {:#x}", task);
+    print!("\nB DEBUG SP start task: {:#x}", task);
     loop {
         i += 1;
         print!("\nB {i}\n");
@@ -129,9 +129,9 @@ fn test_context_switch_b() -> ! {
                 halt();
             }
         } else {
-            // print!("B DEBUG SP before yield: {:#x}\n", task);
+            print!("B DEBUG SP before yield: {:#x}\n", task);
             r#yield();
-            // print!("B DEBUG SP after yield: {:#x}", task);
+            print!("B DEBUG SP after yield: {:#x}", task);
         }
     }
 }
@@ -156,9 +156,7 @@ pub fn test_task_context_switch() -> u8 {
     test_info!(
         "The next output should be the task A and B, which print alternately A, and B, with a digit. The final output must from A should be 28, and from B, 26"
     );
-    // mscratch_set_trap_frame();
-    // disable_interrupts();
-    // init_sched_ctx(dispatch);
+    init_sched_ctx(dispatch);
     task_context_switch(task.unwrap());
     0
 }

@@ -19,7 +19,7 @@ impl SchedulerCtx {
             gpr: [0u32; 32],
             ra: func as usize as u32,
             #[allow(static_mut_refs)]
-            sp: unsafe { SCHEDULER_STACK.buf.as_mut_ptr() },
+            sp: unsafe { SCHEDULER_STACK.buf.as_mut_ptr().wrapping_add(4098) },
         }
     }
 }
