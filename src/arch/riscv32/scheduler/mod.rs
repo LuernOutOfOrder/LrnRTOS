@@ -1,29 +1,36 @@
-use crate::{primitives::stack::AlignedStack, scheduler::dispatch};
+use crate::primitives::stack::AlignedStack;
 
+#[repr(C)]
 pub struct SchedulerCtx {
     // General purpose registers
     gpr: [u32; 32], // Offset 0
     // Scheduler entry point
-    func: fn(), // Offset 128
+    ra: u32, // Offset 128
     // Stack ptr, point to a buffer
     sp: *mut u8, // Offset 132
 }
 
-static mut SCHEDULER_STACK: AlignedStack<1024> = AlignedStack::new();
-pub static mut SCHEDULER_CTX: SchedulerCtx = SchedulerCtx::init(dispatch);
+pub static mut SCHEDULER_STACK: AlignedStack<4098> = AlignedStack::new();
+pub static mut SCHEDULER_CTX: SchedulerCtx = unsafe { core::mem::zeroed() };
 
 impl SchedulerCtx {
-    const fn init(func: fn()) -> Self {
+    fn init(func: fn()) -> Self {
         SchedulerCtx {
             gpr: [0u32; 32],
-            func,
+            ra: func as usize as u32,
             #[allow(static_mut_refs)]
             sp: unsafe { SCHEDULER_STACK.buf.as_mut_ptr() },
         }
     }
 }
 
+pub fn init_sched_ctx(sched_fn: fn()) {
+    unsafe { SCHEDULER_CTX = SchedulerCtx::init(sched_fn) }
+}
+
 unsafe extern "C" {
     // Switch to the scheduler context
-    pub fn sched_ctx(context: usize);
+    pub fn sched_ctx_restore(context: *mut SchedulerCtx) -> !;
+    // Save the scheduler context
+    pub fn sched_ctx_save(context: usize);
 }

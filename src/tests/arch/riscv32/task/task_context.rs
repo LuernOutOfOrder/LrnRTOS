@@ -2,10 +2,21 @@ use core::{arch::asm, mem};
 
 use crate::{
     BUFFER,
-    arch::{task::task_context::TaskContext, traps::interrupt::halt},
+    arch::{
+        scheduler::{SchedulerCtx, init_sched_ctx},
+        task::task_context::TaskContext,
+        traps::{
+            disable_interrupts, enable_interrupts,
+            interrupt::{halt, mscratch_set_trap_frame},
+        },
+    },
+    config::TICK_SAFETY_DURATION,
+    ktime::set_ktime_seconds,
+    print,
+    scheduler::dispatch,
     task::{
-        CURRENT_TASK_PID, list::task_list_get_task_by_pid, task_context_switch, task_create,
-        r#yield,
+        CURRENT_TASK_PID, TASK_HANDLER, list::task_list_get_task_by_pid, task_context_switch,
+        task_create, r#yield,
     },
     test_failed, test_info,
     tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
@@ -84,11 +95,12 @@ pub fn test_task_context_offset() -> u8 {
     0
 }
 
+#[unsafe(no_mangle)]
 fn test_context_switch_a() -> ! {
-    let mut task: usize = 0;
-    unsafe { asm!("mv {}, sp", out(reg) task) };
+    // let mut task: usize = 0;
+    // unsafe { asm!("mv {}, sp", out(reg) task) };
     let mut i: usize = 0;
-    print!("\nA DEBUG SP start task: {:#x}", task);
+    // print!("\nA DEBUG SP start task: {:#x}", task);
     loop {
         i += 1;
         print!("\nA {i}\n");
@@ -97,18 +109,18 @@ fn test_context_switch_a() -> ! {
                 halt();
             }
         } else {
-            print!("A DEBUG SP before yield: {:#x}\n", task);
+            // print!("A DEBUG SP before yield: {:#x}\n", task);
             r#yield();
-            print!("A DEBUG SP after yield: {:#x}", task);
+            // print!("A DEBUG SP after yield: {:#x}", task);
         }
     }
 }
 
 fn test_context_switch_b() -> ! {
-    let mut task: usize = 0;
-    unsafe { asm!("mv {}, sp", out(reg) task) };
+    // let mut task: usize = 0;
+    // unsafe { asm!("mv {}, sp", out(reg) task) };
     let mut i: usize = 0;
-    print!("\nB DEBUG SP start task: {:#x}", task);
+    // print!("\nB DEBUG SP start task: {:#x}", task);
     loop {
         i += 1;
         print!("\nB {i}\n");
@@ -117,9 +129,9 @@ fn test_context_switch_b() -> ! {
                 halt();
             }
         } else {
-            print!("B DEBUG SP before yield: {:#x}\n", task);
+            // print!("B DEBUG SP before yield: {:#x}\n", task);
             r#yield();
-            print!("B DEBUG SP after yield: {:#x}", task);
+            // print!("B DEBUG SP after yield: {:#x}", task);
         }
     }
 }
@@ -132,17 +144,21 @@ fn test_context_switch_b() -> ! {
 #[unsafe(no_mangle)]
 pub fn test_task_context_switch() -> u8 {
     // Temporary task creation and retrieving to test context switch.
-    task_create("A", test_context_switch_a, 0, 256);
-    task_create("B", test_context_switch_b, 0, 256);
+    task_create("A", test_context_switch_a, 0, 0x1000);
+    task_create("B", test_context_switch_b, 0, 0x1000);
     #[allow(static_mut_refs)]
     unsafe {
         BUFFER.push(3)
     };
     unsafe { CURRENT_TASK_PID = 2 };
-    let task = task_list_get_task_by_pid(unsafe { CURRENT_TASK_PID });
+    let mut task = task_list_get_task_by_pid(unsafe { CURRENT_TASK_PID });
+    unsafe { TASK_HANDLER = *task.as_mut().unwrap() };
     test_info!(
         "The next output should be the task A and B, which print alternately A, and B, with a digit. The final output must from A should be 28, and from B, 26"
     );
+    // mscratch_set_trap_frame();
+    // disable_interrupts();
+    // init_sched_ctx(dispatch);
     task_context_switch(task.unwrap());
     0
 }

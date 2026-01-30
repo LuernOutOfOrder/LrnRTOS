@@ -1,12 +1,12 @@
 use crate::{
     BUFFER,
-    arch::scheduler::{SCHEDULER_CTX, SchedulerCtx, sched_ctx},
+    arch::scheduler::{SCHEDULER_CTX, SchedulerCtx, sched_ctx_restore, sched_ctx_save},
     log,
     logs::LogLevel,
     task::{
-        CURRENT_TASK_PID, TASK_HANDLER, TaskState,
+        TASK_HANDLER, TaskState,
         list::{task_list_get_task_by_pid, task_list_update_task_by_pid},
-        task_context_save, task_context_switch, task_pid,
+        task_context_switch, task_pid,
     },
 };
 
@@ -46,6 +46,6 @@ pub fn dispatch() {
 
 pub fn switch_scheduler_ctx() {
     #[allow(static_mut_refs)]
-    let ctx: usize = unsafe { &mut SCHEDULER_CTX} as *mut SchedulerCtx as usize;
-    unsafe { sched_ctx(ctx) };
+    let ctx = unsafe { &mut SCHEDULER_CTX } as *mut SchedulerCtx;
+    unsafe { sched_ctx_restore(ctx) };
 }

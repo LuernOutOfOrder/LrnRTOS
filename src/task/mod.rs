@@ -25,7 +25,7 @@ use crate::{
     log,
     logs::LogLevel,
     mem::mem_task_alloc,
-    scheduler::switch_scheduler_ctx,
+    scheduler::{dispatch, switch_scheduler_ctx},
 };
 
 pub mod list;
@@ -169,5 +169,6 @@ pub fn r#yield() {
     unsafe { asm!("mv {}, ra", out(reg) ra) };
     unsafe { asm!("mv {}, sp", out(reg) sp) };
     unsafe { save_context(context as usize, ra, sp) };
-    switch_scheduler_ctx();
+    dispatch();
+    // switch_scheduler_ctx();
 }
