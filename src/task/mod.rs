@@ -21,7 +21,10 @@ use core::arch::asm;
 use list::task_list_add_task;
 
 use crate::{
-    arch::task::{save_context, task_context::TaskContext},
+    arch::{
+        task::{save_context, task_context::TaskContext},
+        trampoline::{save_ra, save_sp},
+    },
     log,
     logs::LogLevel,
     mem::mem_task_alloc,
@@ -162,12 +165,10 @@ pub fn task_pid(task: &Task) -> u16 {
 /// current task and switch to the next one.
 #[unsafe(no_mangle)]
 pub fn r#yield() {
-    let mut ra: usize = 0;
-    let mut sp: usize = 0;
+    let ra = save_ra();
+    let sp = save_sp();
     let current_task = unsafe { TASK_HANDLER };
     let context: *mut TaskContext = &mut (unsafe { *current_task }).context as *mut TaskContext;
-    unsafe { asm!("mv {}, ra", out(reg) ra) };
-    unsafe { asm!("mv {}, sp", out(reg) sp) };
     unsafe { save_context(context as usize, ra, sp) };
     switch_scheduler_ctx();
 }
