@@ -7,10 +7,8 @@ save_context:
   mv t6, a0
   # Store ra in task context structure
   sw a1, OFFSET_RA(t6)
-  # Get current sp 
-  mv t0, sp
   # Store word from t0(sp) in context structure
-  sw t0, OFFSET_SP(t6)
+  sw a2, OFFSET_SP(t6)
   # Save current task context using GNU macro
   # GNU macros from `src/arch/riscv32/asm/gnu_macro.S`
   .set	i, 1

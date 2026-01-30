@@ -108,8 +108,8 @@ impl Task {
         // }
     }
 
-    fn context_save(&self, ra: usize) {
-        self.context.context_save(ra);
+    fn context_save(&self, ra: usize, sp: usize) {
+        self.context.context_save(ra, sp);
     }
 }
 
@@ -143,14 +143,16 @@ pub fn task_context_switch(task: &Task) {
     task.context_switch();
 }
 
-pub fn task_context_save(task: &Task, ra: usize) {
-    task.context_save(ra);
+pub fn task_context_save(task: &Task, ra: usize, sp: usize) {
+    task.context_save(ra, sp);
 }
 
 /// When a task call yield explicitely, it will trigger a reschedule of tasks, save context of the
 /// current task and switch to the next one.
 pub fn r#yield() {
     let mut ra: usize = 0;
+    let mut sp: usize = 0;
     unsafe { asm!("mv {}, ra", out(reg) ra) };
-    dispatch(ra);
+    unsafe { asm!("mv {}, sp", out(reg) sp) };
+    dispatch(ra, sp);
 }

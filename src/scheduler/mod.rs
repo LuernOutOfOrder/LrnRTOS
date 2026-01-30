@@ -14,11 +14,11 @@ use crate::{
 /// RingBuffer.
 /// Read on the RingBuffer to get the next task, update it, and update the RingBuffer.
 /// Not the best way to use the RingBuffer but it will do.
-pub fn dispatch(ra: usize) {
+pub fn dispatch(ra: usize, sp: usize) {
     // Current running task
     let current_task_pid = unsafe { CURRENT_TASK_PID };
     let current_task = task_list_get_task_by_pid(current_task_pid).unwrap();
-    task_context_save(&*current_task, ra);
+    task_context_save(&*current_task, ra, sp);
     current_task.state = TaskState::Ready;
     task_list_update_task_by_pid(current_task_pid, *current_task);
     #[allow(static_mut_refs)]

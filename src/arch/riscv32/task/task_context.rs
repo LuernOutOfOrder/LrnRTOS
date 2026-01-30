@@ -54,11 +54,11 @@ impl TaskContext {
     }
 
     /// Trigger a context saving.
-    pub fn context_save(&self, ra: usize) {
+    pub fn context_save(&self, ra: usize, sp: usize) {
         // Save the ptr to self struct, use saved registers to preserved it from across
         let self_ptr = self as *const _ as usize;
         // Call restore_context asm fn
         // Pass argument here instead of using asm! macro to ensure that the ABI is respected
-        unsafe { save_context(self_ptr, ra) };
+        unsafe { save_context(self_ptr, ra, sp) };
     }
 }
