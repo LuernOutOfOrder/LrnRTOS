@@ -8,6 +8,8 @@ global_asm! {
     include_str!("gnu_macro.S"),
     // Update kernel sp after memory init
     include_str!("set_kernel_sp.S"),
+    // Scheduler context switch
+    include_str!("sched_context.S"),
     // All task context offsets
     include_str!("context_offset.S"),
     // Context switch function, restore/save

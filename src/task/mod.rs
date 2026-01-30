@@ -21,8 +21,11 @@ use core::arch::asm;
 use list::task_list_add_task;
 
 use crate::{
-    arch::task::task_context::TaskContext, log, logs::LogLevel, mem::mem_task_alloc,
-    scheduler::dispatch,
+    arch::task::{save_context, task_context::TaskContext},
+    log,
+    logs::LogLevel,
+    mem::mem_task_alloc,
+    scheduler::switch_scheduler_ctx,
 };
 
 pub mod list;
@@ -30,6 +33,10 @@ pub mod list;
 // Mutable static to keep track of the current task
 // Only relevant on a monocore CPU.
 pub static mut CURRENT_TASK_PID: u16 = 0;
+
+// Only mutable ptr to the current task.
+// Used as a handler to the current task to be able to save the context rapidly.
+pub static mut TASK_HANDLER: *mut Task = core::ptr::null_mut();
 
 // Enum representing all state of a task.
 #[repr(u8)]
@@ -49,7 +56,7 @@ pub enum TaskState {
 pub struct Task {
     // Arch dependant context, don't handle this field in task, only use struct method when
     // interacting with it.
-    context: TaskContext,
+    pub context: TaskContext,
     // Fn ptr to task entry point, this must never return.
     pub func: fn() -> !,
     pid: u16,
@@ -147,12 +154,20 @@ pub fn task_context_save(task: &Task, ra: usize, sp: usize) {
     task.context_save(ra, sp);
 }
 
+pub fn task_pid(task: &Task) -> u16 {
+    task.pid
+}
+
 /// When a task call yield explicitely, it will trigger a reschedule of tasks, save context of the
 /// current task and switch to the next one.
+#[unsafe(no_mangle)]
 pub fn r#yield() {
     let mut ra: usize = 0;
     let mut sp: usize = 0;
+    let current_task = unsafe { TASK_HANDLER };
+    let context: *mut TaskContext = &mut (unsafe { *current_task }).context as *mut TaskContext;
     unsafe { asm!("mv {}, ra", out(reg) ra) };
     unsafe { asm!("mv {}, sp", out(reg) sp) };
-    dispatch(ra, sp);
+    unsafe { save_context(context as usize, ra, sp) };
+    switch_scheduler_ctx();
 }

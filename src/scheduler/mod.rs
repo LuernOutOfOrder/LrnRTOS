@@ -1,10 +1,12 @@
 use crate::{
-    BUFFER, log,
+    BUFFER,
+    arch::scheduler::{SCHEDULER_CTX, SchedulerCtx, sched_ctx},
+    log,
     logs::LogLevel,
     task::{
-        CURRENT_TASK_PID, TaskState,
+        CURRENT_TASK_PID, TASK_HANDLER, TaskState,
         list::{task_list_get_task_by_pid, task_list_update_task_by_pid},
-        task_context_save, task_context_switch,
+        task_context_save, task_context_switch, task_pid,
     },
 };
 
@@ -14,16 +16,15 @@ use crate::{
 /// RingBuffer.
 /// Read on the RingBuffer to get the next task, update it, and update the RingBuffer.
 /// Not the best way to use the RingBuffer but it will do.
-pub fn dispatch(ra: usize, sp: usize) {
+pub fn dispatch() {
     // Current running task
-    let current_task_pid = unsafe { CURRENT_TASK_PID };
-    let current_task = task_list_get_task_by_pid(current_task_pid).unwrap();
-    task_context_save(&*current_task, ra, sp);
+    let mut current_task = unsafe { *TASK_HANDLER };
     current_task.state = TaskState::Ready;
-    task_list_update_task_by_pid(current_task_pid, *current_task);
+    let pid = task_pid(&current_task);
+    task_list_update_task_by_pid(pid, current_task);
     #[allow(static_mut_refs)]
     unsafe {
-        BUFFER.push(current_task_pid)
+        BUFFER.push(pid)
     };
     // Update and load next task
     #[allow(static_mut_refs)]
@@ -38,6 +39,13 @@ pub fn dispatch(ra: usize, sp: usize) {
     let next_task = task_list_get_task_by_pid(next_task_pid).unwrap();
     next_task.state = TaskState::Running;
     task_list_update_task_by_pid(next_task_pid, *next_task);
-    unsafe { CURRENT_TASK_PID = next_task_pid };
+    // WARN: This can break?
+    unsafe { TASK_HANDLER = next_task }
     task_context_switch(next_task);
+}
+
+pub fn switch_scheduler_ctx() {
+    #[allow(static_mut_refs)]
+    let ctx: usize = unsafe { &mut SCHEDULER_CTX} as *mut SchedulerCtx as usize;
+    unsafe { sched_ctx(ctx) };
 }
