@@ -66,4 +66,4 @@ clean:
 	rm -rf target/*
 
 ci:
-	act -P ubuntu-latest=-self-hosted --container-architecture linux/amd64
+	act -P ubuntu-latest=-self-hosted --container-architecture linux/amd64 --quiet

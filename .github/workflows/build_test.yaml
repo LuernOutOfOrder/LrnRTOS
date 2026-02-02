@@ -73,3 +73,27 @@ jobs:
       run: cargo fmt --all -- --check
     - name: Lint
       run: cargo clippy -Zjson-target-spec --target arch/${{ matrix.target }}.json -- -D warnings
+  test:
+    name: Run kernel in test mode
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust (nightly)
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+          components: rust-src
+
+      - name: Install QEMU (riscv32)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-misc
+
+      - name: Run kernel tests in QEMU
+        run: |
+          # IMPORTANT: make test must return 0 on success, non-zero on failure.
+          make test_build && make
