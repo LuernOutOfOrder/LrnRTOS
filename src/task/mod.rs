@@ -1,14 +1,43 @@
+/*
+File info: Task management. Handle all task logic.
+
+Test coverage: Basic task creation, memory region and context switch(save and restore).
+
+Tested:
+- task_create function.
+- Context save and context restore.
+
+Not tested:
+- fn ptr, state and priority.
+
+Reasons:
+- Some of the task field or properties or whatever are not fully testable yet, will be easier with a real scheduler. But the main features are tested.
+
+Tests files:
+- 'src/tests/task/mod.rs'
+*/
+
 use list::task_list_add_task;
 
-use crate::{arch::task_context::TaskContext, log, logs::LogLevel, mem::mem_task_alloc};
+use crate::{arch::task::task_context::TaskContext, log, logs::LogLevel, mem::mem_task_alloc};
 
 pub mod list;
+
+// Mutable static to keep track of the current task
+// Only relevant on a monocore CPU.
+pub static mut CURRENT_TASK_PID: u16 = 0;
+
+// Only mutable ptr to the current task.
+// Used as a handler to the current task to be able to save the context rapidly.
+#[unsafe(no_mangle)]
+pub static mut TASK_HANDLER: *mut Task = core::ptr::null_mut();
 
 // Enum representing all state of a task.
 #[repr(u8)]
 // Allow unused for now because this issue doesn't need to handle all task state
 #[allow(unused)]
-enum TaskState {
+#[derive(Copy, Clone)]
+pub enum TaskState {
     New,
     Running,
     Ready,
@@ -16,17 +45,18 @@ enum TaskState {
     Terminated,
 }
 
+#[derive(Copy, Clone)]
 #[repr(C)]
-struct Task {
+pub struct Task {
     // Arch dependant context, don't handle this field in task, only use struct method when
     // interacting with it.
-    context: TaskContext,
+    pub context: TaskContext,
     // Fn ptr to task entry point, this must never return.
-    func: fn() -> !,
+    pub func: fn() -> !,
     pid: u16,
     name: [u8; 16],
     // Task state, when creating a new task, use the new variant.
-    state: TaskState,
+    pub state: TaskState,
     // Priority of a task, use an u8, u8 max size represent the higher level of priority.
     priority: u8,
 }
@@ -52,13 +82,35 @@ impl Task {
         }
         // Return new task
         Some(Task {
-            context: TaskContext::init(mem_reg.unwrap()),
+            context: TaskContext::init(mem_reg.unwrap(), func),
             func,
             pid: 0,
             name: buf,
             state: TaskState::New,
             priority,
         })
+    }
+
+    /// Trigger context switch for the given task.
+    fn context_switch(&self) {
+        self.context.context_switch();
+        // match self.state {
+        //     TaskState::New => {
+        //         self.context.context_switch();
+        //     }
+        //     TaskState::Running => {
+        //         self.context.context_switch();
+        //     }
+        //     TaskState::Ready => {
+        //         self.context.context_switch();
+        //     }
+        //     TaskState::Waiting => todo!(),
+        //     TaskState::Terminated => todo!(),
+        // }
+    }
+
+    fn context_save(&self, ra: usize, sp: usize) {
+        self.context.context_save(ra, sp);
     }
 }
 
@@ -73,12 +125,29 @@ pub fn task_create(name: &str, func: fn() -> !, priority: u8, size: usize) {
     let new_task = Task::init(name, func, priority, size);
     if let Some(task) = new_task {
         let name = str::from_utf8(&task.name).unwrap();
-        log!(LogLevel::Info, "Successfully created task: {name}");
-        task_list_add_task(task);
+        let updated_task_pid = task_list_add_task(task);
+        log!(
+            LogLevel::Info,
+            "Successfully created task: {name} with pid: {}",
+            updated_task_pid
+        );
     } else {
         log!(
             LogLevel::Error,
             "Failed to create task: {name}, try reducing task size if possible."
         );
     }
+}
+
+/// Temporary function to trigger context switch on a given task
+pub fn task_context_switch(task: &Task) {
+    task.context_switch();
+}
+
+pub fn task_context_save(task: &Task, ra: usize, sp: usize) {
+    task.context_save(ra, sp);
+}
+
+pub fn task_pid(task: &Task) -> u16 {
+    task.pid
 }

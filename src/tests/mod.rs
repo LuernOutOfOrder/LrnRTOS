@@ -5,6 +5,7 @@ mod drivers;
 mod ktime;
 mod mem;
 mod platform;
+mod primitives;
 mod suites;
 mod task;
 
