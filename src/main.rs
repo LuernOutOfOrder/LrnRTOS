@@ -1,5 +1,6 @@
 #![no_std]
 #![no_main]
+#![feature(naked_functions_rustic_abi)]
 
 // Config module
 pub mod config;
@@ -34,6 +35,15 @@ pub mod boot;
 // Kernel information
 pub mod info;
 
+// Task mod
+pub mod task;
+
+// Primitive type mod
+pub mod primitives;
+
+// Scheduler module
+pub mod scheduler;
+
 // Test module
 #[cfg(feature = "test")]
 pub mod tests;
@@ -43,6 +53,10 @@ pub mod tests;
 use core::panic::PanicInfo;
 use logs::LogLevel;
 use mem::mem_kernel_stack_info;
+use primitives::ring_buff::RingBuffer;
+
+// Static buffer to use as a ready queue for task.
+pub static mut BUFFER: RingBuffer<u16, 3> = RingBuffer::init();
 
 #[unsafe(no_mangle)]
 unsafe extern "C" fn main() -> ! {
