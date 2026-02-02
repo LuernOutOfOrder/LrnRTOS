@@ -56,7 +56,6 @@ pub fn dispatch() {
     let next_task = task_list_get_task_by_pid(next_task_pid).unwrap();
     next_task.state = TaskState::Running;
     task_list_update_task_by_pid(next_task_pid, *next_task);
-    // WARN: This can break?
     unsafe { TASK_HANDLER = next_task }
     task_context_switch(next_task);
 }
