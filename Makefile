@@ -64,3 +64,6 @@ clean:
 	rm -rf target/*
 	rm -rf logs/*
 	rm -rf target/*
+
+ci:
+	act -P ubuntu-latest=-self-hosted --container-architecture linux/amd64
