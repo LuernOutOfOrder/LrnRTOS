@@ -98,9 +98,10 @@ fn test_context_switch_a() -> ! {
     let mut i: usize = 1;
     loop {
         i += 2;
-        print!("\nA {i}\n");
+        print!("A {i}\n");
         if i >= 31 {
             unsafe { ptr::write_volatile(0x100000 as *mut u32, 0x5555) };
+            unsafe { halt() };
         } else {
             unsafe { r#yield() };
         }
@@ -111,9 +112,10 @@ fn test_context_switch_b() -> ! {
     let mut i: usize = 0;
     loop {
         i += 2;
-        print!("\nB {i}\n");
+        print!("B {i}\n");
         if i >= 30 {
             unsafe { ptr::write_volatile(0x100000 as *mut u32, 0x5555) };
+            unsafe { halt() };
         } else {
             unsafe { r#yield() };
         }
@@ -138,7 +140,7 @@ pub fn test_task_context_switch() -> u8 {
     let mut task = task_list_get_task_by_pid(unsafe { CURRENT_TASK_PID });
     unsafe { TASK_HANDLER = *task.as_mut().unwrap() };
     test_info!(
-        "The next output should be the task A and B, which print alternately A, and B, with a digit. The final output must from A should be 31, and from B, 28"
+        "The next output should be the task A and B, which print alternately A, and B, with a digit. The final output must be: from A: 31, and from B: 28"
     );
     init_sched_ctx(dispatch);
     task_context_switch(task.unwrap());
