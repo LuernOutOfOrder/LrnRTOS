@@ -1,4 +1,4 @@
-name: Build and test
+name: Build, lint and test
 
 on:
   push:
@@ -11,7 +11,7 @@ env:
 
 jobs:
   build:
-    name: Build (${{ matrix.os }} / ${{ matrix.toolchain }}) for target -> $({{ matrix.target }})
+    name: Build kernel
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
