@@ -18,12 +18,7 @@ Tests files:
 
 use list::task_list_add_task;
 
-use crate::{
-    arch::task::task_context::TaskContext,
-    log,
-    logs::LogLevel,
-    mem::mem_task_alloc,
-};
+use crate::{arch::task::task_context::TaskContext, log, logs::LogLevel, mem::mem_task_alloc};
 
 pub mod list;
 

@@ -1,6 +1,6 @@
 use crate::{
     BUFFER,
-    arch::scheduler::{SCHEDULER_CTX, SchedulerCtx, sched_ctx_restore, sched_ctx_save},
+    arch::scheduler::{SCHEDULER_CTX, SchedulerCtx, sched_ctx_restore},
     log,
     logs::LogLevel,
     task::{

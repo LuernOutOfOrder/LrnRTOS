@@ -1,4 +1,4 @@
-use crate::{print, BUFFER};
+use crate::{BUFFER, print};
 use core::{mem, ptr};
 
 use crate::{
@@ -141,7 +141,6 @@ pub fn test_task_context_switch() -> u8 {
     0
 }
 
-
 pub fn task_context_test_suite() {
     const TASK_CONTEXT_TEST_SUITE: TestSuite = TestSuite {
         tests: &[
@@ -162,7 +161,7 @@ pub fn task_context_test_suite() {
             ),
         ],
         name: "RISC-V32 bit task context layout",
-        tests_nb: 2,
+        tests_nb: 3,
         behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]
