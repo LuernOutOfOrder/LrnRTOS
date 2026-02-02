@@ -54,11 +54,8 @@ use core::panic::PanicInfo;
 use logs::LogLevel;
 use mem::mem_kernel_stack_info;
 use primitives::ring_buff::RingBuffer;
-use task::{
-    CURRENT_TASK_PID, list::task_list_get_task_by_pid, task_context_switch, task_create, r#yield,
-};
 
-/// Temporary static mut buffer, used to store and retrieve task.
+// Static buffer to use as a ready queue for task.
 pub static mut BUFFER: RingBuffer<u16, 3> = RingBuffer::init();
 
 #[unsafe(no_mangle)]
@@ -72,37 +69,11 @@ unsafe extern "C" fn main() -> ! {
         kernel_stack.bottom
     );
     log!(LogLevel::Info, "LrnRTOS started!");
-
-    // Temporary task creation and retrieving to test context switch.
-    task_create("Testing task", task_fn, 0, 128);
-    task_create("Testing task 2", task_2_fn, 0, 128);
-    #[allow(static_mut_refs)]
-    unsafe {
-        BUFFER.push(2)
-    };
-    unsafe { CURRENT_TASK_PID = 1 };
-    let task = task_list_get_task_by_pid(unsafe { CURRENT_TASK_PID });
-    task_context_switch(task.unwrap());
     loop {
         log!(LogLevel::Debug, "Main loop uptime.");
         unsafe {
             arch::traps::interrupt::enable_and_halt();
         }
-    }
-}
-
-// Temp task entry point
-fn task_fn() -> ! {
-    loop {
-        log!(LogLevel::Info, "A");
-        r#yield();
-    }
-}
-
-fn task_2_fn() -> ! {
-    loop {
-        log!(LogLevel::Info, "B");
-        r#yield();
     }
 }
 

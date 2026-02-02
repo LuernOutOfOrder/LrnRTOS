@@ -16,19 +16,13 @@ Tests files:
 - 'src/tests/task/mod.rs'
 */
 
-use core::arch::asm;
-
 use list::task_list_add_task;
 
 use crate::{
-    arch::{
-        task::{save_context, task_context::TaskContext},
-        trampoline::{save_ra, save_sp},
-    },
+    arch::task::task_context::TaskContext,
     log,
     logs::LogLevel,
     mem::mem_task_alloc,
-    scheduler::{dispatch, switch_scheduler_ctx},
 };
 
 pub mod list;
@@ -161,15 +155,3 @@ pub fn task_context_save(task: &Task, ra: usize, sp: usize) {
 pub fn task_pid(task: &Task) -> u16 {
     task.pid
 }
-
-// When a task call yield explicitely, it will trigger a reschedule of tasks, save context of the
-// current task and switch to the next one.
-// #[unsafe(no_mangle)]
-// pub fn r#yield() {
-//     let ra = save_ra();
-//     let sp = save_sp();
-//     let current_task = unsafe { TASK_HANDLER };
-//     let context: *mut TaskContext = &mut (unsafe { *current_task }).context as *mut TaskContext;
-//     unsafe { save_context(context as usize, ra, sp) };
-//     switch_scheduler_ctx();
-// }

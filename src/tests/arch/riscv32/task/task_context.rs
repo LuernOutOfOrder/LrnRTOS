@@ -1,17 +1,12 @@
-use core::{arch::asm, mem, ptr};
+use crate::{print, BUFFER};
+use core::{mem, ptr};
 
 use crate::{
-    BUFFER,
     arch::{
         scheduler::init_sched_ctx,
         task::{task_context::TaskContext, r#yield},
-        traps::{
-            enable_interrupts,
-            interrupt::{enable_and_halt, halt},
-        },
+        traps::interrupt::halt,
     },
-    ktime::set_ktime_seconds,
-    print,
     scheduler::dispatch,
     task::{
         CURRENT_TASK_PID, TASK_HANDLER, list::task_list_get_task_by_pid, task_context_switch,
@@ -48,7 +43,7 @@ pub fn test_task_context_init() -> u8 {
         panic!("Task context has been initialized with wrong address space.");
     }
     // Check pc
-    if task_context.pc != test_task_context_entry_ptn_fn as usize as u32 {
+    if task_context.pc != test_task_context_entry_ptn_fn as *const () as u32 {
         panic!(
             "Task context has been initialized with wrong PC, expect pc to be set to the address of the given function"
         );
@@ -127,7 +122,6 @@ fn test_context_switch_b() -> ! {
 /// violated.
 /// Don't work yet, must make the kernel work on test mode with memory discovery and switch kernel
 /// sp ?
-#[unsafe(no_mangle)]
 pub fn test_task_context_switch() -> u8 {
     // Temporary task creation and retrieving to test context switch.
     task_create("A", test_context_switch_a, 0, 0x1000);
@@ -146,6 +140,7 @@ pub fn test_task_context_switch() -> u8 {
     task_context_switch(task.unwrap());
     0
 }
+
 
 pub fn task_context_test_suite() {
     const TASK_CONTEXT_TEST_SUITE: TestSuite = TestSuite {
