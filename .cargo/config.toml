@@ -50,10 +50,9 @@ debug = false
 debug-assertions = false 
 
 [alias]
-b = "build --profile=dev"
-rb = "build --profile=release"
-tb = "build --profile=test --features=test"
+b = "build --profile=dev -Zjson-target-spec --target arch/riscv32imc-unknown-none-elf.json"
+rb = "build --profile=release -Zjson-target-spec --target arch/riscv32imc-unknown-none-elf.json"
+tb = "build --profile=test --features=test -Zjson-target-spec --target arch/riscv32imc-unknown-none-elf.json"
 c = "clean"
 ft = "fmt --all -- --check"
-w = "clippy -- -D warnings"
-t = "test"
+w = "clippy -Zjson-target-spec --target arch/riscv32imc-unknown-none-elf.json -- -D warnings"
