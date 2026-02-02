@@ -97,5 +97,6 @@ jobs:
 
       - name: Run kernel tests in QEMU
         run: |
-          # IMPORTANT: make test must return 0 on success, non-zero on failure.
+          # IMPORTANT: qemu cannot exit with exit code on a bare-metal kernel, just make qemu exit by writting to the virt_test dev
+          # If qemu doesn't exit by writting to this device, that mean that the test suites failed. 
           make test_build && make
