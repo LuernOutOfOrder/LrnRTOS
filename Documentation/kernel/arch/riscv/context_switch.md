@@ -4,11 +4,8 @@
 - [RISC-V context switch - saving and restoring CPU state.](#risc-v-context-switch-saving-and-restoring-cpu-state)
   - [Description](#description)
   - [How does it works](#how-does-it-works)
-    - [Save context](#save-context)
-      - [Structure](#structure)
-      - [Offsets](#offsets)
-      - [Saving context](#saving-context)
-    - [Restore context](#restore-context)
+    - [Structure](#structure)
+  - [Invariants](#invariants)
 <!--toc:end-->
 
 ## Description
@@ -49,8 +46,8 @@ pub struct TaskContext {
 ## Invariants
 
 - The memory layout of TaskContext must remain strictly consistent with the assembly offsets. Any modification requires updating both Rust and assembly code.
-- All GPRs except sp and t6 must be preserved.
+- All GPRs except `sp`, `ra` and `t6` must be preserved. `sp`, `ra` and `t6` are saved in specific offset of the TaskContext memory layout.
 - Context saving must return to kernel execution, not to task execution.
-- Context restoration must transfer control back to task execution using mret.
-- After restore, execution resumes exclusively via mret.
+- Context restoration must transfer control back to task execution using `ret` and `ra`.
+- After restore, execution resumes exclusively via `ret`.
 - No Rust code executes after a successful context restore except from the one from the task.
