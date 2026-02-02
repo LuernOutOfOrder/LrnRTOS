@@ -1,17 +1,15 @@
 /*
 File info: RISC-V 32 bit task context.
 
-Test coverage: Basic task context creation, offset and start of the context switch.
+Test coverage: Everything tested and up-to-date.
 
 Tested:
 - init methods,
 - offset of structure field
 
 Not tested:
-- Context switch, beginning of a test function but not working yet.
 
 Reasons:
-- Hard to test the context switch, because the test cannot handle the CPU by itself. The task has the control of it.
 
 Tests files:
 - 'src/tests/arch/riscv32/task/task_context.rs'

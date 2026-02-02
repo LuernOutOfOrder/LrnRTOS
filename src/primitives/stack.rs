@@ -1,3 +1,19 @@
+/*
+File info: AlignedStack primitive type.
+
+Test coverage: ...
+
+Tested:
+
+Not tested:
+
+Reasons: Not even really implemented so there's no need to test something that doesn't even consider finish
+
+Tests files:
+
+References:
+*/
+
 pub struct AlignedStack<const N: usize> {
     pub buf: [u8; N],
 }

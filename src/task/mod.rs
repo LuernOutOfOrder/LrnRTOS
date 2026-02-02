@@ -1,16 +1,17 @@
 /*
 File info: Task management. Handle all task logic.
 
-Test coverage: Basic task creation and test memory region.
+Test coverage: Basic task creation, memory region and context switch(save and restore).
 
 Tested:
 - task_create function.
+- Context save and context restore.
 
 Not tested:
-- All context, fn ptr, state and priority.
+- fn ptr, state and priority.
 
 Reasons:
-- Not really testable yet. Will be easier once there'll be a scheduler.
+- Some of the task field or properties or whatever are not fully testable yet, will be easier with a real scheduler. But the main features are tested.
 
 Tests files:
 - 'src/tests/task/mod.rs'

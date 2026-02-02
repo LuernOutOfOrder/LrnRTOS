@@ -1,3 +1,19 @@
+/*
+File info: Scheduler main file
+
+Test coverage: ...
+
+Tested:
+
+Not tested:
+
+Reasons: Not even really implemented so there's no need to test something that doesn't even consider finish
+
+Tests files:
+
+References:
+*/
+
 use crate::{
     BUFFER,
     arch::scheduler::{SCHEDULER_CTX, SchedulerCtx, sched_ctx_restore},
