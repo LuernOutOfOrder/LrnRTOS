@@ -5,6 +5,8 @@
   - [Description](#description)
   - [Purpose](#purpose)
   - [Structure](#structure)
+  - [How task is store](#how-task-is-store)
+  - [Invariants](#invariants)
   - [References](#references)
 <!--toc:end-->
 
@@ -73,6 +75,12 @@ pub struct TaskList {
     size: u8,
 }
 ```
+
+## Invariants
+
+- The task's function must never return.
+- There can't be the same pid in different task.
+- The state of a task must always be updated when its state change, the state must always reflect the current task's state.
 
 ## References
 
