@@ -21,10 +21,6 @@ ifeq ($(RUNNER_EXISTS),)
 $(error "Runner $(RUNNER) not found in PATH")
 endif
 
-# ifeq ($(DEBUGGER_EXISTS),)
-# $(error "Debugger $(DEBUGGER) not found in PATH")
-# endif
-
 # Condition to use flags or not
 
 ifeq ($(DEBUG),1)
