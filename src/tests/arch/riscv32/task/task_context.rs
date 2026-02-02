@@ -1,22 +1,21 @@
-use core::{arch::asm, mem};
+use core::{arch::asm, mem, ptr};
 
 use crate::{
     BUFFER,
     arch::{
-        scheduler::{SchedulerCtx, init_sched_ctx},
-        task::task_context::TaskContext,
+        scheduler::init_sched_ctx,
+        task::{task_context::TaskContext, r#yield},
         traps::{
-            disable_interrupts, enable_interrupts,
-            interrupt::{halt, mscratch_set_trap_frame},
+            enable_interrupts,
+            interrupt::{enable_and_halt, halt},
         },
     },
-    config::TICK_SAFETY_DURATION,
     ktime::set_ktime_seconds,
     print,
     scheduler::dispatch,
     task::{
         CURRENT_TASK_PID, TASK_HANDLER, list::task_list_get_task_by_pid, task_context_switch,
-        task_create, r#yield,
+        task_create,
     },
     test_failed, test_info,
     tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
@@ -95,43 +94,28 @@ pub fn test_task_context_offset() -> u8 {
     0
 }
 
-#[unsafe(no_mangle)]
 fn test_context_switch_a() -> ! {
-    let mut task: usize = 0;
-    unsafe { asm!("mv {}, sp", out(reg) task) };
-    let mut i: usize = 0;
-    print!("\nA DEBUG SP start task: {:#x}", task);
+    let mut i: usize = 1;
     loop {
-        i += 1;
+        i += 2;
         print!("\nA {i}\n");
-        if i >= 28 {
-            unsafe {
-                halt();
-            }
+        if i >= 31 {
+            unsafe { ptr::write_volatile(0x100000 as *mut u32, 0x5555) };
         } else {
-            print!("A DEBUG SP before yield: {:#x}\n", task);
-            r#yield();
-            print!("A DEBUG SP after yield: {:#x}", task);
+            unsafe { r#yield() };
         }
     }
 }
 
 fn test_context_switch_b() -> ! {
-    let mut task: usize = 0;
-    unsafe { asm!("mv {}, sp", out(reg) task) };
     let mut i: usize = 0;
-    print!("\nB DEBUG SP start task: {:#x}", task);
     loop {
-        i += 1;
+        i += 2;
         print!("\nB {i}\n");
-        if i >= 27 {
-            unsafe {
-                halt();
-            }
+        if i >= 30 {
+            unsafe { ptr::write_volatile(0x100000 as *mut u32, 0x5555) };
         } else {
-            print!("B DEBUG SP before yield: {:#x}\n", task);
-            r#yield();
-            print!("B DEBUG SP after yield: {:#x}", task);
+            unsafe { r#yield() };
         }
     }
 }
@@ -154,7 +138,7 @@ pub fn test_task_context_switch() -> u8 {
     let mut task = task_list_get_task_by_pid(unsafe { CURRENT_TASK_PID });
     unsafe { TASK_HANDLER = *task.as_mut().unwrap() };
     test_info!(
-        "The next output should be the task A and B, which print alternately A, and B, with a digit. The final output must from A should be 28, and from B, 26"
+        "The next output should be the task A and B, which print alternately A, and B, with a digit. The final output must from A should be 31, and from B, 28"
     );
     init_sched_ctx(dispatch);
     task_context_switch(task.unwrap());

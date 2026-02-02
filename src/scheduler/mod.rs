@@ -16,6 +16,7 @@ use crate::{
 /// RingBuffer.
 /// Read on the RingBuffer to get the next task, update it, and update the RingBuffer.
 /// Not the best way to use the RingBuffer but it will do.
+#[unsafe(no_mangle)]
 pub fn dispatch() {
     // Current running task
     let mut current_task = unsafe { *TASK_HANDLER };

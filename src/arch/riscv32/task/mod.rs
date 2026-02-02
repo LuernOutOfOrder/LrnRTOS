@@ -2,6 +2,8 @@ pub mod task_context;
 
 // Asm function for task context switch
 unsafe extern "C" {
+    // Yield function for cooperative scheduling
+    pub fn r#yield();
     // Restore the task context
     pub fn restore_context(context: usize);
     // Save the current task context

@@ -8,6 +8,8 @@ global_asm! {
     include_str!("gnu_macro.S"),
     // Update kernel sp after memory init
     include_str!("set_kernel_sp.S"),
+    // Yield function for context switch and scheduling
+    include_str!("yield.S"),
     // Scheduler context switch
     include_str!("sched_context.S"),
     // All task context offsets
