@@ -48,6 +48,6 @@ jobs:
     - name: Check formatting
       run: cargo fmt --all -- --check
     - name: Lint
-      run: cargo clippy -- -D warnings
+      run: cargo clippy -Zjson-target-spec --arch/${{ matrix.target }}.json -- -D warnings
     # - name: Run tests
     #   run: cargo test --verbose
