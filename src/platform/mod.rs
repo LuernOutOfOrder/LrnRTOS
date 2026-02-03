@@ -248,7 +248,10 @@ impl PlatformTimerDevice {
             // Allow expect use, we should always get the cpu node, if not, fail-fast because
             // something's wrong.
             #[allow(clippy::expect_used)]
-            let cpu_node = fdt_get_node(node.parent_node_index.expect("ERROR: failed to get the cpu node"));
+            let cpu_node = fdt_get_node(
+                node.parent_node_index
+                    .expect("ERROR: failed to get the cpu node"),
+            );
             #[allow(clippy::expect_used)]
             let cpu_reg = fdt_get_node_prop(&cpu_node, "reg")
                 .expect("ERROR: failed to get core id from associated core from intc");

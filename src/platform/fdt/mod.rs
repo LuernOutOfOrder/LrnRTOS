@@ -180,7 +180,9 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
             let prop_header: FdtPropHeader = unsafe { ptr::read(cursor as *const FdtPropHeader) };
             // Allow the use of expect, we should always have a node to pop from the stack
             #[allow(clippy::expect_used)]
-            let idx = node_stack.last().expect("Error: failed to get the last node on the stack. This shouldn't be possible");
+            let idx = node_stack.last().expect(
+                "Error: failed to get the last node on the stack. This shouldn't be possible",
+            );
             let mut node = unsafe { NODE_POOL[*idx] };
             if node.first_prop_off == 0 && node.parent_node_index.is_some() {
                 node.first_prop_off = unsafe { PROPS_COUNT } as u32;
