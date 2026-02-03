@@ -7,7 +7,7 @@ use crate::{
     ktime::set_ktime_seconds,
     log,
     logs::LogLevel,
-    mem::{memory_init, update_kernel_sp},
+    mem::{mem_update_kernel_sp, memory_init},
     platform::platform_init,
 };
 
@@ -34,7 +34,7 @@ pub fn kernel_early_boot(core: usize, dtb_addr: usize) -> ! {
     );
     memory_init();
     log!(LogLevel::Debug, "Switch to new kernel stack...");
-    update_kernel_sp();
+    mem_update_kernel_sp();
     // Allow empty loop because it will never enter, just to make the fn never return without
     // warning
     #[allow(clippy::empty_loop)]
