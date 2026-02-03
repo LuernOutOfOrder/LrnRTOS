@@ -35,7 +35,6 @@ pub fn task_test_suite() {
             TestBehavior::Default,
         )],
         name: "Task",
-        tests_nb: 1,
         behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]

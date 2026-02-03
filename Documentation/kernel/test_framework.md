@@ -68,8 +68,6 @@ pub fn foo_test_suite() {
         )],
         // Name of the test suite
         name: "Foo",
-        // Number of tests inside the suite
-        tests_nb: 1,
         // Behavior of the test suite
         // Default: run the suite normally
         // Skipped: don't run the suite at all

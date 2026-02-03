@@ -19,12 +19,13 @@ Tests files:
 
 mod kernel;
 
-use core::{arch::asm, mem};
+use core::mem;
 
 use kernel::{__kernel_end, __kernel_start, KernelStack};
 
 use crate::{
-    arch, config::KERNEL_STACK_SIZE, log, logs::LogLevel, platform::mem::platform_init_mem,
+    arch::mem::update_kernel_sp, config::KERNEL_STACK_SIZE, log, logs::LogLevel,
+    platform::mem::platform_init_mem,
 };
 
 pub struct Memory {
@@ -137,17 +138,16 @@ pub fn memory_init() {
     }
 }
 
-#[unsafe(no_mangle)]
-pub fn update_kernel_sp() {
-    unsafe { asm!("mv a0, {}", in(reg) MEMORY.kernel_stack.top) };
-    unsafe { arch::asm::set_kernel_sp() };
-}
-
 pub fn mem_kernel_stack_info<'a>() -> &'a KernelStack {
     #[allow(static_mut_refs)]
     unsafe {
         &MEMORY.kernel_stack
     }
+}
+
+pub fn mem_update_kernel_sp() {
+    let sp: usize = unsafe { MEMORY.kernel_stack.top };
+    update_kernel_sp(sp);
 }
 
 /// Return the hi and lo address of the RAM

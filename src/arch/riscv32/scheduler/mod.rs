@@ -1,4 +1,4 @@
-use crate::primitives::stack::AlignedStack;
+use crate::primitives::stack::AlignedStack16;
 
 #[repr(C)]
 pub struct SchedulerCtx {
@@ -10,7 +10,7 @@ pub struct SchedulerCtx {
     sp: *mut u8, // Offset 132
 }
 
-pub static mut SCHEDULER_STACK: AlignedStack<4098> = AlignedStack::new();
+pub static mut SCHEDULER_STACK: AlignedStack16<4098> = AlignedStack16::new();
 pub static mut SCHEDULER_CTX: SchedulerCtx = unsafe { core::mem::zeroed() };
 
 impl SchedulerCtx {

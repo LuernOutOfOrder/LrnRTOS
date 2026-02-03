@@ -4,7 +4,6 @@ pub fn task_list_test_suite() {
     const TASK_LIST_TEST_SUITE: TestSuite = TestSuite {
         tests: &[],
         name: "Task list",
-        tests_nb: 0,
         behavior: TestSuiteBehavior::Skipped,
     };
     #[allow(static_mut_refs)]

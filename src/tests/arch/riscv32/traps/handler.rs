@@ -29,7 +29,6 @@ pub fn trap_handler_test_suite() {
             TestBehavior::Default,
         )],
         name: "Trap handler",
-        tests_nb: 1,
         behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]
