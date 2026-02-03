@@ -20,8 +20,8 @@ rustflags = [
   "-C",
   "link-arg=--print-memory-usage",
   # Generate a memory map at compilation time
-  "-C",
-  "link-arg=-Map=logs/memory.map",
+  # "-C",
+  # "link-arg=-Map=logs/memory.map",
 ]
 
 [profile.dev]
