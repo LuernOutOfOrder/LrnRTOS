@@ -1,6 +1,7 @@
 [unstable]
 build-std-features = ["compiler-builtins-mem"]
 build-std = ["core", "compiler_builtins"]
+profile-rustflags = true
 
 [build]
 target = "arch/riscv32imc-unknown-none-elf.json"
@@ -18,27 +19,38 @@ rustflags = [
   # Print memory usage 
   "-C",
   "link-arg=--print-memory-usage",
+  # Generate a memory map at compilation time
   # "-C",
-  # "link-arg=-Map=memory.map",
+  # "link-arg=-Map=logs/memory.map",
 ]
 
 [profile.dev]
 opt-level = 0
 debug = 2
-debug-assertions = true 
+debug-assertions = true
 lto = false
 strip = false
 codegen-units = 1
-panic = "unwind"
+panic = "abort"
+rustflags = [
+  # Improve backtrace
+  "-C",
+  "force-frame-pointers=yes",
+]
 
 [profile.test]
 opt-level = 0
 debug = 2
-debug-assertions = true 
+debug-assertions = true
 lto = false
 strip = false
 codegen-units = 1
-panic = "unwind"
+panic = "abort"
+rustflags = [
+  # Improve backtrace
+  "-C",
+  "force-frame-pointers=yes",
+]
 
 [profile.release]
 opt-level = 2
@@ -47,13 +59,13 @@ strip = true
 codegen-units = 1
 panic = "abort"
 debug = false
-debug-assertions = false 
+debug-assertions = false
 
 [alias]
-b = "build --profile=dev -Zjson-target-spec --target arch/riscv32imc-unknown-none-elf.json"
-rb = "build --profile=release -Zjson-target-spec --target arch/riscv32imc-unknown-none-elf.json"
-tb = "build --profile=test --features=test -Zjson-target-spec --target arch/riscv32imc-unknown-none-elf.json"
+b = "build --profile=dev -Zjson-target-spec"
+rb = "build --profile=release -Zjson-target-spec"
+tb = "build --profile=test --features=test -Zjson-target-spec"
 c = "clean"
 ft = "fmt --all -- --check"
-w = "clippy -Zjson-target-spec --target arch/riscv32imc-unknown-none-elf.json -- -D warnings"
-clip = "clippy -Zjson-target-spec --target arch/riscv32imc-unknown-none-elf.json"
+w = "clippy -Zjson-target-spec -- -D warnings"
+clip = "clippy -Zjson-target-spec"
