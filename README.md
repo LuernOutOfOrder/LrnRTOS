@@ -72,11 +72,22 @@ make objdump
 make dtc
 ```
 
+## Cargo commands
+
+```bash
+# Run clippy with target flags
+cargo clip
+```
+
 ## Documentation
 
 All architecture and design choices are documented here: `Documentation/`.
 
 A documentation for configuration and usage is coming soon.
+
+### Code conventions
+
+The kernel code conventions is documented here: `Documentation/coding_conventions.md`.
 
 ## Resources
 
