@@ -33,7 +33,6 @@ pub fn ns16550_test_suite() {
             TestBehavior::Default,
         )],
         name: "Ns16550",
-        tests_nb: 1,
         behavior: TestSuiteBehavior::Skipped,
     };
     #[allow(static_mut_refs)]

@@ -94,7 +94,6 @@ impl<'a> TestManager<'a> {
 pub struct TestSuite<'a> {
     pub tests: &'a [TestCase<'a>],
     pub name: &'a str,
-    pub tests_nb: u32,
     pub behavior: TestSuiteBehavior,
 }
 
@@ -103,21 +102,14 @@ impl<'a> TestSuite<'a> {
         TestSuite {
             tests: &[],
             name: "",
-            tests_nb: 0,
             behavior: TestSuiteBehavior::Skipped,
         }
     }
 
-    pub fn init(
-        tests: &'a [TestCase],
-        name: &'a str,
-        tests_nb: u32,
-        behavior: TestSuiteBehavior,
-    ) -> Self {
+    pub fn init(tests: &'a [TestCase], name: &'a str, behavior: TestSuiteBehavior) -> Self {
         TestSuite {
             tests,
             name,
-            tests_nb,
             behavior,
         }
     }
@@ -155,7 +147,6 @@ impl<'a> TestCase<'a> {
 
 pub static mut TEST_MANAGER: TestManager = TestManager::init();
 
-#[unsafe(no_mangle)]
 pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
     // Basic test before running all test suites
     kprint!("Starting kernel in test mode.\n");
@@ -182,7 +173,8 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
     let mut test_suites_skipped: usize = 0;
     // Iterate over all test suite and run all test inside
     for test_suite in unsafe { TEST_MANAGER.test_pool } {
-        if test_suite.tests_nb == 0 {
+        let test_nb = test_suite.tests.len();
+        if test_nb == 0 {
             continue;
         }
         if test_suite.behavior == TestSuiteBehavior::Skipped {
@@ -191,10 +183,10 @@ pub fn test_runner(core: usize, dtb_addr: usize) -> ! {
         }
         kprint_fmt!(
             "\nRunning {} tests from test suite: {}\n",
-            test_suite.tests_nb,
+            test_nb,
             test_suite.name
         );
-        let test_to_pass = test_suite.tests_nb;
+        let test_to_pass = test_nb;
         let mut test_passed: usize = 0;
         let mut test_failed: usize = 0;
         let mut test_skipped: usize = 0;
