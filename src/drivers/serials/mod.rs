@@ -106,7 +106,7 @@ impl SerialManager {
         // Set default console
         // Allow the use of expect, we check the option before, so if we can't get the value behind
         // the option, there's a problem, obviously.
-        #[allow(clippy:expect_used)]
+        #[allow(clippy::expect_used)]
         if index_none
             .expect("Error: failed to get the index when checking serial index on sub-system")
             == 0

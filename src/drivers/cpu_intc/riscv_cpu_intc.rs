@@ -17,7 +17,7 @@ impl RiscVCpuIntc {
         };
         // Allow the use of expect, once we got the device asked, the trait should be working and
         // we should get the trait behind the Option<>
-        #[allow(clippy:expect_used)]
+        #[allow(clippy::expect_used)]
         let device_info_trait = device_info
             .info
             .expect("Error: failed to get device trait behind option.");
