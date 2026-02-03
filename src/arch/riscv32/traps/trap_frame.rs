@@ -18,6 +18,8 @@ Tests files:
 
 use core::{mem, ptr::null_mut};
 
+use crate::primitives::stack::AlignedStack16;
+
 #[repr(C)]
 // Trap frame structure, used to store all global registers, give a stack for the trap handling
 // to avoid using the kernel stack.
@@ -45,7 +47,7 @@ impl TrapFrame {
 }
 
 // Static buffer used as a stack for trap handling
-pub static mut TRAP_STACK_BUFF: [u8; 1024] = [0u8; 1024];
+pub static mut TRAP_STACK_BUFF: AlignedStack16<1024> = AlignedStack16::new();
 
 // Init TrapFrame with 0 in mem
 pub static mut KERNEL_TRAP_FRAME: TrapFrame = unsafe { mem::zeroed() };
@@ -55,6 +57,6 @@ pub fn init_trap_frame() {
     // Static mut safe because it's only used in kernel boot
     #[allow(static_mut_refs)]
     unsafe {
-        KERNEL_TRAP_FRAME.trap_stack = TRAP_STACK_BUFF.as_mut_ptr()
+        KERNEL_TRAP_FRAME.trap_stack = TRAP_STACK_BUFF.buf.as_mut_ptr().wrapping_add(1024);
     }
 }

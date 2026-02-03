@@ -14,14 +14,15 @@ Tests files:
 References:
 */
 
-pub struct AlignedStack<const N: usize> {
+#[repr(align(16))]
+pub struct AlignedStack16<const N: usize> {
     pub buf: [u8; N],
 }
 
-impl<const N: usize> AlignedStack<N> {
+impl<const N: usize> AlignedStack16<N> {
     // Don't bother with this warning
     #[allow(clippy::new_without_default)]
     pub const fn new() -> Self {
-        AlignedStack { buf: [0u8; N] }
+        AlignedStack16 { buf: [0u8; N] }
     }
 }
