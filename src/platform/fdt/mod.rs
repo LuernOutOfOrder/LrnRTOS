@@ -1,3 +1,8 @@
+// TODO: this module will be remove and use as an external crate in future update.
+// we will see at that time what rules we use on this module.
+#![allow(clippy::expect_used)]
+#![allow(clippy::unwrap_used)]
+
 use core::ptr;
 
 use arrayvec::ArrayVec;

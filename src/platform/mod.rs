@@ -138,10 +138,14 @@ impl PlatformCpuIntCDevice {
             Some(n) => n,
             None => panic!("Error while creating new CPU interrupt-controller generic structure"),
         };
+        // Allow expect use, the node riscv,cpu-intc should always have a parent node.
+        #[allow(clippy::expect_used)]
         let parent_node = fdt_get_node(
             node.parent_node_index
                 .expect("ERROR: riscv,cpu-intc has no parent node in fdt"),
         );
+        // Allow expect use, the node riscv,cpu-intc should always have a reg prop.
+        #[allow(clippy::expect_used)]
         let reg = fdt_get_node_prop(&parent_node, "reg")
             .expect("ERROR: riscv,cpu-intc parent has no reg property in fdt");
         let reg_value = u32::from_be(unsafe { ptr::read(reg.off_value as *const u32) });
@@ -204,6 +208,8 @@ impl PlatformTimerDevice {
             irq_ids: [0u32; 4],
         };
         let mut intc_extended_array: [InterruptExtended; 4] = [interrupt; 4];
+        // Allow expect use, clint0 node should always have the interrupts_extended prop
+        #[allow(clippy::expect_used)]
         let interrupt_extended = fdt_get_node_prop(node, "interrupts-extended")
             .expect("ERROR: clint0 node is missing 'interrupts-extended' property\n");
         // First parsing through interrupts-extended to build complete array with values from
@@ -243,6 +249,7 @@ impl PlatformTimerDevice {
             // something's wrong.
             #[allow(clippy::expect_used)]
             let cpu_node = fdt_get_node(node.parent_node_index.expect("ERROR: failed to get the cpu node"));
+            #[allow(clippy::expect_used)]
             let cpu_reg = fdt_get_node_prop(&cpu_node, "reg")
                 .expect("ERROR: failed to get core id from associated core from intc");
             let cpu_reg_value = u32::from_be(unsafe { ptr::read(cpu_reg.off_value as *const u32) });
