@@ -52,7 +52,11 @@ pub fn dispatch() {
             "Error getting the last task from RingBuffer"
         );
     }
+    // Allow unwrap because it's a temporary function
+    #[allow(clippy::unwrap_used)]
     let next_task_pid = get_next_task.unwrap();
+    // Allow unwrap because it's a temporary function
+    #[allow(clippy::unwrap_used)]
     let next_task = task_list_get_task_by_pid(next_task_pid).unwrap();
     next_task.state = TaskState::Running;
     task_list_update_task_by_pid(next_task_pid, *next_task);

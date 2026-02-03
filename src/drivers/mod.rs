@@ -38,8 +38,12 @@ pub struct DriverRegion {
 impl DriverRegion {
     pub fn new(node: &FdtNode) -> Self {
         // Get address and size cells
+        // Allow use of expect, those node when used should always have the #address-cells and
+        // #size-cells props
+        #[allow(clippy::expect_used)]
         let address_cells = fdt_get_node_prop_in_hierarchy(node, "#address-cells")
             .expect("ERROR: node is missing '#address-cells' property from parent bus\n");
+        #[allow(clippy::expect_used)]
         let size_cells = fdt_get_node_prop_in_hierarchy(node, "#size-cells")
             .expect("ERROR: node is missing '#size-cells' property from parent bus\n");
         // Ptr read address and size cells value from off and cast it to u32 target's endianness
@@ -48,6 +52,8 @@ impl DriverRegion {
         let size_cells_val: u32 =
             u32::from_be(unsafe { ptr::read(size_cells.off_value as *const u32) });
         // Get device memory region
+        // Allow expect use, if a node is used here, it should always have the prop reg.
+        #[allow(clippy::expect_used)]
         let reg = fdt_get_node_prop(node, "reg").expect("ERROR: node is missing 'reg' property");
         let mut reg_buff: ArrayVec<u32, 120> = ArrayVec::new();
         let mut reg_cursor = reg.off_value;

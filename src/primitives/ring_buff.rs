@@ -80,7 +80,10 @@ impl<T: Copy + core::fmt::Debug, const N: usize> RingBuffer<T, N> {
         if element.is_none() {
             None
         } else {
-            Some(self.buff[self.head].unwrap())
+            // Allow the use of expect, we check the value before, so if now it's None, something
+            // got wrong. We don't want to return a wrong value
+            #[allow(clippy::expect_used)]
+            Some(self.buff[self.head].expect("Error: fail to get head value"))
         }
     }
 

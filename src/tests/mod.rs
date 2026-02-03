@@ -1,3 +1,8 @@
+// This module is used for test, the environment should always be controlled a minimum, so the use
+// of unwrap, panic and expect is allowed.
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::expect_used)]
+
 use core::ptr;
 
 mod arch;

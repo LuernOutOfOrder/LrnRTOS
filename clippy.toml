@@ -1,0 +1,15 @@
+check-inconsistent-struct-field-initializers = true
+# Complexity & design
+cognitive-complexity-threshold = 15
+too-many-arguments-threshold = 5
+type-complexity-threshold = 250
+max-struct-bools = 2
+
+# Naming
+enum-variant-name-threshold = 3
+
+# Imports & readability
+warn-on-all-wildcard-imports = true
+
+# Performance hygiene
+vec-box-size-threshold = 64
