@@ -36,8 +36,9 @@ impl SerialDriver for Ns16550 {
     fn putchar(&self, c: u8) {
         unsafe { core::ptr::write_volatile(self.region.addr as *mut u8, c) }
     }
+    // Not implemented yet, do not use
     fn getchar(&self) -> u8 {
-        todo!()
+        0
     }
 }
 
