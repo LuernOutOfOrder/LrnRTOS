@@ -124,7 +124,6 @@ pub fn cpu_intc_subsystem_test_suite() {
             ),
         ],
         name: "CPU interrupt-controller",
-        tests_nb: 3,
         behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]

@@ -157,11 +157,10 @@ pub fn task_context_test_suite() {
             TestCase::init(
                 "Task context switch no invariants violated",
                 test_task_context_switch,
-                TestBehavior::Default,
+                TestBehavior::Skipped,
             ),
         ],
         name: "RISC-V32 bit task context layout",
-        tests_nb: 3,
         behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]

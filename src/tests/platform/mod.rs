@@ -132,7 +132,6 @@ pub fn platform_test_suite() {
             ),
         ],
         name: "Platform",
-        tests_nb: 2,
         behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]

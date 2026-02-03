@@ -59,7 +59,6 @@ pub fn memory_test_suite() {
             ),
         ],
         name: "Kernel memory",
-        tests_nb: 2,
         behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]

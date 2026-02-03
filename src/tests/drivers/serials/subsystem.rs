@@ -229,7 +229,6 @@ pub fn serial_subsystem_test_suite() {
             ),
         ],
         name: "Serial sub-system",
-        tests_nb: 3,
         behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]
