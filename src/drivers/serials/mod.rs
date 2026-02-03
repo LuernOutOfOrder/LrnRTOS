@@ -104,7 +104,13 @@ impl SerialManager {
             return;
         }
         // Set default console
-        if index_none.unwrap() == 0 {
+        // Allow the use of expect, we check the option before, so if we can't get the value behind
+        // the option, there's a problem, obviously.
+        #[allow(clippy:expect_used)]
+        if index_none
+            .expect("Error: failed to get the index when checking serial index on sub-system")
+            == 0
+        {
             let update_serial = SerialDevice {
                 _id: new_serial._id,
                 default_console: true,
@@ -113,7 +119,15 @@ impl SerialManager {
             unsafe { *self.devices[0].get() = Some(update_serial) }
         } else {
             // Just save the new device
-            unsafe { *self.devices[index_none.unwrap()].get() = Some(new_serial) };
+            // Allow expect, we should always get the value behind the Option, if not, something is
+            // wrong, fail-fast.
+            #[allow(clippy::expect_used)]
+            unsafe {
+                *self.devices[index_none.expect(
+                    "Error: failed to get the index when adding a new serial to sub-system",
+                )]
+                .get() = Some(new_serial)
+            };
         }
     }
 

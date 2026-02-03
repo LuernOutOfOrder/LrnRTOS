@@ -146,7 +146,10 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
                     } else {
                         // Parent index is the last element of the stack (index inside the
                         // NODE_POOL)
-                        Some(*node_stack.last().unwrap())
+                        // Allow use of expect, check before if the stack is empty, and if it's
+                        // not, we should always get the last node without error
+                        #[allow(clippy::expect_used)]
+                        Some(*node_stack.last().expect("Error: failed to get last node on the stack. This shouldn't be possible"))
                     }
                 },
             };
@@ -170,7 +173,9 @@ fn parse_fdt_struct(dt_struct_addr: usize, string_block_off: usize) {
         if token == fdt_prop {
             // Cast current cursor ptr as prop header
             let prop_header: FdtPropHeader = unsafe { ptr::read(cursor as *const FdtPropHeader) };
-            let idx = node_stack.last().unwrap();
+            // Allow the use of expect, we should always have a node to pop from the stack
+            #[allow(clippy::expect_used)]
+            let idx = node_stack.last().expect("Error: failed to get the last node on the stack. This shouldn't be possible");
             let mut node = unsafe { NODE_POOL[*idx] };
             if node.first_prop_off == 0 && node.parent_node_index.is_some() {
                 node.first_prop_off = unsafe { PROPS_COUNT } as u32;

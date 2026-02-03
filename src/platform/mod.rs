@@ -228,14 +228,21 @@ impl PlatformTimerDevice {
             if iter_safety == interrupts_extended_vec.len() {
                 break;
             }
+            // Allow the use of expect, we want to fail directly if we can't find those node
+            #[allow(clippy::expect_used)]
             let node = fdt_get_node_by_phandle(value).expect(
                 "ERROR: cannot find associate phandle node from clint0 interrupts-extended property",
             );
+            // Allow the use of expect, we want to fail directly if we can't find those node
+            #[allow(clippy::expect_used)]
             let node_interrupt_cells = fdt_get_node_prop(&node, "#interrupt-cells")
                 .expect("ERROR: clint0 phandle node is missing the property '#interrupt-cells'");
             // Read node interrupt-cells value to know how many clint interrupt-extended value to
             // read and assign to phandle
-            let cpu_node = fdt_get_node(node.parent_node_index.unwrap());
+            // Allow expect use, we should always get the cpu node, if not, fail-fast because
+            // something's wrong.
+            #[allow(clippy::expect_used)]
+            let cpu_node = fdt_get_node(node.parent_node_index.expect("ERROR: failed to get the cpu node"));
             let cpu_reg = fdt_get_node_prop(&cpu_node, "reg")
                 .expect("ERROR: failed to get core id from associated core from intc");
             let cpu_reg_value = u32::from_be(unsafe { ptr::read(cpu_reg.off_value as *const u32) });
@@ -301,7 +308,9 @@ fn init_fdt_device(compatible: &'_ str, device_type: DeviceType) -> Option<Devic
             unsafe { SERIAL_DEVICE_INSTANCE = serial_device };
             let get_device = Devices::init_fdt(compatible, device_type);
             get_device?;
-            let mut device: Devices = get_device.unwrap();
+            // Allow the use of expect, we check the Option<> before but we don't want any surprise
+            #[allow(clippy::expect_used)]
+            let mut device: Devices = get_device.expect("Error: failed to get the serial device");
             device.info = Some(unsafe { &mut SERIAL_DEVICE_INSTANCE });
             default_device = device;
         }
@@ -311,7 +320,9 @@ fn init_fdt_device(compatible: &'_ str, device_type: DeviceType) -> Option<Devic
             unsafe { TIMER_DEVICE_INSTANCE = timer_device };
             let get_device = Devices::init_fdt(compatible, device_type);
             get_device?;
-            let mut device: Devices = get_device.unwrap();
+            // Allow the use of expect, we check the Option<> before but we don't want any surprise
+            #[allow(clippy::expect_used)]
+            let mut device: Devices = get_device.expect("Error: failed to get the timer device");
             device.info = Some(unsafe { &mut TIMER_DEVICE_INSTANCE });
             default_device = device;
         }
@@ -342,7 +353,10 @@ pub fn platform_get_device_info(
             let get_device = init_fdt_device(compatible, device_type);
             match get_device.is_none() {
                 true => None,
-                false => Some(get_device.unwrap()),
+                // Allow the use of expect, we check the Option<> before, but we don't want any
+                // surprise
+                #[allow(clippy::expect_used)]
+                false => Some(get_device.expect("Error: failed to get the device from FDT")),
             }
         }
         false => {

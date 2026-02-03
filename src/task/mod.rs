@@ -82,7 +82,13 @@ impl Task {
         }
         // Return new task
         Some(Task {
-            context: TaskContext::init(mem_reg.unwrap(), func),
+            // Allow expect use, we check the Option<> before, but if we can't get the memory
+            // region behind it, fail-fast, we don't want a task with wrong mem reg or UB.
+            #[allow(clippy::expect_used)]
+            context: TaskContext::init(
+                mem_reg.expect("Error: failed to get the task memory region"),
+                func,
+            ),
             func,
             pid: 0,
             name: buf,
@@ -124,7 +130,9 @@ impl Task {
 pub fn task_create(name: &str, func: fn() -> !, priority: u8, size: usize) {
     let new_task = Task::init(name, func, priority, size);
     if let Some(task) = new_task {
-        let name = str::from_utf8(&task.name).unwrap();
+        // Allow the use of expect to avoid casting non-utf8 char to str.
+        #[allow(clippy::expect_used)]
+        let name = str::from_utf8(&task.name).expect("Failed to cast bytes buffer to &str.");
         let updated_task_pid = task_list_add_task(task);
         log!(
             LogLevel::Info,
