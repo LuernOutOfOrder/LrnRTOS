@@ -18,8 +18,12 @@ rustflags = [
   # Print memory usage 
   "-C",
   "link-arg=--print-memory-usage",
-  # "-C",
-  # "link-arg=-Map=memory.map",
+  # Generate a memory map at compilation time
+  "-C",
+  "link-arg=-Map=logs/memory.map",
+  # Improve backtrace even when no unwinding is available
+  "-C",
+  "force-frame-pointers=yes"
 ]
 
 [profile.dev]
@@ -29,7 +33,7 @@ debug-assertions = true
 lto = false
 strip = false
 codegen-units = 1
-panic = "unwind"
+panic = "abort"
 
 [profile.test]
 opt-level = 0
@@ -38,7 +42,7 @@ debug-assertions = true
 lto = false
 strip = false
 codegen-units = 1
-panic = "unwind"
+panic = "abort"
 
 [profile.release]
 opt-level = 2
