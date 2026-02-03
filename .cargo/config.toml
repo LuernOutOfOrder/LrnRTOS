@@ -56,4 +56,4 @@ tb = "build --profile=test --features=test -Zjson-target-spec --target arch/risc
 c = "clean"
 ft = "fmt --all -- --check"
 w = "clippy -Zjson-target-spec --target arch/riscv32imc-unknown-none-elf.json -- -D warnings"
-clpy = "clippy -Zjson-target-spec --target arch/riscv32imc-unknown-none-elf.json"
+clip = "clippy -Zjson-target-spec --target arch/riscv32imc-unknown-none-elf.json"

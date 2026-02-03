@@ -53,7 +53,7 @@ No recursion, at all. Hard to analyze statically and to debug.
 Only infinite loop authorize are the one on the function that shouldn't returned, or on some boot process, when you don't know how huge the loop should be, but apart from that, no infinite loop should be used.
 When you need a loop, always use a max iteration. And if it's shouldn't reach the end, and it's specified that it's an invariant, you can use panic or else.
 
-### No heap allocation on the kernel logic
+### No heap allocation on the kernel
 
 The kernel should always use static array or static type but never use heap allocation for a vector for example. If a user want to heap allocate on his task, he can, but not on the kernel.
 All allocation in the kernel core should be static allocation.
