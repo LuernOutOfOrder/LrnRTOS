@@ -39,8 +39,12 @@ impl Clint0 {
             Some(d) => d,
             None => return,
         };
-        // Get struct behind trait
-        let device_info_trait = device_info.info.unwrap();
+        // Allow the use of expect, once we got the device asked, the trait should be working and
+        // we should get the trait behind the Option<>
+        #[allow(clippy:expect_used)]
+        let device_info_trait = device_info
+            .info
+            .expect("Error: failed to get device trait behind option.");
         let raw: RawTraitObject = unsafe { core::mem::transmute(device_info_trait) };
         let timer_device_ptr = raw.data as *const platform::PlatformTimerDevice;
         let timer_device_ref = unsafe { &*timer_device_ptr };

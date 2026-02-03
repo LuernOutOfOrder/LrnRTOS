@@ -14,7 +14,12 @@ impl CpuFreq {
             Some(d) => d,
             None => panic!("ERROR: Failed to get CPU frequency"),
         };
-        let device_info_trait = device.info.unwrap();
+        // Allow the use of expect, once we got the device asked, the trait should be working and
+        // we should get the trait behind the Option<>
+        #[allow(clippy:expect_used)]
+        let device_info_trait = device_info
+            .info
+            .expect("Error: failed to get device trait behind option.");
         let raw: RawTraitObject = unsafe { core::mem::transmute(device_info_trait) };
         let cpu_freq_device_ptr = raw.data as *const PlatformCpuFreqDevice;
         let cpu_freq_device_ref = unsafe { &*cpu_freq_device_ptr };

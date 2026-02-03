@@ -15,7 +15,12 @@ impl RiscVCpuIntc {
             Some(d) => d,
             None => return,
         };
-        let device_info_trait = device_info.info.unwrap();
+        // Allow the use of expect, once we got the device asked, the trait should be working and
+        // we should get the trait behind the Option<>
+        #[allow(clippy:expect_used)]
+        let device_info_trait = device_info
+            .info
+            .expect("Error: failed to get device trait behind option.");
         let raw: RawTraitObject = unsafe { core::mem::transmute(device_info_trait) };
         let cpu_intc_device_ptr = raw.data as *const PlatformCpuIntCDevice;
         let cpu_intc_device_ref = unsafe { &*cpu_intc_device_ptr };
