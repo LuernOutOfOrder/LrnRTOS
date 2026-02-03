@@ -38,7 +38,9 @@ pub fn test_trap_frame_init() -> u8 {
     init_trap_frame();
     // Ok because test env, no concurrency
     #[allow(static_mut_refs)]
-    if unsafe { KERNEL_TRAP_FRAME.trap_stack } != unsafe { TRAP_STACK_BUFF.as_mut_ptr() } {
+    if unsafe { KERNEL_TRAP_FRAME.trap_stack }
+        != unsafe { TRAP_STACK_BUFF.buf.as_mut_ptr().wrapping_add(1024) }
+    {
         panic!("Trap frame trap_stack field should be initialized with ptr to TRAP_STACK_BUFF");
     }
     0
