@@ -1,11 +1,11 @@
 use core::ptr::null_mut;
 
+use crate::log;
 use crate::{
     ktime::tick::GLOBAL_TICK,
     logs::{self, LogLevel},
     task::{TASK_HANDLER, Task},
 };
-use crate::log;
 
 unsafe extern "C" {
     pub fn sleep(tick: usize);

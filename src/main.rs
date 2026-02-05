@@ -58,10 +58,10 @@ pub mod tests;
 use core::panic::PanicInfo;
 use logs::LogLevel;
 use mem::mem_kernel_stack_info;
-use primitives::{ring_buff::RingBuffer, sleep::sleep};
+use primitives::ring_buff::RingBuffer;
 use task::{
-    CURRENT_TASK_PID, TASK_HANDLER, list::task_list_get_task_by_pid, task_context_switch,
-    task_create,
+    CURRENT_TASK_PID, TASK_HANDLER, list::task_list_get_task_by_pid, sleep::sleep,
+    task_context_switch, task_create,
 };
 
 // Static buffer to use as a ready queue for task.
