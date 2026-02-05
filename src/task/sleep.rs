@@ -1,29 +1,30 @@
 use core::ptr::null_mut;
 
-use crate::log;
+use crate::scheduler::dispatch;
+use crate::{BLOCKED_QUEUE, log};
 use crate::{
     ktime::tick::GLOBAL_TICK,
-    logs::{self, LogLevel},
+    logs::LogLevel,
     task::{TASK_HANDLER, Task},
 };
 
+use super::list::task_list_update_task_by_pid;
+use super::primitives::task_block_until;
+use super::{TaskBlockControl, TaskState, task_pid};
+
 unsafe extern "C" {
+    // Put the current task to sleep until the number of tick given is passed
+    // tick: the number of tick the task need to sleep.
     pub fn sleep(tick: usize);
 }
 
 // Use no mangle because this function is called from an asm function
 #[unsafe(no_mangle)]
 fn task_set_wake_tick(tick: usize) {
-    let current_task: *mut Task = unsafe { TASK_HANDLER };
-    if current_task == null_mut() {
-        log!(
-            LogLevel::Error,
-            "Error getting the current task, invariant violated. Sleep couldn't be used outside of a task."
-        );
-        // See how to handle this, what to return or something else.
-    }
     let current_tick = unsafe { GLOBAL_TICK };
     let awake_tick = current_tick + tick;
-    // Update task
-    // Call reschedule or return and continue in sleep fn
+    // Call task primitive to update current task state
+    task_block_until(awake_tick);
+    // Call a re-schedule
+    dispatch();
 }
