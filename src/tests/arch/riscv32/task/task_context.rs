@@ -1,4 +1,5 @@
-use crate::{BUFFER, print};
+use crate::print;
+use crate::scheduler::RUN_QUEUE;
 use core::{mem, ptr};
 
 use crate::{
@@ -124,7 +125,7 @@ pub fn test_task_context_switch() -> u8 {
     task_create("B", test_context_switch_b, 0, 0x1000);
     #[allow(static_mut_refs)]
     unsafe {
-        BUFFER.push(3)
+        RUN_QUEUE.push(3)
     };
     unsafe { CURRENT_TASK_PID = 2 };
     let mut task = task_list_get_task_by_pid(unsafe { CURRENT_TASK_PID });
@@ -153,7 +154,7 @@ pub fn task_context_test_suite() {
             TestCase::init(
                 "Task context switch no invariants violated",
                 test_task_context_switch,
-                TestBehavior::Skipped,
+                TestBehavior::Default,
             ),
         ],
         name: "RISC-V32 bit task context layout",
