@@ -15,16 +15,22 @@ References:
 */
 
 use crate::{
-    BUFFER,
     arch::scheduler::{SCHEDULER_CTX, SchedulerCtx, sched_ctx_restore},
-    log,
+    config::RUN_QUEUE_MAX_SIZE,
+    kprint_fmt, log,
     logs::LogLevel,
+    primitives::ring_buff::RingBuffer,
     task::{
         TASK_HANDLER, TaskState,
-        list::{task_list_get_task_by_pid, task_list_update_task_by_pid},
+        list::{task_list_get_idle_task, task_list_get_task_by_pid, task_list_update_task_by_pid},
         task_context_switch, task_pid,
     },
 };
+
+// Store all task Ready
+pub static mut RUN_QUEUE: RingBuffer<u16, RUN_QUEUE_MAX_SIZE> = RingBuffer::init();
+// Queue containing all blocked task.
+pub static mut BLOCKED_QUEUE: RingBuffer<u16, 3> = RingBuffer::init();
 
 /// Temporary function use to test the context switch and context restore on multiple task.
 /// Will certainly be used later on the real scheduler.
@@ -34,6 +40,9 @@ use crate::{
 /// Not the best way to use the RingBuffer but it will do.
 #[unsafe(no_mangle)]
 pub fn dispatch() {
+    kprint_fmt!("debug run_queue buff entering dispatch: {:?}\n", unsafe {
+        RUN_QUEUE.buff
+    });
     // Current running task
     let mut current_task = unsafe { *TASK_HANDLER };
     if current_task.state != TaskState::Blocked {
@@ -42,21 +51,26 @@ pub fn dispatch() {
         task_list_update_task_by_pid(pid, current_task);
         #[allow(static_mut_refs)]
         unsafe {
-            BUFFER.push(pid)
+            RUN_QUEUE.push(pid)
         };
     }
+
     // Update and load next task
     #[allow(static_mut_refs)]
-    let get_next_task = unsafe { BUFFER.pop() };
+    let get_next_task = unsafe { RUN_QUEUE.pop() };
     if get_next_task.is_none() {
         log!(
-            LogLevel::Error,
-            "Error getting the last task from RingBuffer"
+            LogLevel::Debug,
+            "No task available in the run queue, enter idle task."
         );
+        let idle = task_list_get_idle_task();
+        #[allow(clippy::expect_used)]
+        task_context_switch(idle.expect("ERROR: failed to get the idle task, invariant violated."));
     }
     // Allow unwrap because it's a temporary function
     #[allow(clippy::unwrap_used)]
     let next_task_pid = get_next_task.unwrap();
+    kprint_fmt!("debug pid: {}\n", next_task_pid);
     // Allow unwrap because it's a temporary function
     #[allow(clippy::unwrap_used)]
     let next_task = task_list_get_task_by_pid(next_task_pid).unwrap();

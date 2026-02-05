@@ -54,16 +54,16 @@ pub mod scheduler;
 pub mod tests;
 
 // Use from modules
+use arch::task::r#yield;
 #[cfg(not(feature = "test"))]
 use core::panic::PanicInfo;
 use logs::LogLevel;
 use mem::mem_kernel_stack_info;
-use primitives::ring_buff::RingBuffer;
 
-// Static buffer to use as a ready queue for task.
-pub static mut BUFFER: RingBuffer<u16, 3> = RingBuffer::init();
-// Queue containing all blocked task.
-pub static mut BLOCKED_QUEUE: RingBuffer<u16, 3> = RingBuffer::init();
+use task::{
+    CURRENT_TASK_PID, TASK_HANDLER, list::task_list_get_task_by_pid, task_context_switch,
+    task_create, task_idle_task,
+};
 
 #[unsafe(no_mangle)]
 unsafe extern "C" fn main() -> ! {
@@ -76,11 +76,27 @@ unsafe extern "C" fn main() -> ! {
         kernel_stack.bottom
     );
     log!(LogLevel::Info, "LrnRTOS started!");
+    task_idle_task();
+    task_create("Test task", test_task, 1, 0x200);
+    #[allow(static_mut_refs)]
+    unsafe {
+        CURRENT_TASK_PID = 2
+    };
+    let mut task = task_list_get_task_by_pid(unsafe { CURRENT_TASK_PID });
+    unsafe { TASK_HANDLER = *task.as_mut().unwrap() };
+    task_context_switch(task.unwrap());
     loop {
         log!(LogLevel::Debug, "Main loop uptime.");
         unsafe {
             arch::traps::interrupt::enable_and_halt();
         }
+    }
+}
+
+fn test_task() -> ! {
+    loop {
+        log!(LogLevel::Debug, "Test task, only yield.");
+        unsafe { r#yield() };
     }
 }
 

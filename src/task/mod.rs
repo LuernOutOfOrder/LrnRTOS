@@ -19,7 +19,12 @@ Tests files:
 
 use list::task_list_add_task;
 
-use crate::{arch::task::task_context::TaskContext, log, logs::LogLevel, mem::mem_task_alloc};
+use crate::{
+    arch::{task::task_context::TaskContext, traps::interrupt::enable_and_halt},
+    log,
+    logs::LogLevel,
+    mem::mem_task_alloc,
+};
 
 pub mod list;
 pub mod primitives;
@@ -169,4 +174,20 @@ pub fn task_context_save(task: &Task, ra: usize, sp: usize) {
 
 pub fn task_pid(task: &Task) -> u16 {
     task.pid
+}
+
+/// Create the idle task
+pub fn task_idle_task() {
+    let task_name: &str = "Idle task";
+    let func: fn() -> ! = idle_task_fn;
+    let priority: u8 = 0;
+    let size: usize = 0x100;
+    task_create(task_name, func, priority, size);
+}
+
+fn idle_task_fn() -> ! {
+    loop {
+        log!(LogLevel::Debug, "Idle task.");
+        unsafe { enable_and_halt() };
+    }
 }
