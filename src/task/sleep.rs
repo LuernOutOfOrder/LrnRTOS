@@ -1,5 +1,6 @@
 use core::ptr::null_mut;
 
+use crate::ktime::tick::get_tick;
 use crate::scheduler::dispatch;
 use crate::{BLOCKED_QUEUE, log};
 use crate::{
@@ -21,7 +22,7 @@ unsafe extern "C" {
 // Use no mangle because this function is called from an asm function
 #[unsafe(no_mangle)]
 fn task_set_wake_tick(tick: usize) {
-    let current_tick = unsafe { GLOBAL_TICK };
+    let current_tick = get_tick();
     let awake_tick = current_tick + tick;
     // Call task primitive to update current task state
     task_block_until(awake_tick);

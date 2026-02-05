@@ -54,6 +54,7 @@ pub mod scheduler;
 pub mod tests;
 
 // Use from modules
+use arch::{task::r#yield, traps::enable_interrupts};
 #[cfg(not(feature = "test"))]
 use core::panic::PanicInfo;
 use logs::LogLevel;
@@ -66,6 +67,8 @@ use task::{
 
 // Static buffer to use as a ready queue for task.
 pub static mut BUFFER: RingBuffer<u16, 3> = RingBuffer::init();
+// Queue containing all blocked task.
+pub static mut BLOCKED_QUEUE: RingBuffer<u16, 3> = RingBuffer::init();
 
 #[unsafe(no_mangle)]
 unsafe extern "C" fn main() -> ! {
@@ -79,9 +82,14 @@ unsafe extern "C" fn main() -> ! {
     );
     log!(LogLevel::Info, "LrnRTOS started!");
     task_create("Test sleep", task_fn, 1, 0x200);
+    task_create("Other test task", test_fn, 1, 0x200);
     unsafe { CURRENT_TASK_PID = 1 };
     let mut task = task_list_get_task_by_pid(unsafe { CURRENT_TASK_PID });
     unsafe { TASK_HANDLER = *task.as_mut().unwrap() };
+    #[allow(static_mut_refs)]
+    unsafe {
+        BUFFER.push(2);
+    }
     task_context_switch(task.unwrap());
     loop {
         log!(LogLevel::Debug, "Main loop uptime.");
@@ -93,8 +101,15 @@ unsafe extern "C" fn main() -> ! {
 
 fn task_fn() -> ! {
     loop {
-        log!(LogLevel::Debug, "Test sleep task function");
+        log!(LogLevel::Debug, "\n\nTest sleep task function\n\n");
         unsafe { sleep(10) };
+    }
+}
+
+fn test_fn() -> ! {
+    loop {
+        log!(LogLevel::Debug, "Always running or ready task");
+        unsafe { r#yield() };
     }
 }
 
