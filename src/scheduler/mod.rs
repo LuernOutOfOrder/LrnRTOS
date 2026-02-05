@@ -36,13 +36,15 @@ use crate::{
 pub fn dispatch() {
     // Current running task
     let mut current_task = unsafe { *TASK_HANDLER };
-    current_task.state = TaskState::Ready;
-    let pid = task_pid(&current_task);
-    task_list_update_task_by_pid(pid, current_task);
-    #[allow(static_mut_refs)]
-    unsafe {
-        BUFFER.push(pid)
-    };
+    if current_task.state != TaskState::Blocked {
+        current_task.state = TaskState::Ready;
+        let pid = task_pid(&current_task);
+        task_list_update_task_by_pid(pid, current_task);
+        #[allow(static_mut_refs)]
+        unsafe {
+            BUFFER.push(pid)
+        };
+    }
     // Update and load next task
     #[allow(static_mut_refs)]
     let get_next_task = unsafe { BUFFER.pop() };

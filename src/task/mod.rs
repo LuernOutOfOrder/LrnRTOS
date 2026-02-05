@@ -22,6 +22,7 @@ use list::task_list_add_task;
 use crate::{arch::task::task_context::TaskContext, log, logs::LogLevel, mem::mem_task_alloc};
 
 pub mod list;
+pub mod primitives;
 pub mod sleep;
 
 // Mutable static to keep track of the current task
@@ -37,13 +38,20 @@ pub static mut TASK_HANDLER: *mut Task = core::ptr::null_mut();
 #[repr(u8)]
 // Allow unused for now because this issue doesn't need to handle all task state
 #[allow(unused)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum TaskState {
     New,
     Running,
     Ready,
     Waiting,
+    Blocked,
     Terminated,
+}
+
+#[derive(Copy, Clone)]
+pub enum TaskBlockControl {
+    AwakeTick(usize),
+    None,
 }
 
 #[derive(Copy, Clone)]
@@ -52,6 +60,8 @@ pub struct Task {
     // Arch dependant context, don't handle this field in task, only use struct method when
     // interacting with it.
     pub context: TaskContext,
+    // Task block control, define the reason the task is blocked.
+    pub block_control: TaskBlockControl,
     // Fn ptr to task entry point, this must never return.
     pub func: fn() -> !,
     pid: u16,
@@ -90,6 +100,7 @@ impl Task {
                 mem_reg.expect("Error: failed to get the task memory region"),
                 func,
             ),
+            block_control: TaskBlockControl::None,
             func,
             pid: 0,
             name: buf,
