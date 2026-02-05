@@ -38,8 +38,8 @@ trap_entry:
   csrr	a2, mcause
   csrr	a3, mhartid
   csrr	a4, mstatus
-  # Move trap frame structure into a3 function argument register
-  mv a3, t6
+  # Move trap frame structure into a5 function argument register
+  mv a5, t6
   # Call trap_handler rust function
   call trap_handler 
   # Load all register back to previous state
