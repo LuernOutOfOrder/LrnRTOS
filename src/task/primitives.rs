@@ -1,6 +1,9 @@
 use core::ptr::null_mut;
 
-use crate::{BLOCKED_QUEUE, BUFFER, log, logs::LogLevel};
+use crate::{
+    BLOCKED_QUEUE, BUFFER, arch::traps::interrupt::enable_and_halt, ktime::set_ktime_ms, log,
+    logs::LogLevel,
+};
 
 use super::{
     TASK_HANDLER, Task, TaskBlockControl, TaskState,
@@ -38,6 +41,11 @@ pub fn task_block_until(tick: usize) {
 /// TODO: Use a better data structure than a RingBuffer for the blocked queue.
 pub fn task_awake_blocked(tick: usize) {
     #[allow(static_mut_refs)]
+    let size = unsafe { BLOCKED_QUEUE.size() };
+    if size == 0 {
+        return;
+    }
+    #[allow(static_mut_refs)]
     let pid = unsafe { BLOCKED_QUEUE.pop() };
     if pid.is_none() {
         log!(LogLevel::Error, "Error getting the oldest pid in run queue");
@@ -59,15 +67,8 @@ pub fn task_awake_blocked(tick: usize) {
         .block_control
     {
         TaskBlockControl::AwakeTick(awake_tick) => {
-            log!(
-                LogLevel::Debug,
-                "\n\nHERE IT SHOULD AWAKE: awake_tick: {}\ttick: {}\n\n",
-                awake_tick,
-                tick
-            );
             if tick >= awake_tick {
                 // push to run queue
-                log!(LogLevel::Debug, "\n\nHERE IT SHOULD AWAKE\n\n");
                 #[allow(static_mut_refs)]
                 unsafe {
                     BUFFER.push(pid.expect("Failed to get the pid behind the Option<>"));
@@ -84,4 +85,10 @@ pub fn task_awake_blocked(tick: usize) {
         }
         TaskBlockControl::None => return,
     }
+}
+
+/// Interrupt all operation on the CPU for the given time.
+pub fn delay(ms: usize) {
+    set_ktime_ms(ms as u64);
+    unsafe { enable_and_halt() };
 }
