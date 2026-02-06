@@ -54,7 +54,7 @@ pub mod scheduler;
 pub mod tests;
 
 // Use from modules
-use arch::{task::r#yield, traps::enable_interrupts};
+use arch::task::r#yield;
 #[cfg(not(feature = "test"))]
 use core::panic::PanicInfo;
 use logs::LogLevel;

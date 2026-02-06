@@ -1,17 +1,6 @@
-use core::ptr::null_mut;
-
+use super::primitives::task_block_until;
 use crate::ktime::tick::get_tick;
 use crate::scheduler::dispatch;
-use crate::{BLOCKED_QUEUE, log};
-use crate::{
-    ktime::tick::GLOBAL_TICK,
-    logs::LogLevel,
-    task::{TASK_HANDLER, Task},
-};
-
-use super::list::task_list_update_task_by_pid;
-use super::primitives::task_block_until;
-use super::{TaskBlockControl, TaskState, task_pid};
 
 unsafe extern "C" {
     // Put the current task to sleep until the number of tick given is passed
