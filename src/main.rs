@@ -54,15 +54,13 @@ pub mod scheduler;
 pub mod tests;
 
 // Use from modules
-use arch::task::r#yield;
 #[cfg(not(feature = "test"))]
 use core::panic::PanicInfo;
 use logs::LogLevel;
 use mem::mem_kernel_stack_info;
 use primitives::ring_buff::RingBuffer;
 use task::{
-    CURRENT_TASK_PID, TASK_HANDLER, list::task_list_get_task_by_pid, primitives::delay,
-    sleep::sleep, task_context_switch, task_create,
+    list::task_list_get_task_by_pid, primitives::{delay, sleep, r#yield}, task_context_switch, task_create, CURRENT_TASK_PID, TASK_HANDLER
 };
 
 // Static buffer to use as a ready queue for task.

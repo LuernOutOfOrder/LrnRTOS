@@ -1,8 +1,12 @@
 use core::ptr::null_mut;
 
 use crate::{
-    BLOCKED_QUEUE, BUFFER, arch::traps::interrupt::enable_and_halt, ktime::set_ktime_ms, log,
+    BLOCKED_QUEUE, BUFFER,
+    arch::traps::interrupt::enable_and_halt,
+    ktime::{set_ktime_ms, tick::get_tick},
+    log,
     logs::LogLevel,
+    scheduler::dispatch,
 };
 
 use super::{
@@ -10,6 +14,26 @@ use super::{
     list::{task_list_get_task_by_pid, task_list_update_task_by_pid},
     task_pid,
 };
+
+unsafe extern "C" {
+    // Put the current task to sleep until the number of tick given is passed
+    // tick: the number of tick the task need to sleep.
+    pub fn sleep(tick: usize);
+    // Yield function for cooperative scheduling
+    pub fn r#yield();
+}
+
+// Use no mangle because this function is called from an asm function
+// Called from sleep primitive
+#[unsafe(no_mangle)]
+fn task_set_wake_tick(tick: usize) {
+    let current_tick = get_tick();
+    let awake_tick = current_tick + tick;
+    // Call task primitive to update current task state
+    task_block_until(awake_tick);
+    // Call a re-schedule
+    dispatch();
+}
 
 /// Block the current task until the given tick is reach.
 pub fn task_block_until(tick: usize) {

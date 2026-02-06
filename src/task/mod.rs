@@ -23,7 +23,6 @@ use crate::{arch::task::task_context::TaskContext, log, logs::LogLevel, mem::mem
 
 pub mod list;
 pub mod primitives;
-pub mod sleep;
 
 // Mutable static to keep track of the current task
 // Only relevant on a monocore CPU.
