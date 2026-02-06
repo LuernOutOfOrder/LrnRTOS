@@ -1,5 +1,20 @@
 # Kernel primitives types and functions
 
+<!--toc:start-->
+- [Kernel primitives types and functions](#kernel-primitives-types-and-functions)
+  - [Description](#description)
+    - [Primitive type](#primitive-type)
+      - [Description](#description-1)
+      - [RingBuffer](#ringbuffer)
+      - [AlignedStack16](#alignedstack16)
+    - [Task primitive](#task-primitive)
+      - [Description](#description-2)
+      - [yield](#yield)
+      - [sleep](#sleep)
+      - [task_awake_blocked](#taskawakeblocked)
+      - [delay](#delay)
+<!--toc:end-->
+
 ## Description
 
 The kernel has multiple primitive to improve the codebase, and qol(quality of life) for developers.
@@ -50,5 +65,5 @@ The primitive will get the `oldest blocked task`, from the `BLOCKED_QUEUE`, then
 #### delay
 
 Block the CPU for the given time, in `ms`.
-This is not really recommanded to use, it will not put the CPU to sleep, just waiting for the next timer interrupt.
+This is not really recommended to use, it will not put the CPU to sleep, just waiting for the next timer interrupt.
 If you need a task to wait or something else, prefer the use of `yield`. 
