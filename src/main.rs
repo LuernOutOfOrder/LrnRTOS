@@ -60,9 +60,7 @@ use logs::LogLevel;
 use mem::mem_kernel_stack_info;
 
 use task::{
-    CURRENT_TASK_PID, TASK_HANDLER,
-    list::task_list_get_task_by_pid,
-    primitives::{sleep, r#yield},
+    CURRENT_TASK_PID, TASK_HANDLER, list::task_list_get_task_by_pid, primitives::sleep,
     task_context_switch, task_create, task_idle_task,
 };
 
