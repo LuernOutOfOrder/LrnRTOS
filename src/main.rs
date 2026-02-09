@@ -59,9 +59,6 @@ use core::panic::PanicInfo;
 use logs::LogLevel;
 use mem::mem_kernel_stack_info;
 use primitives::ring_buff::RingBuffer;
-use task::{
-    list::task_list_get_task_by_pid, primitives::{delay, sleep, r#yield}, task_context_switch, task_create, CURRENT_TASK_PID, TASK_HANDLER
-};
 
 // Static buffer to use as a ready queue for task.
 pub static mut BUFFER: RingBuffer<u16, 3> = RingBuffer::init();
@@ -79,37 +76,11 @@ unsafe extern "C" fn main() -> ! {
         kernel_stack.bottom
     );
     log!(LogLevel::Info, "LrnRTOS started!");
-    task_create("Test sleep", task_fn, 1, 0x200);
-    task_create("Other test task", test_fn, 1, 0x200);
-    unsafe { CURRENT_TASK_PID = 1 };
-    let mut task = task_list_get_task_by_pid(unsafe { CURRENT_TASK_PID });
-    unsafe { TASK_HANDLER = *task.as_mut().unwrap() };
-    #[allow(static_mut_refs)]
-    unsafe {
-        BUFFER.push(2);
-    }
-    task_context_switch(task.unwrap());
     loop {
         log!(LogLevel::Debug, "Main loop uptime.");
         unsafe {
             arch::traps::interrupt::enable_and_halt();
         }
-    }
-}
-
-fn task_fn() -> ! {
-    loop {
-        log!(LogLevel::Debug, "Test sleep task function");
-        // unsafe { r#yield() };
-        unsafe { sleep(10) };
-    }
-}
-
-fn test_fn() -> ! {
-    loop {
-        log!(LogLevel::Debug, "Always running or ready task");
-        unsafe { r#yield() };
-        delay(1000);
     }
 }
 

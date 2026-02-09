@@ -17,8 +17,6 @@ Tests files:
 - 'src/tests/task/primitives.rs'
 */
 
-use core::ptr::null_mut;
-
 use crate::{
     BLOCKED_QUEUE, BUFFER,
     arch::traps::interrupt::enable_and_halt,
@@ -57,7 +55,7 @@ fn task_set_wake_tick(tick: usize) {
 /// Block the current task until the given tick is reach.
 pub fn task_block_until(tick: usize) {
     let current_task: *mut Task = unsafe { TASK_HANDLER };
-    if current_task == null_mut() {
+    if current_task.is_null() {
         log!(
             LogLevel::Error,
             "Error getting the current task, invariant violated. Sleep couldn't be used outside of a task."
@@ -94,6 +92,9 @@ pub fn task_awake_blocked(tick: usize) {
         log!(LogLevel::Error, "Error getting the oldest pid in run queue");
         return;
     }
+    // Allow expect, check the value before and if the pid become invalid we don't want to pursue
+    // run time.
+    #[allow(clippy::expect_used)]
     let task = task_list_get_task_by_pid(pid.expect("Error getting the pid behind the Option<>"));
     if task.is_none() {
         log!(
@@ -114,19 +115,23 @@ pub fn task_awake_blocked(tick: usize) {
                 // push to run queue
                 #[allow(static_mut_refs)]
                 unsafe {
+                    // Allow expect, check the value before and if the pid become invalid we don't want to pursue
+                    // run time.
+                    #[allow(clippy::expect_used)]
                     BUFFER.push(pid.expect("Failed to get the pid behind the Option<>"));
                 };
-                return;
             } else {
                 // push to blocked queue
                 #[allow(static_mut_refs)]
                 unsafe {
+                    // Allow expect, check the value before and if the pid become invalid we don't want to pursue
+                    // run time.
+                    #[allow(clippy::expect_used)]
                     BLOCKED_QUEUE.push(pid.expect("Failed to get the pid behind the Option<>"))
                 };
-                return;
             }
         }
-        TaskBlockControl::None => return,
+        TaskBlockControl::None => (),
     }
 }
 
