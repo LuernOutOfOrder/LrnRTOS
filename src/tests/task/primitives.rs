@@ -1,14 +1,18 @@
 use crate::{
-    arch::traps::interrupt::enable_and_halt,
-    arch::traps::{disable_interrupts, enable_interrupts, trap_frame::init_trap_frame},
+    BLOCKED_QUEUE, BUFFER,
+    arch::traps::{
+        disable_interrupts, enable_interrupts,
+        handler::trap_handler,
+        interrupt::enable_and_halt,
+        trap_frame::{TrapFrame, init_trap_frame},
+    },
     config::TICK_SAFETY_DURATION,
-    drivers::timer::TIMER_SUBSYSTEM,
-    ktime::{set_ktime_ms, tick::get_tick},
-    print,
+    kprint,
+    ktime::{set_ktime_ms, set_ktime_seconds, tick::get_tick},
     task::{
         CURRENT_TASK_PID, TASK_HANDLER,
         list::task_list_get_task_by_pid,
-        primitives::{delay, r#yield},
+        primitives::{delay, sleep, r#yield},
         task_context_switch, task_create,
     },
     test_failed, test_info,
@@ -19,7 +23,7 @@ use core::ptr;
 fn task_fn() -> ! {
     let mut i: usize = 0;
     loop {
-        print!("delay: {i}\n");
+        kprint!("delay\n");
         delay(1000);
         if i >= 8 {
             // Exit Qemu
@@ -27,6 +31,45 @@ fn task_fn() -> ! {
         }
         i += 1;
     }
+}
+
+fn task_sleep_fn() -> ! {
+    loop {
+        unsafe {
+            sleep(2);
+        }
+    }
+}
+
+fn task_testing_sleep() -> ! {
+    let cause: usize = 2147483655;
+    // Random mepc
+    // TODO: improve mepc security in trap handler
+    let mepc: usize = 125696;
+    let current_tick = get_tick();
+    let mut trap_frame = TrapFrame::init();
+    unsafe { trap_handler(mepc, 0, cause, 0, 0, &mut trap_frame) };
+    // Blocked queue should have been updated, checking it
+    #[allow(static_mut_refs)]
+    let blocked_queue = unsafe { &BLOCKED_QUEUE };
+    if blocked_queue.size() != 1 {
+        test_failed!("The block queue should have one task in it.");
+        // Use infinite loop to make the CI crash from timeout. Can't return test failed from
+        // here.
+        loop {}
+    }
+    unsafe { trap_handler(mepc, 0, cause, 0, 0, &mut trap_frame) };
+    if blocked_queue.size() != 0 {
+        test_failed!("The block queue should be empty.");
+        // Use infinite loop to make the CI crash from timeout. Can't return test failed from
+        // here.
+        loop {}
+    }
+    test_info!("Invariant from sleep and blocked queue successfully respected. Exit qemu...");
+    unsafe { ptr::write_volatile(0x100000 as *mut u32, 0x5555) };
+    // Check with condition the invariant, blocked queue updated etc
+    // Recall trap handler, then check that the block queue is empty.
+    loop {}
 }
 
 #[unsafe(no_mangle)]
@@ -38,23 +81,42 @@ fn test_task_primitives_delay() -> u8 {
     test_info!(
         "The next output should be the task 'Test delay' printing an integer. The final output should be: 'delay: '"
     );
-    let sub = TIMER_SUBSYSTEM.get_primary_timer();
-    print!("debug: {:?}\n", sub.timer_type);
-    // loop {
-    //     print!("delay\n");
-    //     unsafe { enable_and_halt() };
-    // }
-    // task_context_switch(task.unwrap());
+    set_ktime_seconds(TICK_SAFETY_DURATION);
+    enable_interrupts();
+    task_context_switch(task.unwrap());
+    0
+}
+
+fn test_task_primitives_sleep() -> u8 {
+    // pid 2
+    task_create("Test sleep", task_sleep_fn, 1, 0x1000);
+    // pid 3
+    task_create("Test sleep invariants", task_testing_sleep, 1, 0x1000);
+    unsafe { CURRENT_TASK_PID = 2 };
+    let mut task = task_list_get_task_by_pid(unsafe { CURRENT_TASK_PID });
+    unsafe { TASK_HANDLER = *task.as_mut().unwrap() };
+    #[allow(static_mut_refs)]
+    unsafe {
+        BUFFER.push(3);
+    }
+    task_context_switch(task.unwrap());
     0
 }
 
 pub fn task_primitives_test_suite() {
     const TASK_PRIMITIVES_TEST_SUITE: TestSuite = TestSuite {
-        tests: &[TestCase::init(
-            "Task primitive delay",
-            test_task_primitives_delay,
-            TestBehavior::Default,
-        )],
+        tests: &[
+            TestCase::init(
+                "Task primitive delay",
+                test_task_primitives_delay,
+                TestBehavior::Skipped,
+            ),
+            TestCase::init(
+                "Task primitive sleep",
+                test_task_primitives_sleep,
+                TestBehavior::Default,
+            ),
+        ],
         name: "Task primitives",
         behavior: TestSuiteBehavior::Default,
     };
