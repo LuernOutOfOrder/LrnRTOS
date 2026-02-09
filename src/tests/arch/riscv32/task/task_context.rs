@@ -2,15 +2,11 @@ use crate::{BUFFER, print};
 use core::{mem, ptr};
 
 use crate::{
-    arch::{
-        scheduler::init_sched_ctx,
-        task::{task_context::TaskContext, r#yield},
-        traps::interrupt::halt,
-    },
+    arch::{scheduler::init_sched_ctx, task::task_context::TaskContext, traps::interrupt::halt},
     scheduler::dispatch,
     task::{
-        CURRENT_TASK_PID, TASK_HANDLER, list::task_list_get_task_by_pid, task_context_switch,
-        task_create,
+        CURRENT_TASK_PID, TASK_HANDLER, list::task_list_get_task_by_pid, primitives::r#yield,
+        task_context_switch, task_create,
     },
     test_failed, test_info,
     tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
