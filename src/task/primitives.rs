@@ -22,6 +22,7 @@ use crate::{
     ktime::{set_ktime_ms, tick::get_tick},
     log,
     logs::LogLevel,
+    misc::need_reschedule,
     scheduler::{BLOCKED_QUEUE, RUN_QUEUE, dispatch},
 };
 
@@ -118,6 +119,7 @@ pub fn task_awake_blocked(tick: usize) {
                     // run time.
                     #[allow(clippy::expect_used)]
                     RUN_QUEUE.push(pid.expect("Failed to get the pid behind the Option<>"));
+                    need_reschedule();
                 };
             } else {
                 // push to blocked queue

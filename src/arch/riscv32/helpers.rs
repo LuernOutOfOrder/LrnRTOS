@@ -1,7 +1,7 @@
-use crate::arch::asm;
+use core::arch::asm;
 
 pub fn current_cpu_core() -> usize {
-    let id: usize = 0;
+    let mut id: usize = 0;
     unsafe { asm!("csrr {}, mhartid", out(reg) id) };
     id
 }

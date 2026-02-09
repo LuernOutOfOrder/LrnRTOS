@@ -19,6 +19,7 @@ use crate::{
     config::RUN_QUEUE_MAX_SIZE,
     kprint_fmt, log,
     logs::LogLevel,
+    misc::{clear_reschedule, read_need_reschedule},
     primitives::ring_buff::RingBuffer,
     task::{
         TASK_HANDLER, TaskState,
@@ -51,7 +52,11 @@ pub fn dispatch() {
             RUN_QUEUE.push(pid)
         };
     }
-
+    let resched = read_need_reschedule();
+    if resched {
+        kprint_fmt!("debug\n");
+        clear_reschedule();
+    }
     // Update and load next task
     #[allow(static_mut_refs)]
     let get_next_task = unsafe { RUN_QUEUE.pop() };
@@ -67,7 +72,6 @@ pub fn dispatch() {
     // Allow unwrap because it's a temporary function
     #[allow(clippy::unwrap_used)]
     let next_task_pid = get_next_task.unwrap();
-    kprint_fmt!("debug pid: {}\n", next_task_pid);
     // Allow unwrap because it's a temporary function
     #[allow(clippy::unwrap_used)]
     let next_task = task_list_get_task_by_pid(next_task_pid).unwrap();

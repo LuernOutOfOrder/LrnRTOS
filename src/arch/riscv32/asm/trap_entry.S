@@ -50,6 +50,13 @@ trap_entry:
     load_gp %i
     .set	i, i+1
   .endr
+  # Check if a re-schedule is needed or not.
+  call read_need_reschedule
+  # If a0 != 0, goto 1f, else mret
+  bnez a0, 1f
+  mret
+1:
+  call dispatch
   mret
 
 # Function used when the trap strack = 0, just infinite loop for debuging purpose 
