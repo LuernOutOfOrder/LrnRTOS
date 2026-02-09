@@ -95,7 +95,6 @@ fn task_testing_sleep() -> ! {
     loop {}
 }
 
-#[unsafe(no_mangle)]
 fn test_task_primitives_delay() -> u8 {
     task_create("Test delay", task_fn, 1, 0x1000);
     unsafe { CURRENT_TASK_PID = 2 };
