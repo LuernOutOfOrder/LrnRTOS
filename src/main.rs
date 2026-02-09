@@ -62,6 +62,8 @@ use primitives::ring_buff::RingBuffer;
 
 // Static buffer to use as a ready queue for task.
 pub static mut BUFFER: RingBuffer<u16, 3> = RingBuffer::init();
+// Queue containing all blocked task.
+pub static mut BLOCKED_QUEUE: RingBuffer<u16, 3> = RingBuffer::init();
 
 #[unsafe(no_mangle)]
 unsafe extern "C" fn main() -> ! {

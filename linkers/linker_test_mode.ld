@@ -3,7 +3,7 @@ ENTRY(kstart)
 MEMORY {
   RAM (rwx) : ORIGIN = 0x80200000, LENGTH = 128K
   /* Not real ROM or flash from qemu virt machine, just use another RAM reg for now */
-  ROM (rx) : ORIGIN = 0x80000000, LENGTH = 200K
+  ROM (rx) : ORIGIN = 0x80000000, LENGTH = 210K
 }
 
 SECTIONS {

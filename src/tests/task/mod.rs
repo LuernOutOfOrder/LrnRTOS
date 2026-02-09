@@ -5,6 +5,7 @@ use crate::{
 };
 
 pub mod list;
+pub mod primitives;
 
 /// This function is only used to create task for testing purpose.
 /// This must never be used in other cases

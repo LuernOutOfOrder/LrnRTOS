@@ -10,6 +10,8 @@ global_asm! {
     include_str!("set_kernel_sp.S"),
     // Yield function for context switch and scheduling
     include_str!("yield.S"),
+    // Sleep function for task and scheduling
+    include_str!("sleep.S"),
     // Scheduler context switch
     include_str!("sched_context.S"),
     // All task context offsets

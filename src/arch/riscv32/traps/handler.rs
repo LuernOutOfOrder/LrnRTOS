@@ -21,7 +21,11 @@ Tests files:
 
 use crate::{
     config::TICK_DURATION,
-    ktime::{set_ktime_ms, tick::increment_tick},
+    ktime::{
+        set_ktime_ms,
+        tick::{get_tick, increment_tick},
+    },
+    task::primitives::task_awake_blocked,
 };
 
 use super::trap_frame::TrapFrame;
@@ -90,5 +94,7 @@ fn timer_interrupt(hart: usize) {
     if hart == 0 {
         increment_tick();
     }
+    let tick = get_tick();
+    task_awake_blocked(tick);
     set_ktime_ms(TICK_DURATION);
 }

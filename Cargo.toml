@@ -1,14 +1,14 @@
 [package]
 name = "lrnrtos"
-version = "0.4.2"
+version = "0.4.3"
 edition = "2024"
 
 [[bin]]
-name= "lrnrtos"
+name = "lrnrtos"
 test = false
 
 [dependencies]
-arrayvec = {version = "0.7.6", default-features = false}
+arrayvec = { version = "0.7.6", default-features = false }
 
 [features]
 default = ["logs", "kprint"]
