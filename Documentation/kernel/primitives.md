@@ -5,37 +5,45 @@
   - [Description](#description)
     - [Primitive type](#primitive-type)
       - [Description](#description-1)
-      - [RingBuffer](#ringbuffer)
-      - [AlignedStack16](#alignedstack16)
     - [Task primitive](#task-primitive)
       - [Description](#description-2)
       - [yield](#yield)
       - [sleep](#sleep)
       - [task_awake_blocked](#taskawakeblocked)
-      - [delay](#delay)
+      - [Invariants](#invariants)
 <!--toc:end-->
 
 ## Description
 
-The kernel has multiple primitive to improve the codebase, and qol(quality of life) for developers.
-It goes from primitive type like circular buffer, to more specific primitive function like sleep for a task.
+This document describes the kernel primitives.
+
+In the context of this kernel, a *primitive* is defined as a low-level construct that
+**directly affects kernel state or execution context**.
+If using a type or function can change global kernel behavior, scheduling state,
+or execution flow, it is considered a primitive.
+
+Two categories of primitives are documented here:
+
+- **Primitive types**: low-level types whose correct usage is required to preserve
+  kernel invariants. These types are not mere data structures; they encode execution,
+  synchronization, or memory-layout guarantees that the kernel relies on.
+  Examples include synchronization objects such as mutexes or types enforcing
+  strict alignment or execution constraints.
+
+- **Task primitives**: execution control operations that may only be used from
+  task context. These primitives modify the scheduling or blocking state of the
+  current task and therefore have observable effects on global kernel execution.
+
+Pure data structures that do not alter kernel state or execution context are
+documented separately and are not considered primitives, even if they are used
+internally by primitive implementations.
+You can find data structure type here: `Documentation/kernel/data_structure.md`.
 
 ### Primitive type
 
 #### Description
 
-The lowest primitive type are the Rust types, but beside them there's the kernel primitive type.
-Those can be used anywhere in the kernel. Here's a list of the primitive type currently available in the kernel:
-
-#### RingBuffer
-
-A simple Ring buffer, used as an FIFO. If the RingBuffer is full and you try to push anyways, it will be abort.
-It's like a close RingBuffer, you can't push if it's full and you don't pop before.
-
-#### AlignedStack16
-
-This is just a structure wrapping a buffer of bytes, but the structure use the `#[repr(align(16))]`.
-This type is used when you need a stack on a buffer, and the `sp` must be aligned on `16 bytes`.
+There are currently no primitive type implemented in the kernel.
 
 ### Task primitive
 
@@ -59,11 +67,12 @@ You can consider the given tick as `1ms`.
 
 Awake the oldest blocked task if it can.
 This primitive is called from a timer interrupt, and only from a timer interrupt.
-The timer interrupt will give the primitive `task_awake_blocked` the current `GLOBAL_TICK`, after updating it from the current interrupt. 
+The timer interrupt will give the primitive `task_awake_blocked` the current `GLOBAL_TICK`, after updating it from the current interrupt.
 The primitive will get the `oldest blocked task`, from the `BLOCKED_QUEUE`, then it'll check the reason why this task is blocked, and awake it if possible.
 
-#### delay
+#### Invariants
 
-Block the CPU for the given time, in `ms`.
-This is not really recommended to use, it will not put the CPU to sleep, just waiting for the next timer interrupt.
-If you need a task to wait or something else, prefer the use of `yield`. 
+- Task primitives must only be called from task context.
+- The scheduler must be initialized before any task primitive is used.
+- Time-based primitives rely on a functional timer subsystem.
+- Principal data structure such as `RUN_QUEUE` and `BLOCKED_QUEUE` must be initialized before any task primitive is used.
