@@ -23,7 +23,6 @@ References:
 
 use crate::{log, logs::LogLevel};
 
-#[derive(Debug)]
 pub struct RingBuffer<T, const N: usize> {
     buff: [Option<T>; N],
     // Oldest element in the buffer
@@ -34,7 +33,7 @@ pub struct RingBuffer<T, const N: usize> {
     count: usize,
 }
 
-impl<T: Copy + core::fmt::Debug, const N: usize> RingBuffer<T, N> {
+impl<T: Copy, const N: usize> RingBuffer<T, N> {
     pub const fn init() -> Self {
         RingBuffer {
             buff: [None; N],
