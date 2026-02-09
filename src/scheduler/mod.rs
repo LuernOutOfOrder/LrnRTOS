@@ -40,9 +40,6 @@ pub static mut BLOCKED_QUEUE: RingBuffer<u16, 3> = RingBuffer::init();
 /// Not the best way to use the RingBuffer but it will do.
 #[unsafe(no_mangle)]
 pub fn dispatch() {
-    kprint_fmt!("debug run_queue buff entering dispatch: {:?}\n", unsafe {
-        RUN_QUEUE.buff
-    });
     // Current running task
     let mut current_task = unsafe { *TASK_HANDLER };
     if current_task.state != TaskState::Blocked {

@@ -1,5 +1,4 @@
 use crate::{
-    BLOCKED_QUEUE, BUFFER,
     arch::traps::{
         disable_interrupts, enable_interrupts,
         handler::trap_handler,
@@ -9,6 +8,7 @@ use crate::{
     config::TICK_SAFETY_DURATION,
     kprint,
     ktime::{set_ktime_ms, set_ktime_seconds, tick::get_tick},
+    scheduller::{BLOCKED_QUEUE, RUN_QUEUE},
     task::{
         CURRENT_TASK_PID, TASK_HANDLER,
         list::task_list_get_task_by_pid,
@@ -53,7 +53,7 @@ fn task_testing_sleep() -> ! {
     #[allow(static_mut_refs)]
     let blocked_queue = unsafe { &BLOCKED_QUEUE };
     #[allow(static_mut_refs)]
-    let run_queue = unsafe { &BUFFER };
+    let run_queue = unsafe { &RUN_QUEUE };
     if run_queue.size() != 0 {
         test_failed!("The run queue should be empty, got: {}", run_queue.size());
         // Use infinite loop to make the CI crash from timeout. Can't return test failed from
@@ -119,7 +119,7 @@ fn test_task_primitives_sleep() -> u8 {
     unsafe { TASK_HANDLER = *task.as_mut().unwrap() };
     #[allow(static_mut_refs)]
     unsafe {
-        BUFFER.push(3);
+        RUN_QUEUE.push(3);
     }
     task_context_switch(task.unwrap());
     0

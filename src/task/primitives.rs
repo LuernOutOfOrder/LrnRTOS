@@ -18,12 +18,11 @@ Tests files:
 */
 
 use crate::{
-    BLOCKED_QUEUE, BUFFER,
     arch::traps::interrupt::enable_and_halt,
     ktime::{set_ktime_ms, tick::get_tick},
     log,
     logs::LogLevel,
-    scheduler::dispatch,
+    scheduler::{BLOCKED_QUEUE, RUN_QUEUE, dispatch},
 };
 
 use super::{
@@ -118,7 +117,7 @@ pub fn task_awake_blocked(tick: usize) {
                     // Allow expect, check the value before and if the pid become invalid we don't want to pursue
                     // run time.
                     #[allow(clippy::expect_used)]
-                    BUFFER.push(pid.expect("Failed to get the pid behind the Option<>"));
+                    RUN_QUEUE.push(pid.expect("Failed to get the pid behind the Option<>"));
                 };
             } else {
                 // push to blocked queue

@@ -54,15 +54,16 @@ pub mod scheduler;
 pub mod tests;
 
 // Use from modules
-use arch::task::r#yield;
 #[cfg(not(feature = "test"))]
 use core::panic::PanicInfo;
 use logs::LogLevel;
 use mem::mem_kernel_stack_info;
 
 use task::{
-    CURRENT_TASK_PID, TASK_HANDLER, list::task_list_get_task_by_pid, task_context_switch,
-    task_create, task_idle_task,
+    CURRENT_TASK_PID, TASK_HANDLER,
+    list::task_list_get_task_by_pid,
+    primitives::{sleep, r#yield},
+    task_context_switch, task_create, task_idle_task,
 };
 
 #[unsafe(no_mangle)]
@@ -95,8 +96,10 @@ unsafe extern "C" fn main() -> ! {
 
 fn test_task() -> ! {
     loop {
-        log!(LogLevel::Debug, "Test task, only yield.");
-        unsafe { r#yield() };
+        log!(LogLevel::Debug, "Test task, only sleep.");
+        unsafe {
+            sleep(20);
+        }
     }
 }
 
