@@ -45,8 +45,6 @@ pub fn test_mtvec_trap_entry() -> u8 {
 }
 
 pub fn test_mscratch_trap_frame() -> u8 {
-    // Init trap_frame and declare ptr to it
-    init_trap_frame();
     #[allow(static_mut_refs)]
     // Ptr to KERNEL_TRAP_FRAME static
     let ptr = unsafe { &mut KERNEL_TRAP_FRAME } as *mut _ as u32;

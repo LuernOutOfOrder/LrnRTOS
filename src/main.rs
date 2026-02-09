@@ -100,7 +100,7 @@ unsafe extern "C" fn main() -> ! {
 fn task_fn() -> ! {
     loop {
         log!(LogLevel::Debug, "Test sleep task function");
-        unsafe { r#yield() };
+        // unsafe { r#yield() };
         unsafe { sleep(10) };
     }
 }
