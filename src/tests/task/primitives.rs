@@ -52,15 +52,38 @@ fn task_testing_sleep() -> ! {
     // Blocked queue should have been updated, checking it
     #[allow(static_mut_refs)]
     let blocked_queue = unsafe { &BLOCKED_QUEUE };
+    #[allow(static_mut_refs)]
+    let run_queue = unsafe { &BUFFER };
+    if run_queue.size() != 0 {
+        test_failed!("The run queue should be empty, got: {}", run_queue.size());
+        // Use infinite loop to make the CI crash from timeout. Can't return test failed from
+        // here.
+        loop {}
+    }
     if blocked_queue.size() != 1 {
-        test_failed!("The block queue should have one task in it.");
+        test_failed!(
+            "The block queue should have 1 task in it, got: {}",
+            blocked_queue.size()
+        );
         // Use infinite loop to make the CI crash from timeout. Can't return test failed from
         // here.
         loop {}
     }
     unsafe { trap_handler(mepc, 0, cause, 0, 0, &mut trap_frame) };
     if blocked_queue.size() != 0 {
-        test_failed!("The block queue should be empty.");
+        test_failed!(
+            "The block queue should be empty, got: {}",
+            blocked_queue.size()
+        );
+        // Use infinite loop to make the CI crash from timeout. Can't return test failed from
+        // here.
+        loop {}
+    }
+    if run_queue.size() != 1 {
+        test_failed!(
+            "The run queue should have 1 task in it, got: {}",
+            run_queue.size()
+        );
         // Use infinite loop to make the CI crash from timeout. Can't return test failed from
         // here.
         loop {}
