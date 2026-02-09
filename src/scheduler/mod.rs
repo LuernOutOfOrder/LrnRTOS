@@ -54,7 +54,10 @@ pub fn dispatch() {
     }
     let resched = read_need_reschedule();
     if resched {
-        kprint_fmt!("debug\n");
+        log!(
+            LogLevel::Debug,
+            "Reschedule needed, clearing the need reschedule bit."
+        );
         clear_reschedule();
     }
     // Update and load next task

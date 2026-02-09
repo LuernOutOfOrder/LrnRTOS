@@ -43,7 +43,7 @@ impl CpusState {
         let mut state = self.scheduler_state[core];
         let mask = 0 << 1;
         // Clear need reschedule bit.
-        state = state | mask;
+        state = state & mask;
         self.scheduler_state[core] = state;
     }
 
