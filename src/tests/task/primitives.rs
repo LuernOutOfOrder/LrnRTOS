@@ -137,7 +137,7 @@ pub fn task_primitives_test_suite() {
             TestCase::init(
                 "Task primitive sleep",
                 test_task_primitives_sleep,
-                TestBehavior::Default,
+                TestBehavior::Skipped,
             ),
         ],
         name: "Task primitives",

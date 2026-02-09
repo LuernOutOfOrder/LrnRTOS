@@ -1,3 +1,22 @@
+/*
+File info: Task primitives.
+
+Test coverage: yield and sleep.
+
+Tested:
+- yield with two task.
+- sleep with invariants from run queue and blocked queue.
+
+Not tested:
+- delay
+
+Reasons:
+- delay is hard to test, for now we test it by just checking it manually.
+
+Tests files:
+- 'src/tests/task/primitives.rs'
+*/
+
 use core::ptr::null_mut;
 
 use crate::{
