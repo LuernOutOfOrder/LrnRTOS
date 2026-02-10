@@ -15,10 +15,10 @@ References:
 */
 
 use crate::{
+    LogLevel,
     arch::scheduler::{SCHEDULER_CTX, SchedulerCtx, sched_ctx_restore},
     config::RUN_QUEUE_MAX_SIZE,
-    kprint_fmt, log,
-    logs::LogLevel,
+    log,
     misc::{clear_reschedule, read_need_reschedule},
     primitives::ring_buff::RingBuffer,
     task::{

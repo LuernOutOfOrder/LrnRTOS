@@ -6,7 +6,7 @@ pub struct RawTraitObject {
     pub vtable: *const (),
 }
 
-pub static mut CPUS_STATE: CpusState = CpusState::init();
+static mut CPUS_STATE: CpusState = CpusState::init();
 
 #[repr(C)]
 struct CpusState {
@@ -48,7 +48,7 @@ impl CpusState {
     }
 
     fn scheduler_read_reschedule_bit(&self, core: usize) -> bool {
-        let mut state = self.scheduler_state[core];
+        let state = self.scheduler_state[core];
         // Get the bit 1
         let flag = (state >> 1) & 1;
         if flag == 1 {
