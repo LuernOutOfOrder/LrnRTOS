@@ -17,7 +17,7 @@ References:
 use crate::{
     LogLevel,
     arch::scheduler::{SCHEDULER_CTX, SchedulerCtx, sched_ctx_restore},
-    config::{CPU_CORE_NUMBER, RUN_QUEUE_MAX_SIZE, TASK_MAX_PRIORITY},
+    config::{BLOCK_QUEUE_MAX_SIZE, CPU_CORE_NUMBER, RUN_QUEUE_MAX_SIZE, TASK_MAX_PRIORITY},
     log,
     misc::{clear_reschedule, read_need_reschedule},
     primitives::ring_buff::RingBuffer,
@@ -35,10 +35,11 @@ pub static mut RUN_QUEUE_BITMAP: [u32; CPU_CORE_NUMBER] = [0u32; CPU_CORE_NUMBER
 // Each index of this array is a priority, and at each index, there's a ring buffer of all task
 // with that priority.
 // We use the RUN_QUEUE_BITMAP to easily find the buffer with the highest priority to look into.
-pub static mut RUN_QUEUE: [RingBuffer<u16, RUN_QUEUE_MAX_SIZE>; TASK_MAX_PRIORITY] =
-    [RingBuffer::init(); TASK_MAX_PRIORITY];
+pub static mut RUN_QUEUE: [[RingBuffer<u16, RUN_QUEUE_MAX_SIZE>; TASK_MAX_PRIORITY];
+    CPU_CORE_NUMBER] = [[const { RingBuffer::init() }; TASK_MAX_PRIORITY]; CPU_CORE_NUMBER];
 // Queue containing all blocked task.
-pub static mut BLOCKED_QUEUE: RingBuffer<u16, 3> = RingBuffer::init();
+pub static mut BLOCKED_QUEUE: [[RingBuffer<u16, BLOCK_QUEUE_MAX_SIZE>; TASK_MAX_PRIORITY];
+    CPU_CORE_NUMBER] = [[const { RingBuffer::init() }; TASK_MAX_PRIORITY]; CPU_CORE_NUMBER];
 
 /// Temporary function use to test the context switch and context restore on multiple task.
 /// Will certainly be used later on the real scheduler.
