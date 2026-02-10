@@ -12,6 +12,9 @@ restore_context:
   # Restore sp from current task context structure
   lw t0, OFFSET_SP(t6)
   mv sp, t0
+  ## Update mstatus
+  lw t0, OFFSET_MSTATUS(t6)
+  csrw mstatus, t0
   # Restore current task context using GNU macro
   # GNU macros from `src/arch/riscv32/asm/gnu_macro.S`
   .set	i, 1

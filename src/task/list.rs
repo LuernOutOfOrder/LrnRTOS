@@ -88,6 +88,18 @@ impl TaskList {
     pub fn get_last_pid(&self) -> u16 {
         self.last_pid
     }
+
+    pub fn get_by_priority(&mut self, priority: u8) -> Option<&mut Task> {
+        for i in 0..TASK_LIST_MAX_SIZE {
+            let task = unsafe { (*self.list[i].get()).as_mut() };
+            if let Some(is_task) = task
+                && is_task.priority == priority
+            {
+                return Some(is_task);
+            }
+        }
+        None
+    }
 }
 
 pub static mut TASK_LIST: TaskList = TaskList::init();
@@ -129,5 +141,13 @@ pub fn task_list_get_last_pid() -> u16 {
     #[allow(static_mut_refs)]
     unsafe {
         TASK_LIST.get_last_pid()
+    }
+}
+
+pub fn task_list_get_idle_task<'a>() -> Option<&'a mut Task> {
+    // Allow static mut refs for now, kernel only run in monocore
+    #[allow(static_mut_refs)]
+    unsafe {
+        TASK_LIST.get_by_priority(0)
     }
 }

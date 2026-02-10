@@ -35,6 +35,15 @@ pub static FDT_MAX_PROPS: usize = 128;
 // ————————————— Define the max size of Task list —————————————
 // ————————————————————————————————————————————————————————————
 pub static TASK_LIST_MAX_SIZE: usize = 4;
+// ————————————————————————————————————————————————————————————
+// ————————————— Define the max size of the Run queue —————————
+// ————————————————————————————————————————————————————————————
+// The run queue is len - 1, if the size is 4, it will only use 3 slot in the queue.
+pub static RUN_QUEUE_MAX_SIZE: usize = 3;
+// ————————————————————————————————————————————————————————————
+// ————————————— Define the number of CPU core ————————————————
+// ————————————————————————————————————————————————————————————
+pub static CPU_CORE_NUMBER: usize = 1;
 
 // Kernel stack size
 // WARNING
