@@ -98,6 +98,12 @@ pub fn disable_mstatus_mie() {
     unsafe { asm!("csrrc zero, mstatus, {}", in(reg) MIE) };
 }
 
+pub fn read_mstatus() -> u32 {
+    let value: u32;
+    unsafe { asm!("csrr {}, mstatus", out(reg) value) };
+    value
+}
+
 // Machine Trap-Vector CSR
 
 pub fn mtvec_switch_to_vectored_mode() {
