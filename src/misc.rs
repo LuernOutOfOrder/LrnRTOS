@@ -27,7 +27,7 @@ impl CpusState {
         }
     }
 
-    fn read_scheduler_flag<'a>(&'a self, core: usize) -> &'a u8 {
+    fn read_scheduler_flag(&self, core: usize) -> &u8 {
         &self.scheduler_state[core]
     }
 
@@ -35,7 +35,7 @@ impl CpusState {
         let mut state = self.scheduler_state[core];
         let mask = 1 << 1;
         // Set need reschedule bit.
-        state = state | mask;
+        state |= mask;
         self.scheduler_state[core] = state;
     }
 
@@ -43,7 +43,7 @@ impl CpusState {
         let mut state = self.scheduler_state[core];
         let mask = 0 << 1;
         // Clear need reschedule bit.
-        state = state & mask;
+        state &= mask;
         self.scheduler_state[core] = state;
     }
 
@@ -51,11 +51,7 @@ impl CpusState {
         let state = self.scheduler_state[core];
         // Get the bit 1
         let flag = (state >> 1) & 1;
-        if flag == 1 {
-            return true;
-        } else {
-            return false;
-        }
+        flag == 1
     }
 }
 
@@ -88,6 +84,6 @@ pub fn read_scheduler_flag<'a>() -> &'a u8 {
     let current_core = arch::helpers::current_cpu_core();
     #[allow(static_mut_refs)]
     unsafe {
-        return CPUS_STATE.read_scheduler_flag(current_core);
-    };
+        CPUS_STATE.read_scheduler_flag(current_core)
+    }
 }

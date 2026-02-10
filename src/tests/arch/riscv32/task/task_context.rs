@@ -84,7 +84,7 @@ pub fn test_task_context_offset() -> u8 {
     let mstatus_off = mem::offset_of!(TaskContext, mstatus);
     if mstatus_off != 148 {
         panic!("Task context mstatus offset must be 148, got: {mstatus_off}");
-    } 
+    }
     let flags_off = mem::offset_of!(TaskContext, flags);
     if flags_off != 152 {
         panic!("Task context flags offset must be 144, got: {flags_off}");
