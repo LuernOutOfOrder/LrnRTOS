@@ -8,7 +8,7 @@ use crate::{
     config::TICK_SAFETY_DURATION,
     kprint,
     ktime::{set_ktime_ms, set_ktime_seconds, tick::get_tick},
-    scheduller::{BLOCKED_QUEUE, RUN_QUEUE},
+    scheduler::{BLOCKED_QUEUE, RUN_QUEUE},
     task::{
         CURRENT_TASK_PID, TASK_HANDLER,
         list::task_list_get_task_by_pid,
