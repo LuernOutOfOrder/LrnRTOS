@@ -1,3 +1,19 @@
+/*
+File info: Miscellaneous
+
+Test coverage: ...
+
+Tested:
+
+Not tested:
+
+Reasons:
+- Will be refactor and tested in the scheduler update task.
+
+Tests files:
+- ...
+*/
+
 use crate::{arch, config::CPU_CORE_NUMBER};
 
 #[repr(C)]
