@@ -38,7 +38,8 @@ impl TaskContext {
             pc: func as usize as u32,
             sp: size[0] as u32,
             ra: func as usize as u32,
-            mstatus: 136,
+            // Set mstatus to 8 by default to enable mie
+            mstatus: 8,
             flags: [0u8; 3],
             instruction_register: 0,
         }
