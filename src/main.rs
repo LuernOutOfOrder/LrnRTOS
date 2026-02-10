@@ -59,10 +59,8 @@ use core::panic::PanicInfo;
 use logs::LogLevel;
 use mem::mem_kernel_stack_info;
 
-use task::{
-    CURRENT_TASK_PID, TASK_HANDLER, list::task_list_get_task_by_pid, primitives::sleep,
-    task_context_switch, task_create, task_idle_task,
-};
+#[cfg(feature = "idle_task")]
+use task::task_idle_task;
 
 #[unsafe(no_mangle)]
 unsafe extern "C" fn main() -> ! {
@@ -75,28 +73,12 @@ unsafe extern "C" fn main() -> ! {
         kernel_stack.bottom
     );
     log!(LogLevel::Info, "LrnRTOS started!");
+    #[cfg(feature = "idle_task")]
     task_idle_task();
-    task_create("Test task", test_task, 1, 0x200);
-    #[allow(static_mut_refs)]
-    unsafe {
-        CURRENT_TASK_PID = 2
-    };
-    let mut task = task_list_get_task_by_pid(unsafe { CURRENT_TASK_PID });
-    unsafe { TASK_HANDLER = *task.as_mut().unwrap() };
-    task_context_switch(task.unwrap());
     loop {
-        log!(LogLevel::Debug, "Main loop uptime.");
+        log!(LogLevel::Debug, "Main loop.");
         unsafe {
             arch::traps::interrupt::enable_and_halt();
-        }
-    }
-}
-
-fn test_task() -> ! {
-    loop {
-        log!(LogLevel::Debug, "Test task, only sleep.");
-        unsafe {
-            sleep(20);
         }
     }
 }
