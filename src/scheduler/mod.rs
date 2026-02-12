@@ -56,6 +56,7 @@ pub fn scheduler(core: usize) {
     let current_run_queue = unsafe { RUN_QUEUE }[core];
     #[allow(static_mut_refs)]
     let current_blocked_queue = unsafe { BLOCKED_QUEUE }[core];
+    let current_run_queue_bitmap = unsafe { RUN_QUEUE_BITMAP }[core];
     // Current running task
     let mut current_task = unsafe { *TASK_HANDLER };
     if current_task.state != TaskState::Blocked {
@@ -79,8 +80,8 @@ pub fn scheduler(core: usize) {
     }
     // Update and load next task
     #[allow(static_mut_refs)]
-    let get_next_task = unsafe { RUN_QUEUE.pop() };
-    if get_next_task.is_none() {
+    let is_no_task = current_run_queue_bitmap.is_bitmap_zero();
+    if is_no_task {
         log!(
             LogLevel::Debug,
             "No task available in the run queue, enter idle task."
@@ -89,6 +90,8 @@ pub fn scheduler(core: usize) {
         #[allow(clippy::expect_used)]
         task_context_switch(idle.expect("ERROR: failed to get the idle task, invariant violated."));
     }
+    let highest_priority = current_run_queue_bitmap.find_leading_bit();
+    let get_next_task = unsafe { RUN_QUEUE[highest_priority].pop() };
     // Allow unwrap because it's a temporary function
     #[allow(clippy::unwrap_used)]
     let next_task_pid = get_next_task.unwrap();

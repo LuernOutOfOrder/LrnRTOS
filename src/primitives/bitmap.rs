@@ -36,4 +36,8 @@ impl Bitmap<T> {
         }
         value
     }
+
+    pub fn is_bitmap_zero(&self) -> bool {
+        self.map == 0
+    }
 }
