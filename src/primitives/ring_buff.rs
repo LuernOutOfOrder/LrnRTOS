@@ -23,6 +23,7 @@ References:
 
 use crate::{log, logs::LogLevel};
 
+#[derive(Copy, Clone)]
 pub struct RingBuffer<T, const N: usize> {
     buff: [Option<T>; N],
     // Oldest element in the buffer

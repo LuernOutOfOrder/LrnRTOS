@@ -16,7 +16,10 @@ References:
 
 use crate::{
     LogLevel,
-    arch::scheduler::{SCHEDULER_CTX, SchedulerCtx, sched_ctx_restore},
+    arch::{
+        helpers::current_cpu_core,
+        scheduler::{SCHEDULER_CTX, SchedulerCtx, sched_ctx_restore},
+    },
     config::{BLOCK_QUEUE_MAX_SIZE, CPU_CORE_NUMBER, RUN_QUEUE_MAX_SIZE, TASK_MAX_PRIORITY},
     log,
     misc::{clear_reschedule, read_need_reschedule},
@@ -30,7 +33,7 @@ use crate::{
 
 // Reflect the run queue state
 // Array of bitmaps, one bitmap per CPU core
-pub static mut RUN_QUEUE_BITMAP: [Bitmap<u32>; CPU_CORE_NUMBER] =
+pub static mut RUN_QUEUE_BITMAP: [Bitmap; CPU_CORE_NUMBER] =
     [const { Bitmap::new() }; CPU_CORE_NUMBER];
 // Array of Array of run queue per priority per CPU core.
 // Each index of this array is specific a CPU core, index 0 is for CPU core 0, etc.
@@ -51,24 +54,22 @@ pub static mut BLOCKED_QUEUE: [RingBuffer<u16, BLOCK_QUEUE_MAX_SIZE>; CPU_CORE_N
 /// Read on the RingBuffer to get the next task, update it, and update the RingBuffer.
 /// Not the best way to use the RingBuffer but it will do.
 #[unsafe(no_mangle)]
-pub fn scheduler(core: usize) {
+pub fn scheduler() {
+    let core: usize = current_cpu_core();
     #[allow(static_mut_refs)]
-    let current_run_queue = unsafe { RUN_QUEUE }[core];
+    let current_run_queue = &mut unsafe { RUN_QUEUE }[core];
     #[allow(static_mut_refs)]
-    let current_blocked_queue = unsafe { BLOCKED_QUEUE }[core];
-    let current_run_queue_bitmap = unsafe { RUN_QUEUE_BITMAP }[core];
+    let current_blocked_queue = &mut unsafe { BLOCKED_QUEUE }[core];
+    let current_run_queue_bitmap = &mut unsafe { RUN_QUEUE_BITMAP }[core];
     // Current running task
     let mut current_task = unsafe { *TASK_HANDLER };
     if current_task.state != TaskState::Blocked {
         current_task.state = TaskState::Ready;
         let pid = task_pid(&current_task);
-        let priority = task_priority(&current_task);
+        let priority: usize = task_priority(&current_task).into();
         task_list_update_task_by_pid(pid, current_task);
-        #[allow(static_mut_refs)]
-        unsafe {
-            // Push current task to the priority buffer
-            RUN_QUEUE[priority].push(pid)
-        };
+        // Push current task to the priority buffer
+        current_run_queue[priority].push(pid)
     }
     let resched = read_need_reschedule();
     if resched {
@@ -90,8 +91,8 @@ pub fn scheduler(core: usize) {
         #[allow(clippy::expect_used)]
         task_context_switch(idle.expect("ERROR: failed to get the idle task, invariant violated."));
     }
-    let highest_priority = current_run_queue_bitmap.find_leading_bit();
-    let get_next_task = unsafe { RUN_QUEUE[highest_priority].pop() };
+    let highest_priority: usize = current_run_queue_bitmap.find_leading_bit();
+    let get_next_task = current_run_queue[highest_priority].pop();
     // Allow unwrap because it's a temporary function
     #[allow(clippy::unwrap_used)]
     let next_task_pid = get_next_task.unwrap();

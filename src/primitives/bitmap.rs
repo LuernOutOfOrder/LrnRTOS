@@ -1,10 +1,11 @@
-pub struct Bitmap<T> {
-    map: T,
+#[derive(Copy, Clone)]
+pub struct Bitmap {
+    map: u32,
 }
 
-impl Bitmap<T> {
+impl Bitmap {
     pub const fn new() -> Self {
-        Bitmap { map: T }
+        Bitmap { map: 0 }
     }
 
     /// Set the given bit to 1.
