@@ -23,7 +23,7 @@ use crate::{
     log,
     logs::LogLevel,
     misc::need_reschedule,
-    scheduler::{BLOCKED_QUEUE, RUN_QUEUE, dispatch},
+    scheduler::{BLOCKED_QUEUE, RUN_QUEUE, scheduler},
 };
 
 use super::{
@@ -49,7 +49,7 @@ fn task_set_wake_tick(tick: usize) {
     // Call task primitive to update current task state
     task_block_until(awake_tick);
     // Call a re-schedule
-    dispatch();
+    scheduler();
 }
 
 /// Block the current task until the given tick is reach.
@@ -71,23 +71,21 @@ pub fn task_block_until(tick: usize) {
     // Update task and push pid to block queue
     let pid = task_pid(&current_task_deref);
     task_list_update_task_by_pid(pid, current_task_deref);
-    #[allow(static_mut_refs)]
-    unsafe {
-        BLOCKED_QUEUE.push(pid);
-    }
 }
 
-/// Pop the oldest element in the blocked queue and check if the task can be awake. If not, repush
-/// it to the blocked queue
+/// Check all the blocked queue to find the task to awake. Just update the task that need to be
+/// awake, make them ready. Don't handle the queue by itself.
 /// TODO: Use a better data structure than a RingBuffer for the blocked queue.
 pub fn task_awake_blocked(tick: usize) {
     #[allow(static_mut_refs)]
-    let size = unsafe { BLOCKED_QUEUE.size() };
+    //TODO: use blocked queue size. or something idk
+    let size = 0;
     if size == 0 {
         return;
     }
     #[allow(static_mut_refs)]
-    let pid = unsafe { BLOCKED_QUEUE.pop() };
+    //TODO: Use blocked queue
+    let pid = None;
     if pid.is_none() {
         log!(LogLevel::Error, "Error getting the oldest pid in run queue");
         return;
@@ -117,8 +115,8 @@ pub fn task_awake_blocked(tick: usize) {
                 unsafe {
                     // Allow expect, check the value before and if the pid become invalid we don't want to pursue
                     // run time.
-                    #[allow(clippy::expect_used)]
-                    RUN_QUEUE.push(pid.expect("Failed to get the pid behind the Option<>"));
+                    // #[allow(clippy::expect_used)]
+                    // RUN_QUEUE.push(pid.expect("Failed to get the pid behind the Option<>"));
                     need_reschedule();
                 };
             } else {
@@ -127,8 +125,8 @@ pub fn task_awake_blocked(tick: usize) {
                 unsafe {
                     // Allow expect, check the value before and if the pid become invalid we don't want to pursue
                     // run time.
-                    #[allow(clippy::expect_used)]
-                    BLOCKED_QUEUE.push(pid.expect("Failed to get the pid behind the Option<>"))
+                    // #[allow(clippy::expect_used)]
+                    // BLOCKED_QUEUE.push(pid.expect("Failed to get the pid behind the Option<>"))
                 };
             }
         }

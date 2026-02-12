@@ -4,7 +4,7 @@ use core::{mem, ptr};
 
 use crate::{
     arch::{scheduler::init_sched_ctx, task::task_context::TaskContext, traps::interrupt::halt},
-    scheduler::dispatch,
+    scheduler::scheduler,
     task::{
         CURRENT_TASK_PID, TASK_HANDLER, list::task_list_get_task_by_pid, primitives::r#yield,
         task_context_switch, task_create,
@@ -143,7 +143,7 @@ pub fn test_task_context_switch() -> u8 {
     test_info!(
         "The next output should be the task A and B, which print alternately A, and B, with a digit. The final output must be: from A: 31, and from B: 28"
     );
-    init_sched_ctx(dispatch);
+    init_sched_ctx(scheduler);
     task_context_switch(task.unwrap());
     0
 }

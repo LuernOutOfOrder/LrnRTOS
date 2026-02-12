@@ -12,4 +12,4 @@ yield:
   # Call the save context function
   call save_context
   # Once save_context return, call the scheduler
-  call dispatch
+  call scheduler

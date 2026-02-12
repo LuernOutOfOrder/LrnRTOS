@@ -56,7 +56,7 @@ trap_entry:
   bnez a0, 1f
   mret
 1:
-  call dispatch
+  call scheduler
   mret
 
 # Function used when the trap strack = 0, just infinite loop for debuging purpose 
