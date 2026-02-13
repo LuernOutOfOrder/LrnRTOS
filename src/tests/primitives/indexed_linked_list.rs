@@ -45,6 +45,13 @@ fn test_indexed_linked_list_push() -> u8 {
         test_failed!("count should be 4, got: {}\n", count);
         return 1;
     }
+    // Check duplication security
+    list.push(4, 80);
+    let count = list.get_count();
+    if count != 4 {
+        test_failed!("count should be 4, got: {}\n", count);
+        return 1;
+    }
     0
 }
 

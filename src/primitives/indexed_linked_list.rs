@@ -59,6 +59,31 @@ impl<const N: usize> IndexedLinkedList<N> {
         }
         let mut current_node: usize = self.head;
         let mut available_index: Option<usize> = None;
+        // Check if there's no id duplication possible by iterating over the linked list
+        {
+            let mut current_node: usize = self.head;
+            for _ in 0..self.list.len() {
+                let node = self
+                    .get_node(current_node)
+                    .expect("Failed to get the asked node, linked list may be empty or corrupted.");
+                if node.id == id {
+                    log!(
+                        LogLevel::Warn,
+                        "The delta-list is full, abort push. Consider increasing the blocked queue size."
+                    );
+                    return;
+                } else {
+                    if node.next_node.is_none() {
+                        break;
+                    } else {
+                        current_node = node
+                            .next_node
+                            .expect("Failed to get the next_node index behind the Option<>");
+                        continue;
+                    }
+                }
+            }
+        }
         // Iterate to find an available index.
         for i in 0..self.list.len() {
             let find_available_index = &self.list[i];
