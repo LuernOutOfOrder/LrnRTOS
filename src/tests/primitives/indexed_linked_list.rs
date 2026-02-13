@@ -1,16 +1,16 @@
 use crate::{
     kprint_fmt,
-    primitives::delta_list::DeltaList,
+    primitives::indexed_linked_list::IndexedLinkedList,
     test_failed, test_info,
     tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
 };
 
 fn test_delta_list_push() -> u8 {
-    let mut list: DeltaList<10> = DeltaList::new();
+    let mut list: IndexedLinkedList<10> = IndexedLinkedList::new();
     // Push a short task
-    list.push(50, 1, 70);
-    list.push(50, 2, 80);
-    list.push(50, 3, 75);
+    list.push(1, 70);
+    list.push(2, 80);
+    list.push(3, 75);
     kprint_fmt!("debug list: {:?}\n", list);
     let first_node = list.get_index(0);
     if first_node.id != 1 {
@@ -30,11 +30,11 @@ fn test_delta_list_push() -> u8 {
 pub fn delta_list_primitive_test_suite() {
     const DELTA_LIST_TEST_SUITE: TestSuite = TestSuite {
         tests: &[TestCase::init(
-            "DeltaList push",
+            "IndexedLinkedList push",
             test_delta_list_push,
             TestBehavior::Default,
         )],
-        name: "DeltaList primitive type",
+        name: "IndexedLinkedList primitive type",
         behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]
