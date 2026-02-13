@@ -5,7 +5,7 @@ use crate::{
     tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
 };
 
-fn test_delta_list_push() -> u8 {
+fn test_indexed_linked_list_push() -> u8 {
     let mut list: IndexedLinkedList<10> = IndexedLinkedList::new();
     // Push some task
     list.push(1, 70);
@@ -23,7 +23,7 @@ fn test_delta_list_push() -> u8 {
     }
     if head_node.next_node.unwrap() != 0 {
         test_failed!(
-            "head node.next_node should be the task 1 at index 0, got: {}\n",
+            "head node.next_node should be the task 1, got: {}\n",
             head_node.next_node.unwrap()
         );
         return 1;
@@ -48,18 +48,70 @@ fn test_delta_list_push() -> u8 {
     0
 }
 
-pub fn delta_list_primitive_test_suite() {
-    const DELTA_LIST_TEST_SUITE: TestSuite = TestSuite {
-        tests: &[TestCase::init(
-            "IndexedLinkedList push",
-            test_delta_list_push,
-            TestBehavior::Default,
-        )],
+fn test_indexed_linked_list_get_head_node() -> u8 {
+    let mut list: IndexedLinkedList<10> = IndexedLinkedList::new();
+    // Push some task
+    list.push(1, 70);
+    list.push(2, 80);
+    list.push(3, 75);
+    let head = list.get_head_node().unwrap();
+    if head.id != 1 {
+        test_failed!(
+            "head node.next_node should be the task 1, got: {}\n",
+            head.next_node.unwrap()
+        );
+        return 1;
+    }
+    list.push(4, 50);
+    let head = list.get_head_node().unwrap();
+    if head.id != 4 {
+        test_failed!(
+            "head node.next_node should be the task 4, got: {}\n",
+            head.next_node.unwrap()
+        );
+        return 1;
+    }
+    0
+}
+
+fn test_indexed_linked_list_pop() -> u8 {
+    let mut list: IndexedLinkedList<10> = IndexedLinkedList::new();
+    // Push some task
+    list.push(1, 70);
+    list.push(2, 80);
+    list.push(3, 75);
+    let head = list.pop().unwrap();
+    if head.id != 1 {
+        test_failed!("head node should be the task 1, got: {}\n", head.id);
+        return 1;
+    }
+    let head = list.pop().unwrap();
+    if head.id != 3 {
+        test_failed!("head node should be the task 3, got: {}\n", head.id);
+        return 1;
+    }
+    0
+}
+
+pub fn indexed_linked_list_primitive_test_suite() {
+    const INDEXED_LINKED_LIST_TEST_SUITE: TestSuite = TestSuite {
+        tests: &[
+            TestCase::init(
+                "IndexedLinkedList push",
+                test_indexed_linked_list_push,
+                TestBehavior::Default,
+            ),
+            TestCase::init(
+                "IndexedLinkedList get_head_node",
+                test_indexed_linked_list_get_head_node,
+                TestBehavior::Default,
+            ),
+        ],
         name: "IndexedLinkedList primitive type",
         behavior: TestSuiteBehavior::Default,
     };
     #[allow(static_mut_refs)]
     unsafe {
-        TEST_MANAGER.add_suite(&DELTA_LIST_TEST_SUITE)
+        TEST_MANAGER.add_suite(&INDEXED_LINKED_LIST_TEST_SUITE)
     };
 }

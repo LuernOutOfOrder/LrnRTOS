@@ -38,6 +38,7 @@ impl<const N: usize> IndexedLinkedList<N> {
         }
     }
 
+    /// Push the new node in the linked list. Can update the current node in it.
     pub fn push(&mut self, id: usize, value: usize) {
         // Get the size of the list
         let size = self.size();
@@ -131,6 +132,27 @@ impl<const N: usize> IndexedLinkedList<N> {
             }
         }
         self.count += 1;
+    }
+
+    /// Remove the node at the head and return a mutable reference to it.
+    /// Update the linked list head to point to the next node.
+    pub fn pop(&mut self) -> Option<&mut IndexedLinkedListNode> {
+        let head = self.head;
+        let head_next_node = {
+            let head_node = self.get_node(head).expect("Failed to get the node.");
+            head_node.next_node
+        };
+        if head_next_node.is_none() {
+            self.head = 0;
+        } else {
+            self.head = head_next_node
+                .expect("Failed to get the usize behind the Option<> in node.next_node");
+        }
+        self.get_node(head)
+    }
+
+    pub fn get_head_node(&self) -> Option<&IndexedLinkedListNode> {
+        self.list[self.head].as_ref()
     }
 
     pub fn get_node(&mut self, idx: usize) -> Option<&mut IndexedLinkedListNode> {
