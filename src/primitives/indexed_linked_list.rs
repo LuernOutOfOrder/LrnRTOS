@@ -153,10 +153,24 @@ impl<const N: usize> IndexedLinkedList<N> {
         return output;
     }
 
+    pub fn get_count(&self) -> usize {
+        self.count
+    }
+
     #[cfg(feature = "test")]
     pub fn get_index(&self, idx: usize) -> IndexedLinkedListNode {
         // Unwrap directly because it's in test env.
         self.list[idx].unwrap()
+    }
+
+    #[cfg(feature = "test")]
+    pub fn get_head(&self) -> usize {
+        self.head
+    }
+
+    #[cfg(feature = "test")]
+    pub fn get_tail(&self) -> usize {
+        self.tail
     }
 }
 
