@@ -39,6 +39,7 @@ impl<const N: usize> IndexedLinkedList<N> {
     }
 
     /// Push the new node in the linked list. Can update the current node in it.
+    /// Avoid duplication on id. The id is unique in the list.
     pub fn push(&mut self, id: usize, value: usize) {
         // Get the size of the list
         let size = self.size();

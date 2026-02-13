@@ -54,3 +54,4 @@ Task are already store in a TaskList, so in the IndexedLinkedList used for block
 - The list is empty when `count`, `head` and `tail` are equal to 0.
 - If the `next_node` of a node is some, this `next_node` is valid.
 - If the `next_node` of a node is none, then this node is the `tail`.
+- The node `id` is unique, you can't add the same `id` in the list.
