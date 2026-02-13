@@ -53,6 +53,7 @@ impl<const N: usize> IndexedLinkedList<N> {
                 next_node: None,
             });
             self.head = 0;
+            self.count += 1;
             return;
         }
         let mut current_node: usize = self.head;
@@ -71,7 +72,6 @@ impl<const N: usize> IndexedLinkedList<N> {
             );
             return;
         }
-        self.count += 1;
         let mut new_node = IndexedLinkedListNode {
             id,
             value,
@@ -79,14 +79,15 @@ impl<const N: usize> IndexedLinkedList<N> {
         };
         let mut prev_node_ptr: Option<usize> = None;
         for _ in 0..self.list.len() {
-            let mut node = self.list[current_node].expect("Failed to get the current node. This shouldn't be possible unless the linked list is corrupted.");
+            let node: &mut IndexedLinkedListNode = self
+                .get_node(current_node)
+                .expect("Failed to get the asked node, linked list may be empty or corrupted");
             // If the current value is superior than the current node value, continue, or check the
             // next_node.
             if value > node.value {
                 if node.next_node.is_none() {
                     node.next_node = available_index;
                     // Update current node in list
-                    self.list[current_node] = Some(node);
                     self.tail = available_index.expect("Failed to get the usize behind the Option<>. Maybe there's isn't available space in the delta-list.");
                     // Push new node to available index in list
                     self.list[available_index.unwrap()] = Some(new_node);
@@ -118,28 +119,26 @@ impl<const N: usize> IndexedLinkedList<N> {
                 // If there's a previous node.
                 new_node.next_node = Some(current_node);
                 // Get the previous node
-                let mut prev_node =
-                    self.list[prev_node_ptr.expect("Failed to get the usize behind the Option<>")];
-                // Check to see if there's an error getting the previous node
-                if prev_node.is_none() {
-                    log!(
-                        LogLevel::Warn,
-                        "The previous node in the delta-list is none. This shouldn't be possible."
-                    );
-                    return;
-                }
+                let prev_node: &mut IndexedLinkedListNode = self
+                    .get_node(prev_node_ptr.expect("Failed to get the previous_node index behind Option<>, linked-list may be corrupted"))
+                    .expect("Failed to get the asked node, linked list may be empty or corrupted");
                 // Update previous node to point to the new node
-                prev_node
-                    .expect("Previous node should not be None")
-                    .next_node = available_index;
-                // Update the previous node in the list
-                self.list[prev_node_ptr.expect("Failed to get the usize behind the Option<>")] =
-                    prev_node;
+                prev_node.next_node = available_index;
                 // Push the new node to the list
                 self.list[available_index.expect("Available index should not be None")] =
                     Some(new_node);
                 break;
             }
+        }
+        self.count += 1;
+    }
+
+    pub fn get_node(&mut self, idx: usize) -> Option<&mut IndexedLinkedListNode> {
+        let node = self.list[idx].as_mut();
+        if let Some(is_node) = node {
+            return Some(is_node);
+        } else {
+            return None;
         }
     }
 

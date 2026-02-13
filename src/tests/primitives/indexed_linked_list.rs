@@ -11,7 +11,6 @@ fn test_delta_list_push() -> u8 {
     list.push(1, 70);
     list.push(2, 80);
     list.push(3, 75);
-    kprint_fmt!("debug list: {:?}\n", list);
     let first_node = list.get_index(0);
     if first_node.id != 1 {
         test_failed!("first node should be the task 1, got: {}\n", first_node.id);
