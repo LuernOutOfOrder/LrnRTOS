@@ -7,6 +7,8 @@
       - [Invariants](#invariants)
     - [AlignedStack16](#alignedstack16)
       - [Invariants](#invariants-1)
+    - [IndexedLinkedList](#indexedlinkedlist)
+      - [Invariants](#invariants-2)
 <!--toc:end-->
 
 ## Description
@@ -37,3 +39,18 @@ This type is used when you need a stack on a buffer, and the `sp` must be aligne
 - The backing storage is always 16-byte aligned.
 - Any stack pointer derived from this type must remain 16-byte aligned at all call boundaries.
 - This type provides a memory-layout guarantee only; it does not validate stack usage correctness.
+
+### IndexedLinkedList
+
+A linked list but store in an array, so each node is accessed from it's index in the array.
+This is better to use this data structure as a side storage, like we use it to store blocked task.
+Task are already store in a TaskList, so in the IndexedLinkedList used for blocked task we only store task id, and task awake tick for now.
+
+#### Invariants
+
+- All node should be accessible from the head node.
+- The list is sorted naturally from the `value` field of a node.
+- The `count` field should reflect the number of accessible node in the list.
+- The list is empty when `count`, `head` and `tail` are equal to 0.
+- If the `next_node` of a node is some, this `next_node` is valid.
+- If the `next_node` of a node is none, then this node is the `tail`.
