@@ -49,11 +49,19 @@ pub mod primitives;
 // Scheduler module
 pub mod scheduler;
 
+// Kernel execution context and core runtime state.
+//
+// This module defines the core runtime context of the kernel.
+// It provides the single kernel execution stack and maintains
+// global kernel state required for trap handling and scheduling.
+pub mod kernel;
+
 // Test module
 #[cfg(feature = "test")]
 pub mod tests;
 
 // Use from modules
+use arch::traps::misc::read_mstatus;
 #[cfg(not(feature = "test"))]
 use core::panic::PanicInfo;
 use logs::LogLevel;
@@ -80,8 +88,8 @@ unsafe extern "C" fn main() -> ! {
     log!(LogLevel::Info, "LrnRTOS started!");
     #[cfg(feature = "idle_task")]
     task_idle_task();
-    task_create("High priority", hight_priority_task, 10, 0x100);
-    task_create("Low priority", low_priority_task, 4, 0x100);
+    task_create("High priority", hight_priority_task, 10, 0x1024);
+    task_create("Low priority", low_priority_task, 4, 0x1024);
     // High priority task.
     let mut task = task_list_get_task_by_pid(1);
     unsafe { TASK_HANDLER = *task.as_mut().unwrap() };
@@ -101,7 +109,7 @@ unsafe extern "C" fn main() -> ! {
 fn hight_priority_task() -> ! {
     loop {
         print!("This is a high priority task !!!!!!!!!!\n");
-        unsafe { sleep(300) };
+        unsafe { sleep(30) };
     }
 }
 

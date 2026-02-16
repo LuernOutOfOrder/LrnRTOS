@@ -17,14 +17,14 @@ Tests files:
 - 'src/tests/mem/mod.rs'
 */
 
-mod kernel;
-
 use core::mem;
 
-use kernel::{__kernel_end, __kernel_start, KernelStack};
-
 use crate::{
-    arch::mem::update_kernel_sp, config::KERNEL_STACK_SIZE, log, logs::LogLevel,
+    arch::mem::update_kernel_sp,
+    config::KERNEL_STACK_SIZE,
+    kernel::stack::{__kernel_end, __kernel_start, KernelStack},
+    log,
+    logs::LogLevel,
     platform::mem::platform_init_mem,
 };
 
