@@ -1,6 +1,6 @@
 #[derive(Copy, Clone)]
 pub struct Bitmap {
-    map: u32,
+    pub map: u32,
 }
 
 impl Bitmap {
@@ -16,8 +16,7 @@ impl Bitmap {
 
     /// Clear the given bit. Set it to 0.
     pub fn clear_bit(&mut self, bit: usize) {
-        let mask = 0 << bit;
-        self.map &= mask;
+        self.map &= !(1 << bit);
     }
 
     /// Iterate over the bitmap and return the heavier bit.

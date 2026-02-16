@@ -15,12 +15,20 @@ References:
 */
 
 use crate::{
+    LogLevel,
     arch::{
         helpers::current_cpu_core,
-        scheduler::{sched_ctx_restore, SchedulerCtx, SCHEDULER_CTX},
-    }, config::{BLOCK_QUEUE_MAX_SIZE, CPU_CORE_NUMBER, RUN_QUEUE_MAX_SIZE, TASK_MAX_PRIORITY}, kprint, log, misc::{clear_reschedule, read_need_reschedule}, primitives::{bitmap::Bitmap, indexed_linked_list::IndexedLinkedList, ring_buff::RingBuffer}, task::{
-        list::{task_list_get_idle_task, task_list_get_task_by_pid, task_list_update_task_by_pid}, task_awake_block_control, task_awake_tick, task_context_switch, task_pid, task_priority, TaskState, TASK_HANDLER
-    }, LogLevel
+        scheduler::{SCHEDULER_CTX, SchedulerCtx, sched_ctx_restore},
+    },
+    config::{BLOCK_QUEUE_MAX_SIZE, CPU_CORE_NUMBER, RUN_QUEUE_MAX_SIZE, TASK_MAX_PRIORITY},
+    kprint, kprint_fmt, log,
+    misc::{clear_reschedule, read_need_reschedule},
+    primitives::{bitmap::Bitmap, indexed_linked_list::IndexedLinkedList, ring_buff::RingBuffer},
+    task::{
+        TASK_HANDLER, TaskState,
+        list::{task_list_get_idle_task, task_list_get_task_by_pid, task_list_update_task_by_pid},
+        task_awake_block_control, task_awake_tick, task_context_switch, task_pid, task_priority,
+    },
 };
 
 // Reflect the run queue state
@@ -49,10 +57,12 @@ pub static mut BLOCKED_QUEUE: [IndexedLinkedList<BLOCK_QUEUE_MAX_SIZE>; CPU_CORE
 pub fn scheduler() {
     let core: usize = current_cpu_core();
     #[allow(static_mut_refs)]
-    let current_run_queue = &mut unsafe { RUN_QUEUE }[core];
+    let current_run_queue = unsafe { &mut RUN_QUEUE[core] };
     #[allow(static_mut_refs)]
-    let current_blocked_queue = &mut unsafe { BLOCKED_QUEUE }[core];
-    let current_run_queue_bitmap = &mut unsafe { RUN_QUEUE_BITMAP }[core];
+    let current_blocked_queue = unsafe { &mut BLOCKED_QUEUE[core] };
+    #[allow(static_mut_refs)]
+    let current_run_queue_bitmap = unsafe { &mut RUN_QUEUE_BITMAP[core] };
+
     // Check the need_reschedule flag
     // If a resched has been trigger, pop the head of the blocked queue, update the task and push
     // it to the run queue.
@@ -105,6 +115,7 @@ pub fn scheduler() {
             current_run_queue_bitmap.clear_bit(priority as usize);
         }
     }
+
     if current_task.state != TaskState::Blocked {
         current_task.state = TaskState::Ready;
         let pid = task_pid(&current_task);
