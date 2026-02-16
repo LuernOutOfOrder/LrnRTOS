@@ -70,7 +70,8 @@ impl<const N: usize> IndexedLinkedList<N> {
                 if node.id == id {
                     log!(
                         LogLevel::Warn,
-                        "The delta-list is full, abort push. Consider increasing the blocked queue size."
+                        "The indexed-linked-list has already the id: {}, abort push.",
+                        id
                     );
                     return;
                 } else {
@@ -160,9 +161,9 @@ impl<const N: usize> IndexedLinkedList<N> {
         self.count += 1;
     }
 
-    /// Remove the node at the head and return a mutable reference to it.
+    /// Remove the node at the head and return the node.
     /// Update the linked list head to point to the next node.
-    pub fn pop(&mut self) -> Option<&mut IndexedLinkedListNode> {
+    pub fn pop(&mut self) -> Option<IndexedLinkedListNode> {
         let head = self.head;
         let head_next_node = {
             let head_node = self.get_node(head).expect("Failed to get the node.");
@@ -174,7 +175,9 @@ impl<const N: usize> IndexedLinkedList<N> {
             self.head = head_next_node
                 .expect("Failed to get the usize behind the Option<> in node.next_node");
         }
-        self.get_node(head)
+        self.count -= 1;
+        // Get the head node
+        self.take_node(head)
     }
 
     pub fn get_head_node(&self) -> Option<&IndexedLinkedListNode> {
@@ -185,6 +188,16 @@ impl<const N: usize> IndexedLinkedList<N> {
         let node = self.list[idx].as_mut();
         if let Some(is_node) = node {
             return Some(is_node);
+        } else {
+            return None;
+        }
+    }
+
+    /// Take the node from the given index, replace it with None in the list.
+    fn take_node(&mut self, idx: usize) -> Option<IndexedLinkedListNode> {
+        let mut node = self.list[idx];
+        if node.is_some() {
+            return self.list[idx].take();
         } else {
             return None;
         }
