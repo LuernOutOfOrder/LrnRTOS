@@ -83,7 +83,7 @@ pub fn task_awake_blocked(tick: usize) {
     // Current CPU core
     let core: usize = current_cpu_core();
     // Current blocked queue
-    let current_blocked_queue = unsafe { BLOCKED_QUEUE }[core];
+    let current_blocked_queue = unsafe { BLOCKED_QUEUE[core] };
     #[allow(static_mut_refs)]
     let size = current_blocked_queue.get_count();
     if size == 0 {

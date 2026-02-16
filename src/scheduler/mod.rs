@@ -115,7 +115,6 @@ pub fn scheduler() {
             current_run_queue_bitmap.clear_bit(priority as usize);
         }
     }
-
     if current_task.state != TaskState::Blocked {
         current_task.state = TaskState::Ready;
         let pid = task_pid(&current_task);
