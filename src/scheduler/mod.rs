@@ -62,6 +62,10 @@ pub fn scheduler() {
     let current_blocked_queue = &mut unsafe { BLOCKED_QUEUE }[core];
     let current_run_queue_bitmap = &mut unsafe { RUN_QUEUE_BITMAP }[core];
     // Check the need_reschedule flag
+    // If a resched has been trigger, pop the head of the blocked queue, update the task and push
+    // it to the run queue. 
+    // Don't check the awake tick or anything else, we consider that if the need_resched flag is
+    // true, then the task is available to wake up. 
     let resched = read_need_reschedule();
     if !resched {
         // Get the current task and context switch on it.
