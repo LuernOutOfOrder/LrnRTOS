@@ -59,8 +59,13 @@ use core::panic::PanicInfo;
 use logs::LogLevel;
 use mem::mem_kernel_stack_info;
 
+use scheduler::{RUN_QUEUE, RUN_QUEUE_BITMAP};
 #[cfg(feature = "idle_task")]
 use task::task_idle_task;
+use task::{
+    TASK_HANDLER, list::task_list_get_task_by_pid, primitives::sleep, task_context_switch,
+    task_create,
+};
 
 #[unsafe(no_mangle)]
 unsafe extern "C" fn main() -> ! {
@@ -75,11 +80,36 @@ unsafe extern "C" fn main() -> ! {
     log!(LogLevel::Info, "LrnRTOS started!");
     #[cfg(feature = "idle_task")]
     task_idle_task();
+    task_create("High priority", hight_priority_task, 10, 0x100);
+    task_create("Low priority", low_priority_task, 4, 0x100);
+    // High priority task.
+    let mut task = task_list_get_task_by_pid(1);
+    unsafe { TASK_HANDLER = *task.as_mut().unwrap() };
+    unsafe {
+        RUN_QUEUE[0][4].push(2);
+        RUN_QUEUE_BITMAP[0].set_bit(4);
+    };
+    task_context_switch(task.unwrap());
     loop {
         log!(LogLevel::Debug, "Main loop.");
         unsafe {
             arch::traps::interrupt::enable_and_halt();
         }
+    }
+}
+
+fn hight_priority_task() -> ! {
+    loop {
+        print!("This is a high priority task !!!!!!!!!!\n");
+        unsafe { sleep(300) };
+    }
+}
+
+fn low_priority_task() -> ! {
+    let mut increment: usize = 0;
+    loop {
+        print!("Low priority task: {}\n", increment);
+        increment += 1;
     }
 }
 

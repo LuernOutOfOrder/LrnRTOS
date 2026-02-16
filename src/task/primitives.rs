@@ -19,6 +19,7 @@ Tests files:
 
 use crate::{
     arch::{helpers::current_cpu_core, traps::interrupt::enable_and_halt},
+    kprint_fmt,
     ktime::{set_ktime_ms, tick::get_tick},
     log,
     logs::LogLevel,
@@ -64,15 +65,15 @@ pub fn task_block_until(tick: usize) {
         );
         // See how to handle this, what to return or something else.
     }
-    let mut current_task_deref: Task = unsafe { *current_task };
     // Update task
     // Update current state to block
-    current_task_deref.state = TaskState::Blocked;
     // Update block control and pass the awake_tick to it
-    current_task_deref.block_control = TaskBlockControl::AwakeTick(tick);
-    // Update task and push pid to block queue
-    let pid = task_pid(&current_task_deref);
-    task_list_update_task_by_pid(pid, current_task_deref);
+    unsafe {
+        // Deref and cast current_task to &mut to update the Task behind the ptr.
+        let task: &mut Task = &mut *current_task;
+        task.state = TaskState::Blocked;
+        task.block_control = TaskBlockControl::AwakeTick(tick);
+    }
 }
 
 /// Check all the blocked queue to find the task to awake. Just update the task that need to be
