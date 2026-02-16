@@ -180,6 +180,17 @@ pub fn task_priority(task: &Task) -> u8 {
     task.priority
 }
 
+pub fn task_awake_tick(task: &Task) -> Option<usize> {
+    match task.block_control {
+        TaskBlockControl::AwakeTick(tick) => Some(tick),
+        TaskBlockControl::None => None,
+    }
+}
+
+pub fn task_awake_block_control(task: &mut Task) {
+    task.block_control = TaskBlockControl::None;
+}
+
 /// Create the idle task
 pub fn task_idle_task() {
     let task_name: &str = "Idle task";

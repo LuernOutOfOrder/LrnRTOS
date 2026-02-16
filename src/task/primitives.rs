@@ -18,7 +18,7 @@ Tests files:
 */
 
 use crate::{
-    arch::traps::interrupt::enable_and_halt,
+    arch::{helpers::current_cpu_core, traps::interrupt::enable_and_halt},
     ktime::{set_ktime_ms, tick::get_tick},
     log,
     logs::LogLevel,
@@ -53,6 +53,8 @@ fn task_set_wake_tick(tick: usize) {
 }
 
 /// Block the current task until the given tick is reach.
+/// Update the current task to block it, but the task is still in the run queue, it'll be remove
+/// from the run queue and saved in the blocked queue in the scheduler.
 pub fn task_block_until(tick: usize) {
     let current_task: *mut Task = unsafe { TASK_HANDLER };
     if current_task.is_null() {
@@ -77,23 +79,32 @@ pub fn task_block_until(tick: usize) {
 /// awake, make them ready. Don't handle the queue by itself.
 /// TODO: Use a better data structure than a RingBuffer for the blocked queue.
 pub fn task_awake_blocked(tick: usize) {
+    // Current CPU core
+    let core: usize = current_cpu_core();
+    // Current blocked queue
+    let current_blocked_queue = &mut unsafe { BLOCKED_QUEUE }[core];
     #[allow(static_mut_refs)]
-    //TODO: use blocked queue size. or something idk
-    let size = 0;
+    let size = current_blocked_queue.get_count();
     if size == 0 {
         return;
     }
     #[allow(static_mut_refs)]
-    //TODO: Use blocked queue
-    let pid = None;
-    if pid.is_none() {
-        log!(LogLevel::Error, "Error getting the oldest pid in run queue");
+    let mut blocked_task = current_blocked_queue.get_head_node();
+    let mut pid: u16;
+    if blocked_task.is_none() {
+        log!(
+            LogLevel::Error,
+            "Error getting the oldest task in run queue"
+        );
         return;
+    } else {
+        // Allow unwrap, we check the value before
+        pid = blocked_task.unwrap().id as u16;
     }
     // Allow expect, check the value before and if the pid become invalid we don't want to pursue
     // run time.
     #[allow(clippy::expect_used)]
-    let task = task_list_get_task_by_pid(pid.expect("Error getting the pid behind the Option<>"));
+    let task = task_list_get_task_by_pid(pid);
     if task.is_none() {
         log!(
             LogLevel::Error,
@@ -103,6 +114,8 @@ pub fn task_awake_blocked(tick: usize) {
     }
     // Allow expected, we check the value before, if it's some, there's shouldn't be any problem by
     // unwrapping it.
+    // TODO: just need to correctly used the blocked queue to avoid getting the task from the
+    // task_list with pid, and matching on the block_control of the task to awake it.
     #[allow(clippy::expect_used)]
     match task
         .expect("Failed to get the task behind the Option<>. This shouldn't be possible")
@@ -113,21 +126,12 @@ pub fn task_awake_blocked(tick: usize) {
                 // push to run queue
                 #[allow(static_mut_refs)]
                 unsafe {
-                    // Allow expect, check the value before and if the pid become invalid we don't want to pursue
-                    // run time.
-                    // #[allow(clippy::expect_used)]
-                    // RUN_QUEUE.push(pid.expect("Failed to get the pid behind the Option<>"));
+                    // Set the need reschedule flag, the scheduler will check the block queue to
+                    // awake correctly the task.
                     need_reschedule();
                 };
             } else {
-                // push to blocked queue
-                #[allow(static_mut_refs)]
-                unsafe {
-                    // Allow expect, check the value before and if the pid become invalid we don't want to pursue
-                    // run time.
-                    // #[allow(clippy::expect_used)]
-                    // BLOCKED_QUEUE.push(pid.expect("Failed to get the pid behind the Option<>"))
-                };
+                return;
             }
         }
         TaskBlockControl::None => (),

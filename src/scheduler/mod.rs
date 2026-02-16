@@ -23,11 +23,11 @@ use crate::{
     config::{BLOCK_QUEUE_MAX_SIZE, CPU_CORE_NUMBER, RUN_QUEUE_MAX_SIZE, TASK_MAX_PRIORITY},
     log,
     misc::{clear_reschedule, read_need_reschedule},
-    primitives::{bitmap::Bitmap, ring_buff::RingBuffer},
+    primitives::{bitmap::Bitmap, indexed_linked_list::IndexedLinkedList, ring_buff::RingBuffer},
     task::{
         TASK_HANDLER, TaskState,
         list::{task_list_get_idle_task, task_list_get_task_by_pid, task_list_update_task_by_pid},
-        task_context_switch, task_pid, task_priority,
+        task_awake_block_control, task_awake_tick, task_context_switch, task_pid, task_priority,
     },
 };
 
@@ -44,8 +44,8 @@ pub static mut RUN_QUEUE: [[RingBuffer<u16, RUN_QUEUE_MAX_SIZE>; TASK_MAX_PRIORI
     CPU_CORE_NUMBER] = [[const { RingBuffer::init() }; TASK_MAX_PRIORITY]; CPU_CORE_NUMBER];
 // Queue containing all blocked task.
 // Same data structure as the RUN_QUEUE.
-pub static mut BLOCKED_QUEUE: [RingBuffer<u16, BLOCK_QUEUE_MAX_SIZE>; CPU_CORE_NUMBER] =
-    [const { RingBuffer::init() }; CPU_CORE_NUMBER];
+pub static mut BLOCKED_QUEUE: [IndexedLinkedList<BLOCK_QUEUE_MAX_SIZE>; CPU_CORE_NUMBER] =
+    [const { IndexedLinkedList::new() }; CPU_CORE_NUMBER];
 
 /// Temporary function use to test the context switch and context restore on multiple task.
 /// Will certainly be used later on the real scheduler.
@@ -61,8 +61,48 @@ pub fn scheduler() {
     #[allow(static_mut_refs)]
     let current_blocked_queue = &mut unsafe { BLOCKED_QUEUE }[core];
     let current_run_queue_bitmap = &mut unsafe { RUN_QUEUE_BITMAP }[core];
+    // Check the need_reschedule flag
+    let resched = read_need_reschedule();
+    if !resched {
+        // Get the current task and context switch on it.
+        return;
+    } else {
+        log!(
+            LogLevel::Debug,
+            "Reschedule needed, updating queues, clearing the need reschedule bit."
+        );
+        // Pop from blocked queue and move the task to the run queue
+        let wake_up_task = current_blocked_queue.pop();
+        let pid: u16;
+        if wake_up_task.is_none() {
+            log!(
+                LogLevel::Error,
+                "Error getting the wake up task from blocked queue, blocked queue or need_reschedule flag can be corrupted."
+            );
+            // Trigger a context switch on current task to avoid to fail-fast
+            // TODO:
+            return;
+        } else {
+            // Allow unwrap, we check the value before
+            pid = wake_up_task.unwrap().id as u16;
+        }
+        // Consider the `pid` as init, if wake_up_task.is_none(), we switch on the current task, so
+        // we cannot reach this point unless wake_up_task is some and `pid` is set.
+        let mut task = task_list_get_task_by_pid(pid).expect("Failed to get the task by it's pid.");
+        let priority: u8 = task_priority(&task);
+        task_awake_block_control(task);
+        task.state = TaskState::Ready;
+        current_run_queue[priority as usize].push(pid);
+        clear_reschedule();
+    }
     // Current running task
     let mut current_task = unsafe { *TASK_HANDLER };
+    if current_task.state == TaskState::Blocked {
+        let pid = task_pid(&current_task);
+        let awake_tick = task_awake_tick(&current_task).expect("Failed to get the task awake_tick");
+        // Push the current task to the blocked queue
+        current_blocked_queue.push(pid as usize, awake_tick)
+    }
     if current_task.state != TaskState::Blocked {
         current_task.state = TaskState::Ready;
         let pid = task_pid(&current_task);
@@ -71,14 +111,7 @@ pub fn scheduler() {
         // Push current task to the priority buffer
         current_run_queue[priority].push(pid)
     }
-    let resched = read_need_reschedule();
-    if resched {
-        log!(
-            LogLevel::Debug,
-            "Reschedule needed, clearing the need reschedule bit."
-        );
-        clear_reschedule();
-    }
+
     // Update and load next task
     #[allow(static_mut_refs)]
     let is_no_task = current_run_queue_bitmap.is_bitmap_zero();
