@@ -1,5 +1,6 @@
 pub mod asm;
 pub mod helpers;
+pub mod kernel;
 pub mod mem;
 pub mod scheduler;
 pub mod start;
