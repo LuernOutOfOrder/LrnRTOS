@@ -62,7 +62,6 @@ pub fn scheduler() {
     let current_blocked_queue = unsafe { &mut BLOCKED_QUEUE[core] };
     #[allow(static_mut_refs)]
     let current_run_queue_bitmap = unsafe { &mut RUN_QUEUE_BITMAP[core] };
-
     // Check the need_reschedule flag
     // If a resched has been trigger, pop the head of the blocked queue, update the task and push
     // it to the run queue.
@@ -126,7 +125,6 @@ pub fn scheduler() {
         // Update the bitmap priority bit.
         current_run_queue_bitmap.set_bit(priority as usize);
     }
-
     // Update and load next task
     #[allow(static_mut_refs)]
     let is_no_task = current_run_queue_bitmap.is_bitmap_zero();
