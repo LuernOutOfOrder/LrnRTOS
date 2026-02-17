@@ -11,22 +11,19 @@
 .global trap_entry
 .type trap_entry, @function
 trap_entry:
+  # Save task context
+  # Get current task ptr
+  la t0, TASK_HANDLER # Address in RAM
+  lw t1, 0(t0) # Get the value behind the ref
+  mv a0, t1
+  # Save current ra
+  mv a1, ra
+  # Save current sp
+  mv a2, sp
+  # Call the save context function
+  call save_context
   # Read mscratch into t6
   csrr	t6, mscratch
-  # Save all GP registers using GNU macro
-  # Just a loop 
-  .set 	i, 1
-  .rept	31
-    save_gp %i, t6
-    .set	i, i+1
-  .endr
-  # Read CSR and store word in correct offset of trap frame structure
-  csrr    t0, satp
-  sw      t0, OFFSET_SATP(t6)       # store satp
-  csrr    t0, mhartid
-  sw      t0, OFFSET_HARTID(t6)     # store hartid (optional, redundant)
-  sw      sp, (OFFSET_TRAP_STACK - 4)(t6)   # store original sp just before trap_stack slot
-  # Load content of trap stack offset into t1
   lw      t1, OFFSET_TRAP_STACK(t6)   # t1 = trap_stack pointer
   # Branch instruction to check if t1 = 0
   beqz    t1, trap_no_trapstack
@@ -47,26 +44,13 @@ trap_entry:
   call read_need_reschedule
   # If a0 != 0, goto 1f, else mret
   bnez a0, 1f
-  # Load all register back to previous state
-  csrr	t6, mscratch
-  # Restore all GP registers
-  .set	i, 1
-  .rept	31
-    load_gp %i
-    .set	i, i+1
-  .endr
-  mret
+  # If there's no need to a reschedule, restore the task context
+  la t0, TASK_HANDLER # Address in RAM
+  lw t1, 0(t0) # Get the value behind the ref
+  mv a0, t1
+  call restore_context
 1:
   call scheduler
-  # Load all register back to previous state
-  csrr	t6, mscratch
-  # Restore all GP registers
-  .set	i, 1
-  .rept	31
-    load_gp %i
-    .set	i, i+1
-  .endr
-  mret
 
 # Function used when the trap strack = 0, just infinite loop for debuging purpose 
 trap_no_trapstack:

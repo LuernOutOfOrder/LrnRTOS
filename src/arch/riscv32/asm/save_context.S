@@ -9,9 +9,6 @@ save_context:
   sw a1, OFFSET_RA(t6)
   # Store word from t0(sp) in context structure
   sw a2, OFFSET_SP(t6)
-  # Save mstatus
-  csrr t0, mstatus
-  sw t0, OFFSET_MSTATUS(t6)
   # Save current task context using GNU macro
   # GNU macros from `src/arch/riscv32/asm/gnu_macro.S`
   .set	i, 1
