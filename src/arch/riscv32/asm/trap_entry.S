@@ -42,6 +42,11 @@ trap_entry:
   mv a5, t6
   # Call trap_handler rust function
   call trap_handler 
+
+  # Check if a re-schedule is needed or not.
+  call read_need_reschedule
+  # If a0 != 0, goto 1f, else mret
+  bnez a0, 1f
   # Load all register back to previous state
   csrr	t6, mscratch
   # Restore all GP registers
@@ -50,13 +55,17 @@ trap_entry:
     load_gp %i
     .set	i, i+1
   .endr
-  # Check if a re-schedule is needed or not.
-  call read_need_reschedule
-  # If a0 != 0, goto 1f, else mret
-  bnez a0, 1f
   mret
 1:
   call scheduler
+  # Load all register back to previous state
+  csrr	t6, mscratch
+  # Restore all GP registers
+  .set	i, 1
+  .rept	31
+    load_gp %i
+    .set	i, i+1
+  .endr
   mret
 
 # Function used when the trap strack = 0, just infinite loop for debuging purpose 
