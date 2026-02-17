@@ -18,7 +18,7 @@ Tests files:
 use super::{restore_context, save_context};
 
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct TaskContext {
     pub gpr: [u32; 32],           // Offset 0
     pub address_space: [u32; 2],  // Offset 128 (first index 128; second index 132)
@@ -39,7 +39,7 @@ impl TaskContext {
             sp: size[0] as u32,
             ra: func as usize as u32,
             // Set mstatus to 8 by default to enable mie
-            mstatus: 8,
+            mstatus: 6152,
             flags: [0u8; 3],
             instruction_register: 0,
         }

@@ -16,13 +16,13 @@ trap_entry:
   la t0, TASK_HANDLER # Address in RAM
   lw t1, 0(t0) # Get the value behind the ref
   mv a0, t1
-  # Save current ra
-  mv a1, ra
+  # Save current pc
+  csrr a1, mepc
   # Save current sp
   mv a2, sp
   # Call the save context function
-  call save_context
-  # Read mscratch into t6
+  call trap_save_context
+  # Read mscratch into t7
   csrr	t6, mscratch
   lw      t1, OFFSET_TRAP_STACK(t6)   # t1 = trap_stack pointer
   # Branch instruction to check if t1 = 0
@@ -48,7 +48,7 @@ trap_entry:
   la t0, TASK_HANDLER # Address in RAM
   lw t1, 0(t0) # Get the value behind the ref
   mv a0, t1
-  call restore_context
+  call trap_restore_context
 1:
   call scheduler
 
