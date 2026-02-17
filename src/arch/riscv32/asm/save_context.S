@@ -3,6 +3,9 @@
 .global save_context
 .type save_context, @function
 save_context:
+  # Clear mstatus.MPP and mstatus.mie to avoid interruption while saving and switching context
+  li   t0, ((3 << 11) | (1 << 3))
+  csrrc x0, mstatus, t0
   # Move current task context struct save in caller in a0 reg to t6
   mv t6, a0
   # Store ra in task context structure
@@ -22,6 +25,9 @@ save_context:
 .global trap_save_context
 .type trap_save_context, @function
 trap_save_context:
+  # Clear mstatus.MPP and mstatus.mie to avoid interruption while saving and switching context
+  li   t0, ((3 << 11) | (1 << 3))
+  csrrc x0, mstatus, t0
    # Move current task context struct save in caller in a0 reg to t6
   mv t6, a0
   # Store ra in task context structure
