@@ -25,9 +25,8 @@ pub struct TaskContext {
     pub pc: u32,                  // Offset 136
     pub sp: u32,                  // Offset 140
     pub ra: u32,                  // Offset 144
-    pub mstatus: u32,             // Offset 148
-    pub flags: [u8; 3],           // Offset 152 (first index 152; second index 153, third index 154)
-    pub instruction_register: u8, // Offset 155
+    pub flags: [u8; 3],           // Offset 148 (first index 148; second index 149, third index 150)
+    pub instruction_register: u8, // Offset 151
 }
 
 impl TaskContext {
@@ -39,7 +38,6 @@ impl TaskContext {
             sp: size[0] as u32,
             ra: func as usize as u32,
             // Set mstatus to 8 by default to enable mie
-            mstatus: 6152,
             flags: [0u8; 3],
             instruction_register: 0,
         }

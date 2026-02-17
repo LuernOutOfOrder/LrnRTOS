@@ -11,7 +11,6 @@
 .set OFFSET_SP, 140
 # Return address
 .set OFFSET_RA, 144
-.set OFFSET_MSTATUS, 148
 # Optionnal flags, will be use later maybe
-.set OFFSET_FLAGS, 152
-.set OFFSET_INSTRUCTION_REG, 155
+.set OFFSET_FLAGS, 148
+.set OFFSET_INSTRUCTION_REG, 151
