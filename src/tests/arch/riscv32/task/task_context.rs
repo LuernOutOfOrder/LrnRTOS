@@ -3,6 +3,7 @@ use crate::scheduler::RUN_QUEUE;
 use core::{mem, ptr};
 
 use crate::{
+    RUN_QUEUE_BITMAP,
     arch::{scheduler::init_sched_ctx, task::task_context::TaskContext, traps::interrupt::halt},
     scheduler::scheduler,
     task::{
@@ -51,12 +52,6 @@ pub fn test_task_context_init() -> u8 {
             "Task context has been initialized with wrong SP, expect sp to be set to the hi address of the task address space"
         );
     }
-    // Check mstatus
-    if task_context.mstatus != 8 {
-        panic!(
-            "Task context has been initialized with wrong mstatus, expect mstatus to be set to 8 to only enable mstatus.mie"
-        );
-    }
     0
 }
 
@@ -80,10 +75,6 @@ pub fn test_task_context_offset() -> u8 {
     let ra_off = mem::offset_of!(TaskContext, ra);
     if ra_off != 144 {
         panic!("Task context ra offset must be 144, got: {ra_off}");
-    }
-    let mstatus_off = mem::offset_of!(TaskContext, mstatus);
-    if mstatus_off != 148 {
-        panic!("Task context mstatus offset must be 148, got: {mstatus_off}");
     }
     let flags_off = mem::offset_of!(TaskContext, flags);
     if flags_off != 152 {
@@ -131,11 +122,12 @@ fn test_context_switch_b() -> ! {
 /// sp ?
 pub fn test_task_context_switch() -> u8 {
     // Temporary task creation and retrieving to test context switch.
-    task_create("A", test_context_switch_a, 0, 0x1000);
-    task_create("B", test_context_switch_b, 0, 0x1000);
+    task_create("A", test_context_switch_a, 1, 0x1000);
+    task_create("B", test_context_switch_b, 1, 0x1000);
     #[allow(static_mut_refs)]
     unsafe {
-        RUN_QUEUE.push(3)
+        RUN_QUEUE[0][1].push(3);
+        RUN_QUEUE_BITMAP[0].set_bit(1);
     };
     unsafe { CURRENT_TASK_PID = 2 };
     let mut task = task_list_get_task_by_pid(unsafe { CURRENT_TASK_PID });
