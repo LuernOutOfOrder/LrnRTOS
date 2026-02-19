@@ -16,6 +16,7 @@ use super::{
     platform::platform_test_suite,
     primitives::indexed_linked_list::indexed_linked_list_primitive_test_suite,
     primitives::ring_buff::ring_buff_primitive_test_suite,
+    scheduler::scheduler_test_suite,
     task::{list::task_list_test_suite, primitives::task_primitives_test_suite, task_test_suite},
 };
 
@@ -38,4 +39,5 @@ pub fn test_suites() {
     task_test_suite();
     task_context_test_suite();
     task_primitives_test_suite();
+    scheduler_test_suite();
 }
