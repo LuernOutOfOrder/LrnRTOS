@@ -7,6 +7,7 @@
     - [Run queue](#run-queue)
     - [Blocked queue](#blocked-queue)
   - [Preemption](#preemption)
+  - [Scheduling model](#scheduling-model)
   - [Invariants](#invariants)
 <!--toc:end-->
 
@@ -41,6 +42,12 @@ If it can be awake, it will update the `need_resched` flag, then it'll trigger a
 
 The scheduler is preemptive, meaning that if a task as a higher priority than the current task, it will run this higher priority task.
 The current task having a lowest priority, will be saved, and re-execute when there's no higher priority task to run.
+
+## Scheduling model
+
+The current scheduling model is a `cooperative priority based`. Meaning that if there's `2 task` with the same `priority`, if they don't call `yield`, one task will `always run`.
+Making the other task `starving`.
+So if you want to switch from a `task` to another one, you need to use `cooperative` functions, like `yield` or `sleep`.
 
 ## Invariants
 
