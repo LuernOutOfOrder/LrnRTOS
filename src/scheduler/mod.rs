@@ -1,15 +1,16 @@
 /*
 File info: Scheduler main file
 
-Test coverage: ...
+Test coverage: 0
 
 Tested:
 
 Not tested:
 
-Reasons: Not even really implemented so there's no need to test something that doesn't even consider finish
+Reasons: Test framework don't handle correctly trap, so timer interrupts cannot work, hard to test a scheduler when a part of the kernel don't work in the test framework.
 
 Tests files:
+- 'src/tests/scheduler/mod.rs'
 
 References:
 */
