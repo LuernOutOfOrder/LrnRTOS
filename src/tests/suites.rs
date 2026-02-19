@@ -14,6 +14,7 @@ use super::{
     ktime::ktime_test_suite,
     mem::memory_test_suite,
     platform::platform_test_suite,
+    primitives::indexed_linked_list::indexed_linked_list_primitive_test_suite,
     primitives::ring_buff::ring_buff_primitive_test_suite,
     task::{list::task_list_test_suite, primitives::task_primitives_test_suite, task_test_suite},
 };
@@ -24,6 +25,7 @@ pub fn test_suites() {
     platform_test_suite();
     serial_subsystem_test_suite();
     ring_buff_primitive_test_suite();
+    indexed_linked_list_primitive_test_suite();
     timer_subsystem_test_suite();
     cpu_intc_subsystem_test_suite();
     ktime_test_suite();
