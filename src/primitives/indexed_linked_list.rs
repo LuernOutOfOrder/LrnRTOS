@@ -22,7 +22,7 @@ References:
 use crate::LogLevel;
 use crate::log;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 pub struct IndexedLinkedList<const N: usize> {
     list: [Option<IndexedLinkedListNode>; N],
     head: usize,
@@ -267,7 +267,7 @@ impl<const N: usize> IndexedLinkedList<N> {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 pub struct IndexedLinkedListNode {
     pub id: usize,
     pub value: usize,
