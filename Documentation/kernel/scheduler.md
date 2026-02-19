@@ -54,3 +54,4 @@ So if you want to switch from a `task` to another one, you need to use `cooperat
 - The scheduler need at least one task in the `run queue`, if the `run queue` is empty, it will try to run the idle task. Make sure that there's always at least one task in the `run queue`, or enable the `idle task` feature.
 - The scheduler assume that the `CpusState` is initialized to access the `CPU core scheduler state`.
 - The scheduler can be called from the `trap epilogue`, if so, a `trap frame`, should be available and accessible for the scheduler to run on.
+- For now the scheduler assume that there's always a `current running task`, if not, and the scheduler is triggered, this could lead to UB.
