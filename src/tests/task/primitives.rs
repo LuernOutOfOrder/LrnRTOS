@@ -2,11 +2,7 @@ use crate::{
     RUN_QUEUE_BITMAP,
     arch::{
         helpers::current_cpu_core,
-        traps::{
-            enable_interrupts,
-            handler::trap_handler,
-            trap_frame::TrapFrame,
-        },
+        traps::{enable_interrupts, handler::trap_handler, trap_frame::TrapFrame},
     },
     config::TICK_SAFETY_DURATION,
     kprint,
