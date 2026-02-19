@@ -6,6 +6,7 @@
 #![deny(clippy::expect_used)]
 #![deny(clippy::todo)]
 #![deny(clippy::unimplemented)]
+#![feature(stmt_expr_attributes)]
 
 // Config module
 pub mod config;

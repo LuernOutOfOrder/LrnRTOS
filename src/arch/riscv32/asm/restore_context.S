@@ -12,9 +12,6 @@ restore_context:
   # Restore sp from current task context structure
   lw t0, OFFSET_SP(t6)
   mv sp, t0
-  ## Update mstatus
-  lw t0, OFFSET_MSTATUS(t6)
-  csrw mstatus, t0
   # Restore current task context using GNU macro
   # GNU macros from `src/arch/riscv32/asm/gnu_macro.S`
   .set	i, 1
@@ -22,4 +19,31 @@ restore_context:
     load_gp_context %i
     .set	i, i+1
   .endr
+  # Update mstatus
+  li   t0, ((3 << 11) | (1 << 3))
+  csrrs x0, mstatus, t0
   ret
+
+.global trap_restore_context
+.type trap_restore_context, @function
+trap_restore_context:
+  # Move current task context struct save in caller in a0 reg to t6
+  mv t6, a0
+  # Update sp
+  # Restore sp from current task context structure
+  lw t0, OFFSET_SP(t6)
+  mv sp, t0
+  # Update mepc
+  lw t0, OFFSET_PC(t6)
+  csrw mepc, t0
+  # Restore current task context using GNU macro
+  # GNU macros from `src/arch/riscv32/asm/gnu_macro.S`
+  .set	i, 1
+  .rept	31
+    load_gp_context %i
+    .set	i, i+1
+  .endr
+  # Update mstatus
+  li   t0, ((3 << 11) | (1 << 7))
+  csrrs x0, mstatus, t0
+  mret

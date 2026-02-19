@@ -1,18 +1,16 @@
 use crate::{
-    arch::traps::{
-        disable_interrupts, enable_interrupts,
-        handler::trap_handler,
-        interrupt::enable_and_halt,
-        trap_frame::{TrapFrame, init_trap_frame},
+    arch::{
+        helpers::current_cpu_core,
+        traps::{enable_interrupts, handler::trap_handler, trap_frame::TrapFrame},
     },
     config::TICK_SAFETY_DURATION,
     kprint,
-    ktime::{set_ktime_ms, set_ktime_seconds, tick::get_tick},
-    scheduler::{BLOCKED_QUEUE, RUN_QUEUE},
+    ktime::set_ktime_seconds,
+    scheduler::{BLOCKED_QUEUE, RUN_QUEUE, RUN_QUEUE_BITMAP},
     task::{
         CURRENT_TASK_PID, TASK_HANDLER,
         list::task_list_get_task_by_pid,
-        primitives::{delay, sleep, r#yield},
+        primitives::{delay, sleep},
         task_context_switch, task_create,
     },
     test_failed, test_info,
@@ -46,43 +44,46 @@ fn task_testing_sleep() -> ! {
     // Random mepc
     // TODO: improve mepc security in trap handler
     let mepc: usize = 125696;
-    let current_tick = get_tick();
     let mut trap_frame = TrapFrame::init();
     unsafe { trap_handler(mepc, 0, cause, 0, 0, &mut trap_frame) };
+    let core: usize = current_cpu_core();
     // Blocked queue should have been updated, checking it
     #[allow(static_mut_refs)]
-    let blocked_queue = unsafe { &BLOCKED_QUEUE };
+    let current_blocked_queue = unsafe { &mut BLOCKED_QUEUE[core] };
     #[allow(static_mut_refs)]
-    let run_queue = unsafe { &RUN_QUEUE };
-    if run_queue.size() != 0 {
-        test_failed!("The run queue should be empty, got: {}", run_queue.size());
+    let current_run_queue = unsafe { &mut RUN_QUEUE[core] };
+    if current_run_queue[1].size() != 0 {
+        test_failed!(
+            "The run queue should be empty, got: {}",
+            current_run_queue[1].size()
+        );
         // Use infinite loop to make the CI crash from timeout. Can't return test failed from
         // here.
         loop {}
     }
-    if blocked_queue.size() != 1 {
+    if current_blocked_queue.get_count() != 1 {
         test_failed!(
             "The block queue should have 1 task in it, got: {}",
-            blocked_queue.size()
+            current_blocked_queue.get_count()
         );
         // Use infinite loop to make the CI crash from timeout. Can't return test failed from
         // here.
         loop {}
     }
     unsafe { trap_handler(mepc, 0, cause, 0, 0, &mut trap_frame) };
-    if blocked_queue.size() != 0 {
+    if current_blocked_queue.get_count() != 0 {
         test_failed!(
             "The block queue should be empty, got: {}",
-            blocked_queue.size()
+            current_blocked_queue.get_count()
         );
         // Use infinite loop to make the CI crash from timeout. Can't return test failed from
         // here.
         loop {}
     }
-    if run_queue.size() != 1 {
+    if current_run_queue[1].size() != 1 {
         test_failed!(
             "The run queue should have 1 task in it, got: {}",
-            run_queue.size()
+            current_run_queue[1].size()
         );
         // Use infinite loop to make the CI crash from timeout. Can't return test failed from
         // here.
@@ -119,7 +120,10 @@ fn test_task_primitives_sleep() -> u8 {
     unsafe { TASK_HANDLER = *task.as_mut().unwrap() };
     #[allow(static_mut_refs)]
     unsafe {
-        RUN_QUEUE.push(3);
+        // Access the queue and bitmap from CPU core 0
+        // run queue priority 1
+        RUN_QUEUE[0][1].push(3);
+        RUN_QUEUE_BITMAP[0].set_bit(1);
     }
     task_context_switch(task.unwrap());
     0

@@ -4,7 +4,7 @@ use core::{mem, ptr};
 
 use crate::{
     arch::{scheduler::init_sched_ctx, task::task_context::TaskContext, traps::interrupt::halt},
-    scheduler::dispatch,
+    scheduler::{RUN_QUEUE_BITMAP, scheduler},
     task::{
         CURRENT_TASK_PID, TASK_HANDLER, list::task_list_get_task_by_pid, primitives::r#yield,
         task_context_switch, task_create,
@@ -51,12 +51,6 @@ pub fn test_task_context_init() -> u8 {
             "Task context has been initialized with wrong SP, expect sp to be set to the hi address of the task address space"
         );
     }
-    // Check mstatus
-    if task_context.mstatus != 8 {
-        panic!(
-            "Task context has been initialized with wrong mstatus, expect mstatus to be set to 8 to only enable mstatus.mie"
-        );
-    }
     0
 }
 
@@ -81,17 +75,13 @@ pub fn test_task_context_offset() -> u8 {
     if ra_off != 144 {
         panic!("Task context ra offset must be 144, got: {ra_off}");
     }
-    let mstatus_off = mem::offset_of!(TaskContext, mstatus);
-    if mstatus_off != 148 {
-        panic!("Task context mstatus offset must be 148, got: {mstatus_off}");
-    }
     let flags_off = mem::offset_of!(TaskContext, flags);
-    if flags_off != 152 {
-        panic!("Task context flags offset must be 144, got: {flags_off}");
+    if flags_off != 148 {
+        panic!("Task context flags offset must be 148, got: {flags_off}");
     }
     let instruction_reg_off = mem::offset_of!(TaskContext, instruction_register);
-    if instruction_reg_off != 155 {
-        panic!("Task context instruction_register offset must be 147, got: {instruction_reg_off}");
+    if instruction_reg_off != 151 {
+        panic!("Task context instruction_register offset must be 151, got: {instruction_reg_off}");
     };
     0
 }
@@ -131,11 +121,16 @@ fn test_context_switch_b() -> ! {
 /// sp ?
 pub fn test_task_context_switch() -> u8 {
     // Temporary task creation and retrieving to test context switch.
-    task_create("A", test_context_switch_a, 0, 0x1000);
-    task_create("B", test_context_switch_b, 0, 0x1000);
+    // pid 2
+    task_create("A", test_context_switch_a, 1, 0x1000);
+    // pid 3
+    task_create("B", test_context_switch_b, 1, 0x1000);
     #[allow(static_mut_refs)]
     unsafe {
-        RUN_QUEUE.push(3)
+        // Access the queue and bitmap from CPU core 0
+        // run queue priority 1
+        RUN_QUEUE[0][1].push(3);
+        RUN_QUEUE_BITMAP[0].set_bit(1);
     };
     unsafe { CURRENT_TASK_PID = 2 };
     let mut task = task_list_get_task_by_pid(unsafe { CURRENT_TASK_PID });
@@ -143,7 +138,7 @@ pub fn test_task_context_switch() -> u8 {
     test_info!(
         "The next output should be the task A and B, which print alternately A, and B, with a digit. The final output must be: from A: 31, and from B: 28"
     );
-    init_sched_ctx(dispatch);
+    init_sched_ctx(scheduler);
     task_context_switch(task.unwrap());
     0
 }
