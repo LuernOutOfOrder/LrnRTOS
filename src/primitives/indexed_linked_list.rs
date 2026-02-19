@@ -31,6 +31,7 @@ pub struct IndexedLinkedList<const N: usize> {
 }
 
 impl<const N: usize> IndexedLinkedList<N> {
+    #[allow(clippy::new_without_default)]
     pub const fn new() -> Self {
         IndexedLinkedList {
             list: [const { None }; N],
@@ -68,9 +69,13 @@ impl<const N: usize> IndexedLinkedList<N> {
         {
             let mut current_node: usize = self.head;
             for _ in 0..self.list.len() {
-                let node = self
+                // Allow expect use, if we can't get the current node, the linked-list is wrong,
+                // want to fail-fast
+                #[allow(clippy::expect_used)]
+                let get_current_node = self
                     .get_node(current_node)
-                    .expect("Failed to get the asked node, linked list may be empty or corrupted.");
+                    .expect("Failed to get the asked node, linked-list may be empty or corrupted.");
+                let node = get_current_node;
                 if node.id == id {
                     log!(
                         LogLevel::Warn,
@@ -79,13 +84,11 @@ impl<const N: usize> IndexedLinkedList<N> {
                     );
                     return;
                 } else {
-                    if node.next_node.is_none() {
-                        break;
-                    } else {
-                        current_node = node
-                            .next_node
-                            .expect("Failed to get the next_node index behind the Option<>");
+                    if let Some(next_node) = node.next_node {
+                        current_node = next_node;
                         continue;
+                    } else {
+                        break;
                     }
                 }
             }
@@ -111,6 +114,8 @@ impl<const N: usize> IndexedLinkedList<N> {
         };
         let mut prev_node_ptr: Option<usize> = None;
         for _ in 0..self.list.len() {
+            // Allow expect, if we can't get the wanted node, the list may be corrupted.
+            #[allow(clippy::expect_used)]
             let node: &mut IndexedLinkedListNode = self
                 .get_node(current_node)
                 .expect("Failed to get the asked node, linked list may be empty or corrupted");
@@ -120,12 +125,21 @@ impl<const N: usize> IndexedLinkedList<N> {
                 if node.next_node.is_none() {
                     node.next_node = available_index;
                     // Update current node in list
-                    self.tail = available_index.expect("Failed to get the usize behind the Option<>. Maybe there's isn't available space in the delta-list.");
+                    // Allow expect, if available index is None, maybe there's no available space
+                    // in the linked-list, and we shouldn't reach this point.
+                    #[allow(clippy::expect_used)]
+                    let check_available_index = available_index.expect("Failed to get the usize behind the Option<>. Maybe there's isn't available space in the linked-list.");
+                    self.tail = check_available_index;
                     // Push new node to available index in list
+                    // Allow unwrap, we check available index before
+                    #[allow(clippy::unwrap_used)]
                     self.list[available_index.unwrap()] = Some(new_node);
                     break;
                 }
                 prev_node_ptr = Some(current_node);
+                // Allow expect, we check the next node before, if it's None, something wrong, we
+                // want to fail-fast
+                #[allow(clippy::expect_used)]
                 let node_next_node = node
                     .next_node
                     .expect("Failed to get the next_node behind the Option<>");
@@ -140,8 +154,11 @@ impl<const N: usize> IndexedLinkedList<N> {
                     // Get the previous head
                     let prev_head = self.head;
                     // Update the head to point to the new node
-                    self.head = available_index
+                    // Allow expect, the available index should not be None
+                    #[allow(clippy::expect_used)]
+                    let check_available_index = available_index
                         .expect("Failed to get the available_index behind the Option<>");
+                    self.head = check_available_index;
                     // Update the new_node to point to the old head
                     new_node.next_node = Some(prev_head);
                     // Update list to push new_node to head
@@ -151,12 +168,17 @@ impl<const N: usize> IndexedLinkedList<N> {
                 // If there's a previous node.
                 new_node.next_node = Some(current_node);
                 // Get the previous node
+                // Allow expect, if the previous_node index is not reachable or else, we want to
+                // fail-fast, the linked-list could be corrupted.
+                #[allow(clippy::expect_used)]
                 let prev_node: &mut IndexedLinkedListNode = self
                     .get_node(prev_node_ptr.expect("Failed to get the previous_node index behind Option<>, linked-list may be corrupted"))
                     .expect("Failed to get the asked node, linked list may be empty or corrupted");
                 // Update previous node to point to the new node
                 prev_node.next_node = available_index;
                 // Push the new node to the list
+                // Allow expect, if the Available index is wrong, we want to fail fast
+                #[allow(clippy::expect_used)]
                 self.list[available_index.expect("Available index should not be None")] =
                     Some(new_node);
                 break;
@@ -170,14 +192,20 @@ impl<const N: usize> IndexedLinkedList<N> {
     pub fn pop(&mut self) -> Option<IndexedLinkedListNode> {
         let head = self.head;
         let head_next_node = {
-            let head_node = self.get_node(head).expect("Failed to get the node.");
-            head_node.next_node
+            // If we can't get the head node, return None
+            let head_node = self.get_node(head);
+            // if head_node.is_none() {
+            //     return None;
+            // }
+            head_node.as_ref()?;
+            // Allow unwrap, we check the value before
+            #[allow(clippy::unwrap_used)]
+            head_node.unwrap().next_node
         };
-        if head_next_node.is_none() {
-            self.head = 0;
+        if let Some(next_node) = head_next_node {
+            self.head = next_node;
         } else {
-            self.head = head_next_node
-                .expect("Failed to get the usize behind the Option<> in node.next_node");
+            self.head = 0;
         }
         self.count -= 1;
         // Get the head node
@@ -191,9 +219,9 @@ impl<const N: usize> IndexedLinkedList<N> {
     pub fn get_node(&mut self, idx: usize) -> Option<&mut IndexedLinkedListNode> {
         let node = self.list[idx].as_mut();
         if let Some(is_node) = node {
-            return Some(is_node);
+            Some(is_node)
         } else {
-            return None;
+            None
         }
     }
 
@@ -201,9 +229,9 @@ impl<const N: usize> IndexedLinkedList<N> {
     fn take_node(&mut self, idx: usize) -> Option<IndexedLinkedListNode> {
         let node = self.list[idx];
         if node.is_some() {
-            return self.list[idx].take();
+            self.list[idx].take()
         } else {
-            return None;
+            None
         }
     }
 
@@ -215,7 +243,7 @@ impl<const N: usize> IndexedLinkedList<N> {
                 break;
             }
         }
-        return output;
+        output
     }
 
     pub fn get_count(&self) -> usize {
@@ -249,6 +277,7 @@ pub struct IndexedLinkedListNode {
 }
 
 impl IndexedLinkedListNode {
+    #[allow(clippy::new_without_default)]
     pub const fn new() -> Self {
         IndexedLinkedListNode {
             id: 0,

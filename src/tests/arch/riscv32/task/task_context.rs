@@ -3,9 +3,8 @@ use crate::scheduler::RUN_QUEUE;
 use core::{mem, ptr};
 
 use crate::{
-    RUN_QUEUE_BITMAP,
     arch::{scheduler::init_sched_ctx, task::task_context::TaskContext, traps::interrupt::halt},
-    scheduler::scheduler,
+    scheduler::{RUN_QUEUE_BITMAP, scheduler},
     task::{
         CURRENT_TASK_PID, TASK_HANDLER, list::task_list_get_task_by_pid, primitives::r#yield,
         task_context_switch, task_create,

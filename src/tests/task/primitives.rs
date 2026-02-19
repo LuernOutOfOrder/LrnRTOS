@@ -1,5 +1,4 @@
 use crate::{
-    RUN_QUEUE_BITMAP,
     arch::{
         helpers::current_cpu_core,
         traps::{enable_interrupts, handler::trap_handler, trap_frame::TrapFrame},
@@ -7,7 +6,7 @@ use crate::{
     config::TICK_SAFETY_DURATION,
     kprint,
     ktime::set_ktime_seconds,
-    scheduler::{BLOCKED_QUEUE, RUN_QUEUE},
+    scheduler::{BLOCKED_QUEUE, RUN_QUEUE, RUN_QUEUE_BITMAP},
     task::{
         CURRENT_TASK_PID, TASK_HANDLER,
         list::task_list_get_task_by_pid,

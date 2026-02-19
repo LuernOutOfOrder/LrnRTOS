@@ -4,6 +4,7 @@ pub struct Bitmap {
 }
 
 impl Bitmap {
+    #[allow(clippy::new_without_default)]
     pub const fn new() -> Self {
         Bitmap { map: 0 }
     }

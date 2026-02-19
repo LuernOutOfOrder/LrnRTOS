@@ -76,8 +76,9 @@ pub fn scheduler() {
         );
         // Pop from blocked queue and move the task to the run queue
         let wake_up_task = current_blocked_queue.pop();
-        let pid: u16;
-        if wake_up_task.is_none() {
+        let pid: u16 = if let Some(task) = wake_up_task {
+            task.id as u16
+        } else {
             log!(
                 LogLevel::Error,
                 "Error getting the wake up task from blocked queue, blocked queue or need_reschedule flag can be corrupted."
@@ -85,14 +86,15 @@ pub fn scheduler() {
             // Trigger a context switch on current task to avoid to fail-fast
             // TODO:
             return;
-        } else {
-            // Allow unwrap, we check the value before
-            pid = wake_up_task.unwrap().id as u16;
-        }
+        };
         // Consider the `pid` as init, if wake_up_task.is_none(), we switch on the current task, so
         // we cannot reach this point unless wake_up_task is some and `pid` is set.
+        // Allow expect use, we check if we can't get the pid before.
+        // If we can't get the task with the pid, we wan't to fail-fast, because the pid and the
+        // task should be ok.
+        #[allow(clippy::expect_used)]
         let task = task_list_get_task_by_pid(pid).expect("Failed to get the task by it's pid.");
-        let priority: u8 = task_priority(&task);
+        let priority: u8 = task_priority(task);
         task_awake_block_control(task);
         task.state = TaskState::Ready;
         task_list_update_task_by_pid(pid, *task);
@@ -105,6 +107,8 @@ pub fn scheduler() {
     if current_task.state == TaskState::Blocked {
         let pid = task_pid(&current_task);
         let priority = task_priority(&current_task);
+        // Allow expect, if we can't get the awake tick of the blocked task, we want to fail-fast
+        #[allow(clippy::expect_used)]
         let awake_tick = task_awake_tick(&current_task).expect("Failed to get the task awake_tick");
         // Push the current task to the blocked queue
         current_blocked_queue.push(pid as usize, awake_tick);

@@ -86,17 +86,16 @@ pub fn task_awake_blocked(tick: usize) {
     }
     #[allow(static_mut_refs)]
     let blocked_task = current_blocked_queue.get_head_node();
-    let pid: u16;
-    if blocked_task.is_none() {
+    let pid: u16 = if let Some(task) = blocked_task {
+        task.id as u16
+    } else {
         log!(
             LogLevel::Error,
             "Error getting the oldest task in run queue"
         );
+        #[allow(clippy::needless_return)]
         return;
-    } else {
-        // Allow unwrap, we check the value before
-        pid = blocked_task.unwrap().id as u16;
-    }
+    };
     // Allow expect, check the value before and if the pid become invalid we don't want to pursue
     // run time.
     #[allow(clippy::expect_used)]
@@ -124,8 +123,6 @@ pub fn task_awake_blocked(tick: usize) {
                 // Set the need reschedule flag, the scheduler will check the block queue to
                 // awake correctly the task.
                 need_reschedule();
-            } else {
-                return;
             }
         }
         TaskBlockControl::None => (),
