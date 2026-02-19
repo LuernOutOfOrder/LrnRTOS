@@ -77,12 +77,12 @@ pub fn test_task_context_offset() -> u8 {
         panic!("Task context ra offset must be 144, got: {ra_off}");
     }
     let flags_off = mem::offset_of!(TaskContext, flags);
-    if flags_off != 152 {
-        panic!("Task context flags offset must be 144, got: {flags_off}");
+    if flags_off != 148 {
+        panic!("Task context flags offset must be 148, got: {flags_off}");
     }
     let instruction_reg_off = mem::offset_of!(TaskContext, instruction_register);
-    if instruction_reg_off != 155 {
-        panic!("Task context instruction_register offset must be 147, got: {instruction_reg_off}");
+    if instruction_reg_off != 151 {
+        panic!("Task context instruction_register offset must be 151, got: {instruction_reg_off}");
     };
     0
 }
@@ -122,10 +122,14 @@ fn test_context_switch_b() -> ! {
 /// sp ?
 pub fn test_task_context_switch() -> u8 {
     // Temporary task creation and retrieving to test context switch.
+    // pid 2
     task_create("A", test_context_switch_a, 1, 0x1000);
+    // pid 3
     task_create("B", test_context_switch_b, 1, 0x1000);
     #[allow(static_mut_refs)]
     unsafe {
+        // Access the queue and bitmap from CPU core 0
+        // run queue priority 1
         RUN_QUEUE[0][1].push(3);
         RUN_QUEUE_BITMAP[0].set_bit(1);
     };
