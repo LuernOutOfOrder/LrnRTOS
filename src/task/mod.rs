@@ -19,9 +19,15 @@ Tests files:
 
 use list::task_list_add_task;
 
-use crate::{arch::task::task_context::TaskContext, log, logs::LogLevel, mem::mem_task_alloc};
+use crate::{
+    arch::{task::task_context::TaskContext, traps::interrupt::enable_and_halt},
+    log,
+    logs::LogLevel,
+    mem::mem_task_alloc,
+};
 
 pub mod list;
+pub mod primitives;
 
 // Mutable static to keep track of the current task
 // Only relevant on a monocore CPU.
@@ -36,13 +42,20 @@ pub static mut TASK_HANDLER: *mut Task = core::ptr::null_mut();
 #[repr(u8)]
 // Allow unused for now because this issue doesn't need to handle all task state
 #[allow(unused)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum TaskState {
     New,
     Running,
     Ready,
     Waiting,
+    Blocked,
     Terminated,
+}
+
+#[derive(Copy, Clone)]
+pub enum TaskBlockControl {
+    AwakeTick(usize),
+    None,
 }
 
 #[derive(Copy, Clone)]
@@ -51,6 +64,8 @@ pub struct Task {
     // Arch dependant context, don't handle this field in task, only use struct method when
     // interacting with it.
     pub context: TaskContext,
+    // Task block control, define the reason the task is blocked.
+    pub block_control: TaskBlockControl,
     // Fn ptr to task entry point, this must never return.
     pub func: fn() -> !,
     pid: u16,
@@ -89,6 +104,7 @@ impl Task {
                 mem_reg.expect("Error: failed to get the task memory region"),
                 func,
             ),
+            block_control: TaskBlockControl::None,
             func,
             pid: 0,
             name: buf,
@@ -158,4 +174,35 @@ pub fn task_context_save(task: &Task, ra: usize, sp: usize) {
 
 pub fn task_pid(task: &Task) -> u16 {
     task.pid
+}
+
+pub fn task_priority(task: &Task) -> u8 {
+    task.priority
+}
+
+pub fn task_awake_tick(task: &Task) -> Option<usize> {
+    match task.block_control {
+        TaskBlockControl::AwakeTick(tick) => Some(tick),
+        TaskBlockControl::None => None,
+    }
+}
+
+pub fn task_awake_block_control(task: &mut Task) {
+    task.block_control = TaskBlockControl::None;
+}
+
+/// Create the idle task
+pub fn task_idle_task() {
+    let task_name: &str = "Idle task";
+    let func: fn() -> ! = idle_task_fn;
+    let priority: u8 = 0;
+    let size: usize = 0x100;
+    task_create(task_name, func, priority, size);
+}
+
+fn idle_task_fn() -> ! {
+    loop {
+        log!(LogLevel::Debug, "Idle task.");
+        unsafe { enable_and_halt() };
+    }
 }

@@ -6,6 +6,7 @@
 #![deny(clippy::expect_used)]
 #![deny(clippy::todo)]
 #![deny(clippy::unimplemented)]
+#![feature(stmt_expr_attributes)]
 
 // Config module
 pub mod config;
@@ -58,10 +59,9 @@ pub mod tests;
 use core::panic::PanicInfo;
 use logs::LogLevel;
 use mem::mem_kernel_stack_info;
-use primitives::ring_buff::RingBuffer;
 
-// Static buffer to use as a ready queue for task.
-pub static mut BUFFER: RingBuffer<u16, 3> = RingBuffer::init();
+#[cfg(feature = "idle_task")]
+use task::task_idle_task;
 
 #[unsafe(no_mangle)]
 unsafe extern "C" fn main() -> ! {
@@ -74,8 +74,10 @@ unsafe extern "C" fn main() -> ! {
         kernel_stack.bottom
     );
     log!(LogLevel::Info, "LrnRTOS started!");
+    #[cfg(feature = "idle_task")]
+    task_idle_task();
     loop {
-        log!(LogLevel::Debug, "Main loop uptime.");
+        log!(LogLevel::Debug, "Main loop.");
         unsafe {
             arch::traps::interrupt::enable_and_halt();
         }

@@ -6,6 +6,7 @@
   - [Purpose](#purpose)
   - [Structure](#structure)
   - [How task is store](#how-task-is-store)
+  - [Idle task](#idle-task)
   - [Invariants](#invariants)
   - [References](#references)
 <!--toc:end-->
@@ -31,11 +32,20 @@ enum TaskState {
     Terminated,
 }
 
+pub enum TaskBlockControl {
+    // Store the awake tick for task awakening.
+    AwakeTick(usize),
+    // No reason for the task block
+    None,
+}
+
 #[repr(C)]
 struct Task {
     // Arch dependant context, don't handle this field in task, only use struct method when
     // interacting with it.
     context: TaskContext,
+    // Task block control, define the reason the task is blocked.
+    block_control: TaskBlockControl,
     // Fn ptr to task entry point, this must never return.
     // This will surely disappear
     func: fn() -> !,
@@ -53,6 +63,8 @@ pub struct TaskContext {
     pub address_space: [u32; 2],
     pub pc: u32,
     pub sp: u32,
+    pub ra: u32,
+    pub mstatus: u32,
     pub flags: [u8; 3],
     pub instruction_register: u8,
 }
@@ -75,6 +87,12 @@ pub struct TaskList {
     size: u8,
 }
 ```
+
+## Idle task
+
+The idle task is used to ensure that the kernel as always at least one task able to run.
+This task is created at the lowest priority to ensure it does not use any CPU time if there are higher priority application tasks in the run queue.
+It is not possible to update the idle task, it's a static defined task. 
 
 ## Invariants
 

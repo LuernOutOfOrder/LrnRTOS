@@ -17,7 +17,10 @@ pub static LOG_LEVEL: LogLevel = LogLevel::Debug;
 
 // Define the uart address to use in kprint
 pub static KPRINT_ADDRESS: usize = 0x1000_0000;
-
+// ————————————————————————————————————————————————————————————
+// ——————— Define the max priority available for a task ———————
+// ————————————————————————————————————————————————————————————
+pub static TASK_MAX_PRIORITY: usize = 32;
 // ————————————————————————————————————————————————————————————
 // ———————— Define the max size of devices sub-systems ————————
 // ————————————————————————————————————————————————————————————
@@ -35,6 +38,16 @@ pub static FDT_MAX_PROPS: usize = 128;
 // ————————————— Define the max size of Task list —————————————
 // ————————————————————————————————————————————————————————————
 pub static TASK_LIST_MAX_SIZE: usize = 4;
+// ————————————————————————————————————————————————————————————
+// ———— Define the max size of the task run/blocked queue —————
+// ————————————————————————————————————————————————————————————
+// The run queue is len - 1, if the size is 4, it will only use 3 slot in the queue.
+pub static RUN_QUEUE_MAX_SIZE: usize = 3;
+pub static BLOCK_QUEUE_MAX_SIZE: usize = 3;
+// ————————————————————————————————————————————————————————————
+// ————————————— Define the number of CPU core ————————————————
+// ————————————————————————————————————————————————————————————
+pub static CPU_CORE_NUMBER: usize = 1;
 
 // Kernel stack size
 // WARNING

@@ -11,6 +11,7 @@ mod ktime;
 mod mem;
 mod platform;
 mod primitives;
+mod scheduler;
 mod suites;
 mod task;
 
