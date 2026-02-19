@@ -6,7 +6,7 @@ use crate::{
             mtvec_switch_to_direct_mode, mtvec_switch_to_vectored_mode, read_mie_msie,
             read_mie_mtie, trap_entry,
         },
-        trap_frame::{KERNEL_TRAP_FRAME, init_trap_frame},
+        trap_frame::KERNEL_TRAP_FRAME,
     },
     tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
 };
@@ -32,7 +32,7 @@ pub fn test_mtvec_set_vectored_mode() -> u8 {
 
 pub fn test_mtvec_trap_entry() -> u8 {
     let mtvec_trap_entry = mtvec_read_trap_entry();
-    let trap_entry_addr = trap_entry as usize as u32;
+    let trap_entry_addr = trap_entry as *const () as usize as u32;
     mtvec_set_trap_entry();
     let updated_mtvec_trap_entry = mtvec_read_trap_entry();
     if mtvec_trap_entry != 0 {

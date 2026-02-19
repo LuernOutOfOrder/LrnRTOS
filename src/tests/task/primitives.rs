@@ -3,20 +3,19 @@ use crate::{
     arch::{
         helpers::current_cpu_core,
         traps::{
-            disable_interrupts, enable_interrupts,
+            enable_interrupts,
             handler::trap_handler,
-            interrupt::enable_and_halt,
-            trap_frame::{TrapFrame, init_trap_frame},
+            trap_frame::TrapFrame,
         },
     },
     config::TICK_SAFETY_DURATION,
     kprint,
-    ktime::{set_ktime_ms, set_ktime_seconds, tick::get_tick},
+    ktime::set_ktime_seconds,
     scheduler::{BLOCKED_QUEUE, RUN_QUEUE},
     task::{
         CURRENT_TASK_PID, TASK_HANDLER,
         list::task_list_get_task_by_pid,
-        primitives::{delay, sleep, r#yield},
+        primitives::{delay, sleep},
         task_context_switch, task_create,
     },
     test_failed, test_info,
@@ -50,7 +49,6 @@ fn task_testing_sleep() -> ! {
     // Random mepc
     // TODO: improve mepc security in trap handler
     let mepc: usize = 125696;
-    let current_tick = get_tick();
     let mut trap_frame = TrapFrame::init();
     unsafe { trap_handler(mepc, 0, cause, 0, 0, &mut trap_frame) };
     let core: usize = current_cpu_core();
