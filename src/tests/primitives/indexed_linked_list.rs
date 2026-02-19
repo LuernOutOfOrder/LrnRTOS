@@ -1,7 +1,6 @@
 use crate::{
-    kprint_fmt,
     primitives::indexed_linked_list::IndexedLinkedList,
-    test_failed, test_info,
+    test_failed,
     tests::{TEST_MANAGER, TestBehavior, TestCase, TestSuite, TestSuiteBehavior},
 };
 
@@ -111,6 +110,11 @@ pub fn indexed_linked_list_primitive_test_suite() {
             TestCase::init(
                 "IndexedLinkedList get_head_node",
                 test_indexed_linked_list_get_head_node,
+                TestBehavior::Default,
+            ),
+            TestCase::init(
+                "IndexedLinkedList pop",
+                test_indexed_linked_list_pop,
                 TestBehavior::Default,
             ),
         ],
