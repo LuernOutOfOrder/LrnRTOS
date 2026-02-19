@@ -22,7 +22,7 @@ use crate::{
         scheduler::{SCHEDULER_CTX, SchedulerCtx, sched_ctx_restore},
     },
     config::{BLOCK_QUEUE_MAX_SIZE, CPU_CORE_NUMBER, RUN_QUEUE_MAX_SIZE, TASK_MAX_PRIORITY},
-    kprint, kprint_fmt, log,
+    log,
     misc::{clear_reschedule, read_need_reschedule},
     primitives::{bitmap::Bitmap, indexed_linked_list::IndexedLinkedList, ring_buff::RingBuffer},
     task::{
@@ -91,7 +91,7 @@ pub fn scheduler() {
         }
         // Consider the `pid` as init, if wake_up_task.is_none(), we switch on the current task, so
         // we cannot reach this point unless wake_up_task is some and `pid` is set.
-        let mut task = task_list_get_task_by_pid(pid).expect("Failed to get the task by it's pid.");
+        let task = task_list_get_task_by_pid(pid).expect("Failed to get the task by it's pid.");
         let priority: u8 = task_priority(&task);
         task_awake_block_control(task);
         task.state = TaskState::Ready;

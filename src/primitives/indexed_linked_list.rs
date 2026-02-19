@@ -1,16 +1,20 @@
 /*
 File info: IndexedLinkedList primitive type.
 
-Test coverage:
+Test coverage: 80
 
 Tested:
+- push
+- pop
+- get_head
 
 Not tested:
 
 Reasons:
+- Lot of other methods are used in push, pop, and get_head, that why the test coverage is at 80 for me.
 
 Tests files:
-- 'src/tests/primitives/delta_list.rs'
+- 'src/tests/primitives/indexed_linked_list.rs'
 
 References:
 */
@@ -195,7 +199,7 @@ impl<const N: usize> IndexedLinkedList<N> {
 
     /// Take the node from the given index, replace it with None in the list.
     fn take_node(&mut self, idx: usize) -> Option<IndexedLinkedListNode> {
-        let mut node = self.list[idx];
+        let node = self.list[idx];
         if node.is_some() {
             return self.list[idx].take();
         } else {

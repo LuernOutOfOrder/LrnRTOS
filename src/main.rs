@@ -54,7 +54,6 @@ pub mod scheduler;
 pub mod tests;
 
 // Use from modules
-use arch::traps::misc::{read_mie, read_mstatus};
 #[cfg(not(feature = "test"))]
 use core::panic::PanicInfo;
 use logs::LogLevel;

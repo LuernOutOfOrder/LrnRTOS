@@ -19,19 +19,14 @@ Tests files:
 
 use crate::{
     arch::{helpers::current_cpu_core, traps::interrupt::enable_and_halt},
-    kprint, kprint_fmt,
     ktime::{set_ktime_ms, tick::get_tick},
     log,
     logs::LogLevel,
     misc::need_reschedule,
-    scheduler::{BLOCKED_QUEUE, RUN_QUEUE, scheduler},
+    scheduler::{BLOCKED_QUEUE, scheduler},
 };
 
-use super::{
-    TASK_HANDLER, Task, TaskBlockControl, TaskState,
-    list::{task_list_get_task_by_pid, task_list_update_task_by_pid},
-    task_pid,
-};
+use super::{TASK_HANDLER, Task, TaskBlockControl, TaskState, list::task_list_get_task_by_pid};
 
 unsafe extern "C" {
     // Put the current task to sleep until the number of tick given is passed
@@ -90,8 +85,8 @@ pub fn task_awake_blocked(tick: usize) {
         return;
     }
     #[allow(static_mut_refs)]
-    let mut blocked_task = current_blocked_queue.get_head_node();
-    let mut pid: u16;
+    let blocked_task = current_blocked_queue.get_head_node();
+    let pid: u16;
     if blocked_task.is_none() {
         log!(
             LogLevel::Error,
@@ -126,11 +121,9 @@ pub fn task_awake_blocked(tick: usize) {
             if tick >= awake_tick {
                 // push to run queue
                 #[allow(static_mut_refs)]
-                unsafe {
-                    // Set the need reschedule flag, the scheduler will check the block queue to
-                    // awake correctly the task.
-                    need_reschedule();
-                };
+                // Set the need reschedule flag, the scheduler will check the block queue to
+                // awake correctly the task.
+                need_reschedule();
             } else {
                 return;
             }
